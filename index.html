@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Kuis Petualangan Ceria - Website kuis interaktif yang seru untuk anak Sekolah Dasar (SD)">
+  <meta name="theme-color" content="#FFD93D">
+  <title>🌟 Kuis Petualangan Ceria | Kuis Anak SD</title>
+
+  <!-- Ikon tab browser (emoji burung hantu) -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%A6%89%3C/text%3E%3C/svg%3E">
+
+  <!-- Font Poppins (untuk tampilan rapi & mudah dibaca) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- File styling utama -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- =====================================================
+       LAPISAN HIASAN: emoji melayang di latar belakang
+       (diisi otomatis oleh script.js)
+  ====================================================== -->
+  <div class="decor-layer" id="decorLayer" aria-hidden="true"></div>
+
+  <!-- =====================================================
+       LAPISAN KONFETI: muncul saat jawaban benar / hasil keluar
+  ====================================================== -->
+  <div class="confetti-layer" id="confettiLayer" aria-hidden="true"></div>
+
+  <!-- =====================================================
+       FLASH EFEK: kedipan layar hijau (benar) / merah muda (salah)
+  ====================================================== -->
+  <div class="fx-flash" id="fxFlash" aria-hidden="true"><span id="fxEmoji"></span></div>
+
+  <!-- Notifikasi bila JavaScript tidak aktif -->
+  <noscript>
+    <div class="noscript-note">⚠️ Halaman ini membutuhkan JavaScript agar kuis dapat berjalan.</div>
+  </noscript>
+
+  <!-- =========================================================
+       HALAMAN 1: HALAMAN UTAMA (SISWA)
+  ========================================================== -->
+  <section class="page active" id="page-home">
+
+    <!-- Tombol kecil menuju area guru (terpisah dari rute siswa) -->
+    <button class="area-guru" type="button" data-page="page-login">🔐 Area Guru</button>
+
+    <div class="home-inner">
+      <span class="pill-badge">🎓 Belajar Seru untuk Anak SD</span>
+
+      <!-- Judul dengan animasi meloncat (huruf dipisah oleh JS) -->
+      <h1 class="main-title" id="mainTitle">Kuis Petualangan Ceria</h1>
+
+      <p class="home-sub">
+        Ayo uji pengetahuanmu lewat soal-soal seru tentang
+        Matematika, IPA, Bahasa Indonesia, dan umum!
+      </p>
+
+      <!-- Maskot burung hantu lucu (SVG) -->
+      <div class="mascot-wrap">
+        <div class="speech">Halo! Ayo main kuis 👋</div>
+
+        <svg class="mascot" viewBox="0 0 220 210" xmlns="http://www.w3.org/2000/svg"
+             role="img" aria-label="Maskot burung hantu lucu">
+          <!-- Kaki -->
+          <ellipse cx="88" cy="192" rx="17" ry="8" fill="#FFD93D"/>
+          <ellipse cx="132" cy="192" rx="17" ry="8" fill="#FFD93D"/>
+          <!-- Badan -->
+          <ellipse cx="110" cy="120" rx="74" ry="70" fill="#A78BFA"/>
+          <!-- Perut -->
+          <ellipse cx="110" cy="136" rx="48" ry="47" fill="#FFF9F0"/>
+          <!-- Jambul telinga -->
+          <path d="M60 68 L66 30 L92 56 Z" fill="#8B7CF6"/>
+          <path d="M160 68 L154 30 L128 56 Z" fill="#8B7CF6"/>
+          <!-- Sayap -->
+          <path d="M42 112 C28 142 36 170 58 178 C66 156 62 130 60 114 Z" fill="#8B7CF6"/>
+          <path d="M178 112 C192 142 184 170 162 178 C154 156 158 130 160 114 Z" fill="#8B7CF6"/>
+          <!-- Pipi -->
+          <circle cx="64" cy="126" r="9" fill="#FFB3C7" opacity=".85"/>
+          <circle cx="156" cy="126" r="9" fill="#FFB3C7" opacity=".85"/>
+          <!-- Mata -->
+          <circle cx="86" cy="100" r="27" fill="#FFFFFF"/>
+          <circle cx="134" cy="100" r="27" fill="#FFFFFF"/>
+          <circle cx="90" cy="103" r="12" fill="#2F3542"/>
+          <circle cx="130" cy="103" r="12" fill="#2F3542"/>
+          <circle cx="95" cy="97" r="4.5" fill="#FFFFFF"/>
+          <circle cx="135" cy="97" r="4.5" fill="#FFFFFF"/>
+          <!-- Paruh -->
+          <path d="M110 114 L126 126 L110 140 L94 126 Z" fill="#FFD93D" stroke="#F0C419" stroke-width="2"/>
+        </svg>
+
+        <div class="mascot-shadow"></div>
+      </div>
+
+      <!-- Tombol utama memulai kuis -->
+      <button class="btn btn-start" id="btnStart" type="button">🚀 Mulai Bermain</button>
+
+      <!-- 3 kartu fitur -->
+      <div class="home-cards">
+        <div class="mini-card">
+          <span class="mini-emoji">🧠</span>
+          <h3>Soal Seru</h3>
+          <p>Matematika, IPA, Bahasa &amp; Pengetahuan Umum</p>
+        </div>
+        <div class="mini-card">
+          <span class="mini-emoji">⭐</span>
+          <h3>Skor Bintang</h3>
+          <p>Kumpulkan bintang sebagai tanda keberhasilanmu</p>
+        </div>
+        <div class="mini-card">
+          <span class="mini-emoji">🎨</span>
+          <h3>Animasi Ceria</h3>
+          <p>Konfeti, efek pop-up, dan transisi yang mulus</p>
+        </div>
+      </div>
+
+      <footer class="home-footer">Dibuat dengan ❤️ untuk anak-anak Indonesia</footer>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       HALAMAN 2: HALAMAN KUIS (SISWA)
+  ========================================================== -->
+  <section class="page" id="page-quiz">
+    <div class="quiz-shell">
+
+      <!-- Bar atas: tombol home, progress bar, dan skor -->
+      <div class="quiz-top">
+        <button class="icon-btn" type="button" data-page="page-home" title="Kembali ke halaman awal">🏠</button>
+
+        <div class="progress-track" role="progressbar" aria-label="Progres kuis">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <span class="progress-text" id="progressText">1/8</span>
+        <span class="score-chip" id="scoreChip">⭐ 0</span>
+      </div>
+
+      <!-- Kartu pertanyaan -->
+      <div class="question-card" id="questionCard">
+        <span class="subject-badge" id="qSubject">Matematika</span>
+
+        <!-- Tempat gambar / ilustrasi soal (emoji besar) -->
+        <div class="q-image" id="qImage" aria-hidden="true">🧮</div>
+
+        <h2 class="q-text" id="qText">Berapa hasil dari 7 + 8?</h2>
+
+        <!-- Opsi jawaban (dibuat oleh JavaScript) -->
+        <div class="answers" id="answers"></div>
+
+        <!-- Umpan balik benar / salah -->
+        <p class="feedback" id="feedback"></p>
+      </div>
+
+      <!-- Tombol lanjut (muncul setelah menjawab) -->
+      <button class="btn btn-next hidden" id="btnNext" type="button">Lanjut ➡️</button>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       HALAMAN 3: HALAMAN HASIL (SISWA)
+  ========================================================== -->
+  <section class="page" id="page-result">
+    <div class="result-card">
+      <div class="result-emoji" id="resultEmoji">🏆</div>
+      <h2 class="result-title" id="resultTitle">Luar Biasa!</h2>
+
+      <!-- Rating bintang (dibuat oleh JavaScript, muncul satu per satu) -->
+      <div class="star-row" id="starRow" aria-label="Rating bintang"></div>
+
+      <!-- Lingkaran skor akhir -->
+      <div class="score-circle">
+        <strong id="scoreNumber">0</strong>
+        <small id="scoreTotal">benar dari 8</small>
+      </div>
+
+      <!-- Pesan motivasi -->
+      <p class="motivation" id="motivation">Hebat! Terus Belajar ya! ⭐</p>
+
+      <div class="result-btns">
+        <button class="btn btn-start" id="btnReplay" type="button">🔁 Main Lagi</button>
+        <button class="btn btn-ghost" type="button" data-page="page-home">🏠 Halaman Awal</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       HALAMAN 4: LOGIN PENGAJAR (GURU)
+       Dibuka lewat tombol "Area Guru" di pojok halaman utama.
+  ========================================================== -->
+  <section class="page" id="page-login">
+    <button class="icon-btn back-home" type="button" data-page="page-home">← Kembali</button>
+
+    <form class="login-card" id="loginForm" novalidate>
+      <div class="login-avatar">🏫</div>
+      <h2>Masuk Area Guru</h2>
+      <p class="login-sub">Silakan login untuk mengelola daftar kuis</p>
+
+      <!-- Input Username -->
+      <div class="field">
+        <label for="username">Username</label>
+        <div class="input-wrap">
+          <span class="input-icon">👤</span>
+          <input type="text" id="username" name="username"
+                 placeholder="Masukkan username" autocomplete="username">
+        </div>
+      </div>
+
+      <!-- Input Password -->
+      <div class="field">
+        <label for="password">Password</label>
+        <div class="input-wrap">
+          <span class="input-icon">🔒</span>
+          <input type="password" id="password" name="password"
+                 placeholder="Masukkan password" autocomplete="current-password">
+          <button type="button" class="toggle-pass" id="togglePass"
+                  aria-label="Tampilkan password">👁️</button>
+        </div>
+      </div>
+
+      <!-- Pesan error validasi -->
+      <p class="form-error" id="loginError" role="alert"></p>
+
+      <button class="btn btn-login" type="submit">Masuk ➜</button>
+
+      <p class="demo-hint">Demo: username <b>guru</b> • password <b>guru123</b></p>
+    </form>
+  </section>
+
+  <!-- =========================================================
+       HALAMAN 5: DASHBOARD GURU (tampil setelah login berhasil)
+  ========================================================== -->
+  <section class="page" id="page-dashboard">
+    <div class="dash-shell">
+
+      <header class="dash-head">
+        <div>
+          <h2>👋 Halo, Guru!</h2>
+          <p>Berikut ringkasan kuis yang sedang aktif.</p>
+        </div>
+        <button class="btn btn-ghost btn-small" id="btnLogout" type="button">Keluar 🚪</button>
+      </header>
+
+      <!-- Kartu statistik -->
+      <div class="stat-grid">
+        <div class="stat-card">
+          <span>📝</span>
+          <strong id="statTotal">0</strong>
+          <small>Jumlah Soal</small>
+        </div>
+        <div class="stat-card">
+          <span>📚</span>
+          <strong id="statTopics">0</strong>
+          <small>Topik Berbeda</small>
+        </div>
+        <div class="stat-card">
+          <span>🏆</span>
+          <strong id="statLastScore">-</strong>
+          <small>Skor Terakhir Siswa</small>
+        </div>
+      </div>
+
+      <h3 class="dash-title">📖 Daftar Soal</h3>
+
+      <!-- Daftar soal (diisi oleh JavaScript) -->
+      <ol class="question-list" id="questionList"></ol>
+
+      <div class="dash-actions">
+        <button class="btn btn-start" id="btnGuruMulai" type="button">🚀 Mulai Kuis Siswa</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- File logika utama kuis -->
+  <script src="script.js"></script>
+</body>
+</html>
