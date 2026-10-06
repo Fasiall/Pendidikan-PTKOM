@@ -17,6 +17,7 @@
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
     "dotenv": "^18.0.5",
     "embedded-postgres": "^17.10.0-beta.17",
     "express": "^5.2.1",

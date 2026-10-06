@@ -12,9 +12,18 @@
 
 const $ = (sel) => document.querySelector(sel);
 
+/* Bila dibuka lewat Live Server (port 5500) / file://, arahkan API ke backend. */
+const API_BASE =
+  location.port === "5500" || location.protocol === "file:"
+    ? "http://127.0.0.1:3000"
+    : "";
+
 /** Pembungkus fetch + parsing JSON dengan pesan error yang ramah. */
 async function api(path) {
-  const res = await fetch(path, { headers: { Accept: "application/json" } });
+  const res = await fetch(API_BASE + path, {
+    credentials: "include",
+    headers: { Accept: "application/json" }
+  });
   let data = null;
   try { data = await res.json(); } catch (_) { /* bukan JSON */ }
 

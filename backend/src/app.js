@@ -9,6 +9,7 @@
 const express = require("express");
 const session = require("express-session");
 const path = require("path");
+const cors = require("cors");
 
 const config = require("./config");
 const apiRoutes = require("./routes");
@@ -20,6 +21,14 @@ function createApp() {
 
   /* --------------------------- MIDDLEWARE DASAR -------------------------- */
   app.use(express.json({ limit: "1mb" }));
+  /* Izinkan frontend dibuka dari Live Server (5500) / file:// untuk development.
+     credentials: true dibutuhkan agar cookie sesi kuis ikut terkirim. */
+  app.use(
+    cors({
+      origin: true,
+      credentials: true
+    })
+  );
   app.use(
     session({
       name: "kuis.sid",

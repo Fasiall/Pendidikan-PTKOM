@@ -111,6 +111,13 @@ let editingSoalId   = null;
 /* Token JWT pengajar disimpan di localStorage setelah login berhasil. */
 const TOKEN_KEY = "kuis.token";
 
+/* Bila dibuka lewat Live Server (port 5500) / file://, arahkan API ke backend.
+   Pakai 127.0.0.1 agar masih dianggap same-site, jadi cookie sesi kuis terkirim. */
+const API_BASE =
+  location.port === "5500" || location.protocol === "file:"
+    ? "http://127.0.0.1:3000"
+    : "";
+
 const getToken = () => localStorage.getItem(TOKEN_KEY);
 const saveToken = (token) => localStorage.setItem(TOKEN_KEY, token);
 const clearToken = () => localStorage.removeItem(TOKEN_KEY);
@@ -129,8 +136,8 @@ async function api(path, options = {}) {
   const token = getToken();
   if (token) headers.Authorization = "Bearer " + token;
 
-  const res = await fetch(path, {
-    credentials: "same-origin",
+  const res = await fetch(API_BASE + path, {
+    credentials: "include",
     ...options,
     headers
   });
