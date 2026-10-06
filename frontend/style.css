@@ -1360,7 +1360,7 @@ a.btn{ display: inline-block; text-decoration: none; }
 }
 
 .tab-panel{ display: none; }
-.tab-panel.active{ animation: pageIn .4s ease both; }
+.tab-panel.active{ display: block; animation: pageIn .4s ease both; }
 
 /* Grid form + daftar */
 .admin-grid{
