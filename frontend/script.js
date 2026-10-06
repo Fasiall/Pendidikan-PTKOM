@@ -1,12 +1,14 @@
 /* ==========================================================================
    script.js — Kuis Petualangan Ceria (sisi klien / frontend)
 
-   Frontend ini memanggil backend Express (server.js) lewat API:
-     GET  /api/questions        -> daftar soal (tanpa kunci jawaban)
-     POST /api/quiz/start       -> mulai sesi kuis
-     POST /api/quiz/answer      -> kirim jawaban (divalidasi server)
-     POST /api/quiz/submit      -> simpan skor akhir
-     POST /api/login|/api/logout, GET /api/teacher/stats
+   Frontend ini memanggil backend REST API (Express + PostgreSQL):
+     GET  /api/questions             -> daftar soal (tanpa kunci jawaban)
+     POST /api/quiz/start            -> mulai sesi kuis
+     POST /api/quiz/answer           -> kirim jawaban (divalidasi server)
+     POST /api/quiz/submit           -> simpan skor akhir
+     POST /api/auth/login            -> login guru, menerima token JWT
+     GET  /api/teacher/stats         -> dashboard admin (header Bearer)
+     GET  /api/materials             -> daftar materi belajar (halaman materi.html)
 
    Susunan file:
    (1)  Referensi elemen DOM
@@ -56,9 +58,39 @@ const loginError    = $("#loginError");
 
 const questionList  = $("#questionList");
 const resultsList   = $("#resultsList");
+const statMaterials = $("#statMaterials");
 const statTotal     = $("#statTotal");
 const statTopics    = $("#statTopics");
 const statLastScore = $("#statLastScore");
+
+/* Elemen form admin (kelola materi & soal) */
+const materiForm      = $("#materiForm");
+const materiFormTitle = $("#materiFormTitle");
+const materiError     = $("#materiError");
+const mTitle          = $("#mTitle");
+const mSummary        = $("#mSummary");
+const mSubject        = $("#mSubject");
+const mEmoji          = $("#mEmoji");
+const mImage          = $("#mImage");
+const mContent        = $("#mContent");
+const mPublish        = $("#mPublish");
+const btnCancelMateri = $("#btnCancelMateri");
+const materiAdminList = $("#materiAdminList");
+const materiCount     = $("#materiCount");
+
+const soalForm      = $("#soalForm");
+const soalFormTitle = $("#soalFormTitle");
+const soalError     = $("#soalError");
+const qQuestion     = $("#qQuestion");
+const qOptions      = $("#qOptions");
+const qAnswer       = $("#qAnswer");
+const adEmoji       = $("#adEmoji");
+const adSubject     = $("#adSubject");
+const qMaterial     = $("#qMaterial");
+const qFact         = $("#qFact");
+const btnCancelSoal = $("#btnCancelSoal");
+const soalAdminList = $("#soalAdminList");
+const soalCount     = $("#soalCount");
 
 /* =============== (2) STATUS / VARIABEL GLOBAL =========================== */
 let questions   = [];   // daftar soal dari server (tanpa kunci jawaban)
@@ -69,18 +101,40 @@ let lastScore   = null; // skor terakhir (untuk dashboard guru)
 let fxTimer     = null; // timer menyembunyikan flash layar
 let toastTimer  = null; // timer menyembunyikan notifikasi
 
+/* Status form admin: daftar materi + id yang sedang diedit (null = mode tambah) */
+let materiList      = [];
+let editingMateriId = null;
+let editingSoalId   = null;
+
 /* =============== (3) HELPER API + TOAST ================================ */
 
+/* Token JWT pengajar disimpan di localStorage setelah login berhasil. */
+const TOKEN_KEY = "kuis.token";
+
+const getToken = () => localStorage.getItem(TOKEN_KEY);
+const saveToken = (token) => localStorage.setItem(TOKEN_KEY, token);
+const clearToken = () => localStorage.removeItem(TOKEN_KEY);
+
 /**
- * Pembungkus fetch: otomatis parsing JSON dan lempar error
+ * Pembungkus fetch: otomatis parsing JSON, menyertakan token JWT
+ * (Authorization: Bearer) bila sudah login, dan melempar error
  * bila status respons bukan 2xx (err.status berisi kode HTTP).
  */
 async function api(path, options = {}) {
+  const headers = {
+    "Content-Type": "application/json",
+    ...(options.headers || {})
+  };
+
+  const token = getToken();
+  if (token) headers.Authorization = "Bearer " + token;
+
   const res = await fetch(path, {
     credentials: "same-origin",
-    headers: { "Content-Type": "application/json" },
-    ...options
+    ...options,
+    headers
   });
+
   let data = null;
   try { data = await res.json(); } catch (_) { /* respons bukan JSON */ }
   if (!res.ok) {
@@ -163,6 +217,8 @@ function createDecorations() {
 
 /**
  * Memulai kuis: minta sesi baru ke server dan ambil daftar soal.
+ * Bila URL punya parameter ?materi=ID, hanya soal dari materi itu yang muncul
+ * (dipakai tombol "Kerjakan Kuis" di halaman detail materi).
  * Bila server tidak terhubung, tampilkan pesan tanpa crash.
  */
 async function startQuiz() {
@@ -171,12 +227,20 @@ async function startQuiz() {
   btnStart.disabled = true;
   btnStart.textContent = "⏳ Memuat soal...";
 
+  const materialId = Number(new URLSearchParams(location.search).get("materi")) || null;
+  const questionUrl = materialId ? "/api/questions?materialId=" + materialId : "/api/questions";
+
   try {
-    const [startData, list] = await Promise.all([
-      api("/api/quiz/start", { method: "POST" }),
-      api("/api/questions")
+    const [startData, listData] = await Promise.all([
+      api("/api/quiz/start", {
+        method: "POST",
+        body: JSON.stringify(materialId ? { materialId } : {})
+      }),
+      api(questionUrl)
     ]);
-    if (!list.length) throw new Error("Soal masih kosong.");
+
+    const list = Array.isArray(listData) ? listData : listData.questions;
+    if (!list || !list.length) throw new Error("Soal masih kosong.");
 
     questions = list;
     currentIndex = 0;
@@ -184,7 +248,11 @@ async function startQuiz() {
     showPage("page-quiz");
     renderQuestion();
   } catch (err) {
-    showToast("⚠️ Server belum terhubung. Jalankan \"npm start\" lalu muat ulang halaman.");
+    showToast(
+      err.message && err.message !== "Soal masih kosong."
+        ? "⚠️ " + err.message
+        : "⚠️ Server belum terhubung. Jalankan \"npm start\" lalu muat ulang halaman."
+    );
   } finally {
     btnStart.disabled = false;
     btnStart.textContent = labelBefore;
@@ -434,10 +502,13 @@ async function handleLogin(event) {
   }
 
   try {
-    await api("/api/login", {
+    /* Login ke API: server memverifikasi bcrypt lalu mengirim token JWT */
+    const data = await api("/api/auth/login", {
       method: "POST",
       body: JSON.stringify({ username, password })
     });
+    saveToken(data.token);
+
     loginError.classList.remove("show");
     loginError.textContent = "";
     loginForm.reset();
@@ -467,6 +538,7 @@ async function renderDashboard() {
   try {
     const data = await api("/api/teacher/stats");
 
+    statMaterials.textContent = data.totalMaterials ?? 0;
     statTotal.textContent = data.totalQuestions;
     statTopics.textContent = data.topics;
     statLastScore.textContent = data.lastScore || "-";
@@ -499,14 +571,368 @@ async function renderDashboard() {
         resultsList.appendChild(li);
       });
     }
+
+    /* Muat data form admin (materi & soal) */
+    await loadAdminData();
   } catch (err) {
     if (err.status === 401) {
+      clearToken();
       showPage("page-login");
       showLoginError("Sesi berakhir, silakan login lagi.");
     } else {
       showToast("Gagal memuat data guru. Coba muat ulang halaman.");
     }
   }
+}
+
+/* =============== (9b) KELOLA MATERI & SOAL (ADMIN) ==================== */
+
+/** Beralih antar tab dashboard (Materi / Soal / Riwayat). */
+function switchTab(tabId) {
+  document.querySelectorAll(".dash-tab").forEach((tab) => {
+    tab.classList.toggle("active", tab.dataset.tab === tabId);
+  });
+  document.querySelectorAll(".tab-panel").forEach((panel) => {
+    panel.classList.toggle("active", panel.id === tabId);
+  });
+}
+
+/** Pesan error kecil di dalam form admin. */
+function showFormError(box, message) {
+  box.textContent = message || "";
+  box.classList.toggle("show", Boolean(message));
+}
+
+/** Ambil semua materi + soal (endpoint khusus pengajar, butuh token). */
+async function loadAdminData() {
+  try {
+    const [materiData, soalData] = await Promise.all([
+      api("/api/materials/manage"),
+      api("/api/questions/manage")
+    ]);
+
+    materiList = materiData.materials || [];
+    renderMateriAdmin();
+    renderSoalAdmin(soalData.questions || []);
+    fillMaterialSelect();
+  } catch (err) {
+    if (err.status === 401) return; // biarkan renderDashboard yang menangani
+    showToast("Gagal memuat data admin.");
+  }
+}
+
+/* ------------------------- DAFTAR MATERI ------------------------------- */
+
+function renderMateriAdmin() {
+  materiCount.textContent = materiList.length;
+  materiAdminList.innerHTML = "";
+
+  if (!materiList.length) {
+    materiAdminList.innerHTML =
+      '<li class="admin-empty">Belum ada materi. Buat materi pertama lewat form di samping 👉</li>';
+    return;
+  }
+
+  materiList.forEach((material, index) => {
+    const li = document.createElement("li");
+    li.style.animationDelay = index * 0.05 + "s";
+    li.innerHTML =
+      '<span class="admin-thumb">' +
+        (material.image_url
+          ? '<img src="' + material.image_url + '" alt="">'
+          : material.emoji || "📘") +
+      "</span>" +
+      '<div class="admin-info">' +
+        "<strong>" + material.title + "</strong>" +
+        "<small>" +
+          '<span class="tag' + (material.is_published ? "" : " warn") + '">' +
+            (material.is_published ? "Publish" : "Draf") +
+          "</span>" +
+          (material.subject || "Umum") + " · " + material.question_count + " soal" +
+        "</small>" +
+      "</div>" +
+      '<div class="admin-actions">' +
+        '<button class="icon-mini edit" type="button" title="Ubah materi" data-action="edit" data-id="' + material.id + '">✏️</button>' +
+        '<button class="icon-mini" type="button" title="Publish / draf" data-action="toggle" data-id="' + material.id + '">' +
+          (material.is_published ? "🙈" : "✅") + "</button>" +
+        '<button class="icon-mini danger" type="button" title="Hapus materi" data-action="delete" data-id="' + material.id + '">🗑️</button>' +
+      "</div>";
+
+    materiAdminList.appendChild(li);
+  });
+}
+
+/** Isi form materi dari data yang dipilih (mode ubah). */
+function editMateri(material) {
+  editingMateriId = material.id;
+  materiFormTitle.textContent = "✏️ Ubah Materi: " + material.title;
+  mTitle.value = material.title;
+  mSummary.value = material.summary || "";
+  mSubject.value = material.subject || "";
+  mEmoji.value = material.emoji || "📘";
+  mImage.value = material.image_url || "";
+  mContent.value = material.content || "";
+  mPublish.checked = material.is_published;
+  btnCancelMateri.hidden = false;
+  showFormError(materiError, "");
+  switchTab("tabMateri");
+  materiForm.scrollIntoView({ behavior: "smooth", block: "center" });
+  mTitle.focus();
+}
+
+/** Kembali ke mode tambah materi. */
+function resetMateriForm() {
+  editingMateriId = null;
+  materiFormTitle.textContent = "➕ Tambah Materi Baru";
+  materiForm.reset();
+  mEmoji.value = "📘";
+  mPublish.checked = true;
+  btnCancelMateri.hidden = true;
+  showFormError(materiError, "");
+}
+
+/* --------------------------- DAFTAR SOAL -------------------------------- */
+
+function renderSoalAdmin(questions) {
+  soalCount.textContent = questions.length;
+  soalAdminList.innerHTML = "";
+
+  if (!questions.length) {
+    soalAdminList.innerHTML =
+      '<li class="admin-empty">Belum ada soal. Buat soal pertama lewat form di samping 👉</li>';
+    return;
+  }
+
+  questions.forEach((question, index) => {
+    const li = document.createElement("li");
+    li.style.animationDelay = index * 0.05 + "s";
+    li.innerHTML =
+      '<span class="admin-thumb">' + (question.image || "❓") + "</span>" +
+      '<div class="admin-info">' +
+        "<strong>" + question.question + "</strong>" +
+        "<small>" +
+          '<span class="tag">' + (question.subject || "Umum") + "</span>" +
+          (question.material_title
+            ? "📚 " + question.material_title
+            : "Tanpa materi") +
+        "</small>" +
+      "</div>" +
+      '<div class="admin-actions">' +
+        '<button class="icon-mini edit" type="button" title="Ubah soal" data-action="edit-q" data-id="' + question.id + '">✏️</button>' +
+        '<button class="icon-mini danger" type="button" title="Hapus soal" data-action="delete-q" data-id="' + question.id + '">🗑️</button>' +
+      "</div>";
+
+    soalAdminList.appendChild(li);
+  });
+}
+
+/** Isi form soal dari data yang dipilih (mode ubah). */
+function editSoal(question) {
+  editingSoalId = question.id;
+  soalFormTitle.textContent = "✏️ Ubah Soal";
+  qQuestion.value = question.question;
+  qOptions.value = (question.options || []).join("\n");
+  qAnswer.value = (question.answer ?? 0) + 1; // UI memakai nomor mulai dari 1
+  adEmoji.value = question.image || "❓";
+  adSubject.value = question.subject || "";
+  qMaterial.value = question.material_id || "";
+  qFact.value = question.fact || "";
+  btnCancelSoal.hidden = false;
+  showFormError(soalError, "");
+  switchTab("tabSoal");
+  soalForm.scrollIntoView({ behavior: "smooth", block: "center" });
+  qQuestion.focus();
+}
+
+/** Kembali ke mode tambah soal. */
+function resetSoalForm() {
+  editingSoalId = null;
+  soalFormTitle.textContent = "➕ Tambah Soal Baru";
+  soalForm.reset();
+  adEmoji.value = "❓";
+  qAnswer.value = "1";
+  btnCancelSoal.hidden = true;
+  showFormError(soalError, "");
+}
+
+/** Isi dropdown pemilihan materi pada form soal. */
+function fillMaterialSelect() {
+  const current = qMaterial.value;
+  qMaterial.innerHTML =
+    '<option value="">— Belum terhubung materi —</option>' +
+    materiList.map((m) =>
+      '<option value="' + m.id + '">' + m.title + "</option>"
+    ).join("");
+  if (current) qMaterial.value = current;
+}
+
+/* ---------------------- EVENT: SUBMIT & KLIK --------------------------- */
+
+function bindAdminEvents() {
+  /* Tab dashboard */
+  document.querySelectorAll(".dash-tab").forEach((tab) => {
+    tab.addEventListener("click", () => switchTab(tab.dataset.tab));
+  });
+
+  /* Simpan materi (tambah / ubah) */
+  materiForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const payload = {
+      title: mTitle.value.trim(),
+      summary: mSummary.value.trim(),
+      subject: mSubject.value.trim(),
+      emoji: mEmoji.value.trim() || "📘",
+      image_url: mImage.value.trim(),
+      content: mContent.value,
+      is_published: mPublish.checked
+    };
+
+    if (!payload.title || !payload.content) {
+      showFormError(materiError, "Judul dan isi materi wajib diisi.");
+      return;
+    }
+
+    try {
+      if (editingMateriId) {
+        await api("/api/materials/" + editingMateriId, {
+          method: "PUT",
+          body: JSON.stringify(payload)
+        });
+        showToast("✅ Materi berhasil diperbarui.");
+      } else {
+        await api("/api/materials", {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+        showToast("✅ Materi baru berhasil ditambahkan.");
+      }
+
+      resetMateriForm();
+      await renderDashboard();
+    } catch (err) {
+      showFormError(materiError, err.message);
+    }
+  });
+
+  btnCancelMateri.addEventListener("click", resetMateriForm);
+
+  /* Aksi pada daftar materi (ubah / publish / hapus) */
+  materiAdminList.addEventListener("click", async (event) => {
+    const button = event.target.closest("button[data-action]");
+    if (!button) return;
+
+    const id = Number(button.dataset.id);
+    const material = materiList.find((item) => item.id === id);
+    if (!material) return;
+
+    try {
+      if (button.dataset.action === "edit") {
+        editMateri(material);
+      } else if (button.dataset.action === "toggle") {
+        await api("/api/materials/" + id + "/publish", {
+          method: "PATCH",
+          body: JSON.stringify({ is_published: !material.is_published })
+        });
+        showToast(material.is_published
+          ? "📄 Materi dipindahkan ke draf."
+          : "✅ Materi dipublikasikan untuk siswa.");
+        await loadAdminData();
+      } else if (button.dataset.action === "delete") {
+        if (!confirm('Hapus materi "' + material.title + '" beserta datanya?')) return;
+        await api("/api/materials/" + id, { method: "DELETE" });
+        showToast("🗑️ Materi dihapus.");
+        if (editingMateriId === id) resetMateriForm();
+        await loadAdminData();
+        await renderDashboard();
+      }
+    } catch (err) {
+      showToast(err.message);
+    }
+  });
+
+  /* Simpan soal (tambah / ubah) */
+  soalForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const options = qOptions.value
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean);
+    const answerIndex = Number(qAnswer.value) - 1; // UI 1-based -> API 0-based
+
+    if (!qQuestion.value.trim()) {
+      showFormError(soalError, "Pertanyaan wajib diisi.");
+      return;
+    }
+    if (options.length < 2) {
+      showFormError(soalError, "Pilihan jawaban minimal 2 baris (satu per baris).");
+      return;
+    }
+    if (answerIndex < 0 || answerIndex >= options.length) {
+      showFormError(soalError, "Nomor jawaban benar harus antara 1 dan " + options.length + ".");
+      return;
+    }
+
+    const payload = {
+      question: qQuestion.value.trim(),
+      options,
+      answer: answerIndex,
+      image: adEmoji.value.trim(),
+      subject: adSubject.value.trim(),
+      fact: qFact.value.trim(),
+      materialId: qMaterial.value ? Number(qMaterial.value) : null
+    };
+
+    try {
+      if (editingSoalId) {
+        await api("/api/questions/" + editingSoalId, {
+          method: "PUT",
+          body: JSON.stringify(payload)
+        });
+        showToast("✅ Soal berhasil diperbarui.");
+      } else {
+        await api("/api/questions", {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+        showToast("✅ Soal baru berhasil ditambahkan.");
+      }
+
+      resetSoalForm();
+      await renderDashboard();
+    } catch (err) {
+      showFormError(soalError, err.message);
+    }
+  });
+
+  btnCancelSoal.addEventListener("click", resetSoalForm);
+
+  /* Aksi pada daftar soal (ubah / hapus) */
+  soalAdminList.addEventListener("click", async (event) => {
+    const button = event.target.closest("button[data-action]");
+    if (!button) return;
+
+    const id = Number(button.dataset.id);
+    const action = button.dataset.action;
+
+    try {
+      if (action === "edit-q") {
+        const data = await api("/api/questions/manage");
+        const question = (data.questions || []).find((item) => item.id === id);
+        if (question) editSoal(question);
+      } else if (action === "delete-q") {
+        if (!confirm("Hapus soal ini?")) return;
+        await api("/api/questions/" + id, { method: "DELETE" });
+        showToast("🗑️ Soal dihapus.");
+        if (editingSoalId === id) resetSoalForm();
+        await loadAdminData();
+        await renderDashboard();
+      }
+    } catch (err) {
+      showToast(err.message);
+    }
+  });
 }
 
 /* =============== (10) INISIALISASI PROGRAM ============================ */
@@ -524,10 +950,14 @@ function init() {
   /* Tombol lanjut */
   btnNext.addEventListener("click", nextQuestion);
 
+  /* Form admin: tab, materi, dan soal */
+  bindAdminEvents();
+
   /* Form login guru */
   loginForm.addEventListener("submit", handleLogin);
   $("#btnLogout").addEventListener("click", async () => {
-    try { await api("/api/logout", { method: "POST" }); } catch (_) { /* abaikan */ }
+    try { await api("/api/auth/logout", { method: "POST" }); } catch (_) { /* abaikan */ }
+    clearToken();
     loginForm.reset();
     loginError.classList.remove("show");
     showPage("page-home");

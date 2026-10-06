@@ -99,6 +99,11 @@
       <!-- Tombol utama memulai kuis -->
       <button class="btn btn-start" id="btnStart" type="button">🚀 Mulai Bermain</button>
 
+      <!-- Pintasan ke halaman materi belajar (dibaca dulu sebelum kuis) -->
+      <div>
+        <a class="btn btn-materi" href="materi.html">📚 Baca Materi Belajar</a>
+      </div>
+
       <!-- 3 kartu fitur -->
       <div class="home-cards">
         <div class="mini-card">
@@ -248,12 +253,17 @@
       <!-- Kartu statistik -->
       <div class="stat-grid">
         <div class="stat-card">
+          <span>📚</span>
+          <strong id="statMaterials">0</strong>
+          <small>Materi Belajar</small>
+        </div>
+        <div class="stat-card">
           <span>📝</span>
           <strong id="statTotal">0</strong>
           <small>Jumlah Soal</small>
         </div>
         <div class="stat-card">
-          <span>📚</span>
+          <span>🏷️</span>
           <strong id="statTopics">0</strong>
           <small>Topik Berbeda</small>
         </div>
@@ -264,19 +274,159 @@
         </div>
       </div>
 
-      <h3 class="dash-title">📖 Daftar Soal</h3>
+      <!-- Tab navigasi dashboard -->
+      <nav class="dash-tabs" role="tablist">
+        <button class="dash-tab active" type="button" data-tab="tabMateri">📚 Materi</button>
+        <button class="dash-tab" type="button" data-tab="tabSoal">📝 Soal</button>
+        <button class="dash-tab" type="button" data-tab="tabRiwayat">📊 Riwayat</button>
+      </nav>
 
-      <!-- Daftar soal (diisi oleh JavaScript) -->
-      <ol class="question-list" id="questionList"></ol>
+      <!-- ================= TAB 1: KELOLA MATERI ================= -->
+      <section class="tab-panel active" id="tabMateri">
+        <div class="admin-grid">
 
-      <h3 class="dash-title">📊 Riwayat Skor Siswa</h3>
+          <!-- Form tambah / ubah materi -->
+          <form class="admin-card" id="materiForm" novalidate>
+            <h4 id="materiFormTitle">➕ Tambah Materi Baru</h4>
 
-      <!-- Riwayat skor dari database (diisi oleh JavaScript) -->
-      <ul class="results-list" id="resultsList"></ul>
+            <div class="field">
+              <label for="mTitle">Judul Materi</label>
+              <input type="text" id="mTitle" placeholder="Mis. Bangun Datar di Sekitar Kita" maxlength="160">
+            </div>
 
-      <div class="dash-actions">
-        <button class="btn btn-start" id="btnGuruMulai" type="button">🚀 Mulai Kuis Siswa</button>
-      </div>
+            <div class="field">
+              <label for="mSummary">Deskripsi Singkat</label>
+              <input type="text" id="mSummary" placeholder="Satu kalimat yang bikin penasaran" maxlength="300">
+            </div>
+
+            <div class="admin-row">
+              <div class="field">
+                <label for="mSubject">Mapel</label>
+                <input type="text" id="mSubject" placeholder="Mis. Matematika" list="subjectList">
+              </div>
+              <div class="field field-narrow">
+                <label for="mEmoji">Emoji</label>
+                <input type="text" id="mEmoji" value="📘" maxlength="4">
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="mImage">URL Gambar / Ilustrasi</label>
+              <input type="url" id="mImage" placeholder="https://.../gambar.jpg (opsional)">
+            </div>
+
+            <div class="field">
+              <label for="mContent">Isi Materi (teks panjang / HTML)</label>
+              <textarea id="mContent" rows="7"
+                placeholder="<h2>Judul</h2><p>Tulis penjelasan untuk siswa di sini...</p>"></textarea>
+            </div>
+
+            <label class="check-line">
+              <input type="checkbox" id="mPublish" checked>
+              <span>Publikasikan untuk siswa</span>
+            </label>
+
+            <div class="form-actions">
+              <button class="btn btn-small" id="btnSaveMateri" type="submit">💾 Simpan Materi</button>
+              <button class="btn btn-ghost btn-small" id="btnCancelMateri" type="button" hidden>Batal Edit</button>
+            </div>
+            <p class="form-error" id="materiError" role="alert"></p>
+          </form>
+
+          <!-- Daftar materi + aksi ubah/hapus -->
+          <div class="admin-card">
+            <h4>📖 Daftar Materi <span class="count-chip" id="materiCount">0</span></h4>
+            <ul class="admin-list" id="materiAdminList"></ul>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ================= TAB 2: KELOLA SOAL ================= -->
+      <section class="tab-panel" id="tabSoal">
+        <div class="admin-grid">
+
+          <!-- Form tambah / ubah soal -->
+          <form class="admin-card" id="soalForm" novalidate>
+            <h4 id="soalFormTitle">➕ Tambah Soal Baru</h4>
+
+            <div class="field">
+              <label for="qQuestion">Pertanyaan</label>
+              <textarea id="qQuestion" rows="3" placeholder="Mis. Berapa hasil dari 12 + 7 ?"></textarea>
+            </div>
+
+            <div class="field">
+              <label for="qOptions">Pilihan Jawaban (satu per baris)</label>
+              <textarea id="qOptions" rows="4" placeholder="19&#10;20&#10;21&#10;22"></textarea>
+            </div>
+
+            <div class="admin-row">
+              <div class="field">
+                <label for="qAnswer">Nomor Jawaban Benar</label>
+                <input type="number" id="qAnswer" min="1" max="5" value="1">
+              </div>
+              <div class="field field-narrow">
+                <label for="qImage">Emoji</label>
+                <input type="text" id="adEmoji" value="❓" maxlength="4">
+              </div>
+            </div>
+
+            <div class="admin-row">
+              <div class="field">
+                <label for="qSubject">Mapel</label>
+                <input type="text" id="adSubject" placeholder="Mis. IPA" list="subjectList">
+              </div>
+              <div class="field">
+                <label for="qMaterial">Terhubung ke Materi</label>
+                <select id="qMaterial"></select>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="qFact">Info Singkat (tampil setelah siswa menjawab)</label>
+              <input type="text" id="qFact" placeholder="Mis. 12 + 7 = 19">
+            </div>
+
+            <div class="form-actions">
+              <button class="btn btn-small" id="btnSaveSoal" type="submit">💾 Simpan Soal</button>
+              <button class="btn btn-ghost btn-small" id="btnCancelSoal" type="button" hidden>Batal Edit</button>
+            </div>
+            <p class="form-error" id="soalError" role="alert"></p>
+          </form>
+
+          <!-- Daftar soal + aksi ubah/hapus -->
+          <div class="admin-card">
+            <h4>📝 Daftar Soal <span class="count-chip" id="soalCount">0</span></h4>
+            <ul class="admin-list" id="soalAdminList"></ul>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ================= TAB 3: RIWAYAT & STATISTIK ================= -->
+      <section class="tab-panel" id="tabRiwayat">
+        <h3 class="dash-title">📖 Daftar Soal</h3>
+
+        <!-- Daftar soal (diisi oleh JavaScript) -->
+        <ol class="question-list" id="questionList"></ol>
+
+        <h3 class="dash-title">📊 Riwayat Skor Siswa</h3>
+
+        <!-- Riwayat skor dari database (diisi oleh JavaScript) -->
+        <ul class="results-list" id="resultsList"></ul>
+
+        <div class="dash-actions">
+          <button class="btn btn-start" id="btnGuruMulai" type="button">🚀 Mulai Kuis Siswa</button>
+        </div>
+      </section>
+
+      <!-- Datalist sederhana agar peta mapel konsisten -->
+      <datalist id="subjectList">
+        <option value="Matematika"></option>
+        <option value="IPA"></option>
+        <option value="Bahasa Indonesia"></option>
+        <option value="Pengetahuan Umum"></option>
+      </datalist>
     </div>
   </section>
 

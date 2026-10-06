@@ -1,10 +1,8 @@
 # Dependensi
 node_modules/
 
-# Database (dibuat otomatis saat pertama kali server dijalankan)
-quiz.db
-quiz.db-shm
-quiz.db-wal
+# Database PostgreSQL embedded (dibuat otomatis saat pertama kali server dijalankan)
+backend/.pgdata/
 
 # File sistem / editor
 .DS_Store

@@ -1,27 +1,14 @@
 {
-  "name": "kuis-petualangan-ceria",
+  "name": "pendidikan-ptkom",
   "version": "1.0.0",
-  "description": "Website kuis interaktif anak SD (Express + SQLite)",
-  "main": "server.js",
+  "description": "Website kuis interaktif anak SD — backend/ (Express + SQLite) dan frontend/ (HTML/CSS/JS)",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "install-app": "npm --prefix backend install",
+    "start": "npm --prefix backend start"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Fasiall/Pendidikan-PTKOM.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/Fasiall/Pendidikan-PTKOM/issues"
-  },
-  "homepage": "https://github.com/Fasiall/Pendidikan-PTKOM#readme",
-  "dependencies": {
-    "bcryptjs": "^3.0.3",
-    "express": "^5.2.1",
-    "express-session": "^1.19.0"
-  }
+  "license": "ISC"
 }

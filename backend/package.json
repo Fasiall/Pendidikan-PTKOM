@@ -1,0 +1,30 @@
+{
+  "name": "kuis-petualangan-ceria-backend",
+  "version": "2.0.0",
+  "description": "RESTful API backend untuk website kuis & materi belajar anak SD (Express + PostgreSQL)",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "reset-db": "node src/db/reset.js",
+    "test": "node --test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Fasiall/Pendidikan-PTKOM.git"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^18.0.5",
+    "embedded-postgres": "^17.10.0-beta.17",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.23.1"
+  },
+  "allowScripts": {
+    "@embedded-postgres/linux-x64@17.10.0-beta.17": true
+  }
+}
