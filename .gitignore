@@ -1,0 +1,12 @@
+# Dependensi
+node_modules/
+
+# Database (dibuat otomatis saat pertama kali server dijalankan)
+quiz.db
+quiz.db-shm
+quiz.db-wal
+
+# File sistem / editor
+.DS_Store
+*.log
+.env

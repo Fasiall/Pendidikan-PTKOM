@@ -269,11 +269,19 @@
       <!-- Daftar soal (diisi oleh JavaScript) -->
       <ol class="question-list" id="questionList"></ol>
 
+      <h3 class="dash-title">📊 Riwayat Skor Siswa</h3>
+
+      <!-- Riwayat skor dari database (diisi oleh JavaScript) -->
+      <ul class="results-list" id="resultsList"></ul>
+
       <div class="dash-actions">
         <button class="btn btn-start" id="btnGuruMulai" type="button">🚀 Mulai Kuis Siswa</button>
       </div>
     </div>
   </section>
+
+  <!-- Notifikasi melayang (error/info dari server) -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <!-- File logika utama kuis -->
   <script src="script.js"></script>
