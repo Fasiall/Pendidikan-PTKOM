@@ -213,11 +213,11 @@
 
       <!-- Input Username -->
       <div class="field">
-        <label for="username">Username atau email</label>
+        <label for="username">Username</label>
         <div class="input-wrap">
           <span class="input-icon">👤</span>
           <input type="text" id="username" name="username"
-                 placeholder="Masukkan username atau email" autocomplete="username">
+                 placeholder="Masukkan username" autocomplete="username">
         </div>
       </div>
 
@@ -238,9 +238,7 @@
 
       <button class="btn btn-login" type="submit">Masuk ➜</button>
 
-      <p class="register-link">Belum punya akun? <a href="register.html">Daftar di sini</a></p>
-
-      <p class="demo-hint">Demo: username/email <b>guru</b> • password <b>guru123</b> • email <b>guru@example.com</b></p>
+      <p class="demo-hint">Demo: username <b>guru</b> • password <b>guru123</b></p>
     </form>
   </section>
 

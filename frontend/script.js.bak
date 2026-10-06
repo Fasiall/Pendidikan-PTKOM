@@ -7,7 +7,6 @@
      POST /api/quiz/answer           -> kirim jawaban (divalidasi server)
      POST /api/quiz/submit           -> simpan skor akhir
      POST /api/auth/login            -> login guru, menerima token JWT
-     POST /api/auth/register         -> daftar akun baru
      GET  /api/teacher/stats         -> dashboard admin (header Bearer)
      GET  /api/materials             -> daftar materi belajar (halaman materi.html)
 
@@ -21,8 +20,7 @@
    (7)  Animasi: konfeti, flash layar, skor berjalan
    (8)  Halaman hasil (bintang + pesan motivasi)
    (9)  Login & dashboard guru
-   (10) Registrasi & login guru
-   (11) Inisialisasi program
+   (10) Inisialisasi program
    ========================================================================== */
 
 /* =============== (1) REFERENSI ELEMEN DOM ============================== */
@@ -57,15 +55,6 @@ const usernameInput = $("#username");
 const passwordInput = $("#password");
 const togglePass    = $("#togglePass");
 const loginError    = $("#loginError");
-
-const registerForm  = $("#registerForm");
-const regUsernameInput = $("#regUsername");
-const regFullNameInput = $("#regFullName");
-const regEmailInput = $("#regEmail");
-const regPasswordInput = $("#regPassword");
-const regConfirmPasswordInput = $("#regConfirmPassword");
-const regTogglePass   = $("#toggleRegPass");
-const registerError   = $("#registerError");
 
 const questionList  = $("#questionList");
 const resultsList   = $("#resultsList");
@@ -208,7 +197,7 @@ function splitTitle() {
   [...text].forEach((char, index) => {
     const span = document.createElement("span");
     span.className = "t-letter";
-    span.textContent = char === " " ? " " : char;
+    span.textContent = char === " " ? "\u00A0" : char;
     span.style.color = colors[index % colors.length];
     span.style.animationDelay = (index * 0.08) + "s";
     titleEl.appendChild(span);
@@ -515,11 +504,11 @@ function renderResult(finalScore, total) {
 async function handleLogin(event) {
   event.preventDefault();
 
-  const usernameOrEmail = usernameInput.value.trim();
+  const username = usernameInput.value.trim();
   const password = passwordInput.value;
 
-  if (!usernameOrEmail || !password) {
-    showLoginError("Username/email dan password wajib diisi!");
+  if (!username || !password) {
+    showLoginError("Username dan password wajib diisi!");
     shakeForm(loginForm);
     return;
   }
@@ -528,7 +517,7 @@ async function handleLogin(event) {
     /* Login ke API: server memverifikasi bcrypt lalu mengirim token JWT */
     const data = await api("/api/auth/login", {
       method: "POST",
-      body: JSON.stringify({ usernameOrEmail, password })
+      body: JSON.stringify({ username, password })
     });
     saveToken(data.token);
 
@@ -543,69 +532,10 @@ async function handleLogin(event) {
   }
 }
 
-/** Menampilkan pesan error validasi login. */
+/** Menampilkan pesan error validasi. */
 function showLoginError(message) {
   loginError.textContent = message;
   loginError.classList.add("show");
-}
-
-/** Validasi registrasi ke server: benar -> login, salah -> efek getar. */
-async function handleRegister(event) {
-  event.preventDefault();
-
-  const username = regUsernameInput.value.trim();
-  const fullName = regFullNameInput.value.trim();
-  const email = regEmailInput.value.trim();
-  const password = regPasswordInput.value;
-  const confirmPassword = regConfirmPasswordInput.value;
-
-  if (!username || !fullName || !email || !password || !confirmPassword) {
-    showRegisterError("Semua field wajib diisi!");
-    shakeForm(registerForm);
-    return;
-  }
-
-  if (password !== confirmPassword) {
-    showRegisterError("Password dan konfirmasi password tidak cocok");
-    shakeForm(registerForm);
-    return;
-  }
-
-  // Validasi format email sederhana
-  const emailRegex = /^\S+@\S+\.\S+$/;
-  if (!emailRegex.test(email)) {
-    showRegisterError("Format email tidak valid");
-    shakeForm(registerForm);
-    return;
-  }
-
-  try {
-    const data = await api("/api/auth/register", {
-      method: "POST",
-      body: JSON.stringify({
-        username,
-        password,
-        confirmPassword,
-        fullName,
-        email
-      })
-    });
-    // Jika registrasi berhasil, langsung login otomatis?
-    // Atau kita bisa alihkan ke halaman login dengan pesan sukses.
-    // Untuk saat ini, kita akan alihkan ke halaman login dan beri tahu pengguna bahwa registrasi berhasil.
-    showToast("Registrasi berhasil! Silakan login.");
-    registerForm.reset();
-    showPage("page-login"); // Alihkan ke halaman login
-  } catch (err) {
-    showRegisterError(err.message || "Registrasi gagal, coba lagi.");
-    shakeForm(registerForm);
-  }
-}
-
-/** Menampilkan pesan error validasi registrasi. */
-function showRegisterError(message) {
-  registerError.textContent = message;
-  registerError.classList.add("show");
 }
 
 /** Mengguncang form saat validasi gagal (efek shake). */
@@ -1017,28 +947,7 @@ function bindAdminEvents() {
   });
 }
 
-/* =============== (10) REGISTRASI & LOGIN GURU ========================= */
-
-/* Tampilkan/sembunyikan password untuk login */
-if (togglePass) {
-  togglePass.addEventListener("click", () => {
-    const isPassword = passwordInput.type === "password";
-    passwordInput.type = isPassword ? "text" : "password";
-    togglePass.textContent = isPassword ? "🙈" : "👁️";
-  });
-}
-
-/* Tampilkan/sembunyikan password untuk registrasi */
-if (regTogglePass) {
-  regTogglePass.addEventListener("click", () => {
-    const isPassword = regPasswordInput.type === "password";
-    regPasswordInput.type = isPassword ? "text" : "password";
-    regConfirmPasswordInput.type = isPassword ? "text" : "password";
-    regTogglePass.textContent = isPassword ? "🙈" : "👁️";
-  });
-}
-
-/* =============== (11) INISIALISASI PROGRAM ============================ */
+/* =============== (10) INISIALISASI PROGRAM ============================ */
 
 /** Mempersiapkan halaman saat dokumen selesai dimuat. */
 function init() {
@@ -1057,27 +966,21 @@ function init() {
   bindAdminEvents();
 
   /* Form login guru */
-  if (loginForm) {
-    loginForm.addEventListener("submit", handleLogin);
-  }
+  loginForm.addEventListener("submit", handleLogin);
+  $("#btnLogout").addEventListener("click", async () => {
+    try { await api("/api/auth/logout", { method: "POST" }); } catch (_) { /* abaikan */ }
+    clearToken();
+    loginForm.reset();
+    loginError.classList.remove("show");
+    showPage("page-home");
+  });
 
-  /* Form registrasi guru */
-  if (registerForm) {
-    registerForm.addEventListener("submit", handleRegister);
-  }
-
-  /* Tombol logout (ada di halaman dashboard) */
-  const btnLogout = $("#btnLogout");
-  if (btnLogout) {
-    btnLogout.addEventListener("click", async () => {
-      try { await api("/api/auth/logout", { method: "POST" }); } catch (_) { /* abaikan */ }
-      clearToken();
-      if (loginForm) loginForm.reset();
-      loginError.classList.remove("show");
-      if (registerError) registerError.classList.remove("show");
-      showPage("page-home");
-    });
-  }
+  /* Tampilkan/sembunyikan password */
+  togglePass.addEventListener("click", () => {
+    const isPassword = passwordInput.type === "password";
+    passwordInput.type = isPassword ? "text" : "password";
+    togglePass.textContent = isPassword ? "🙈" : "👁️";
+  });
 
   /* Dukungan keyboard: tekan 1-4 untuk memilih opsi, Enter untuk lanjut */
   document.addEventListener("keydown", (event) => {

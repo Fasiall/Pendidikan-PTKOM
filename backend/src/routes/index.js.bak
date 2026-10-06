@@ -53,7 +53,6 @@ router.get(
 
 /* ------------------------------- AUTH ----------------------------------- */
 router.post("/auth/login", authController.login);
-router.post("/auth/register", authController.register);
 router.get("/auth/me", authenticate(), authController.me);
 router.post("/auth/logout", authController.logout);
 
