@@ -35,4 +35,11 @@ function toBool(value, fallback = false) {
   return ["true", "1", "yes"].includes(String(value).toLowerCase());
 }
 
-module.exports = { requireFields, toInt, toBool };
+/** Normalisasi nama siswa: trim, rapatkan spasi, batasi panjang. */
+function sanitizeStudentName(value, { max = 60 } = {}) {
+  if (value === undefined || value === null) return "";
+  const cleaned = String(value).replace(/\s+/g, " ").trim();
+  return cleaned.slice(0, max);
+}
+
+module.exports = { requireFields, toInt, toBool, sanitizeStudentName };

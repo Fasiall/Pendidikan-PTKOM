@@ -37,6 +37,8 @@ async function startDatabase() {
     password: config.db.password,
     port: config.db.port,
     persistent: true, // data tetap tersimpan antar kali jalan
+    // Paksa UTF8 agar emoji pada seed/migrasi aman di Windows (locale bawaan WIN1252)
+    initdbFlags: ["--encoding=UTF8", "--locale=C"],
     onLog: config.db.verbose ? (msg) => process.stdout.write(msg) : () => {},
     onError: (err) => console.error("[db] postgres error:", err)
   });

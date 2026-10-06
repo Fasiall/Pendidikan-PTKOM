@@ -420,7 +420,12 @@ async function showResult() {
   let total = questions.length;
 
   try {
-    const data = await api("/api/quiz/submit", { method: "POST" });
+    const nameInput = document.getElementById("studentName");
+    const studentName = nameInput ? nameInput.value.trim() : "";
+    const data = await api("/api/quiz/submit", {
+      method: "POST",
+      body: JSON.stringify({ studentName })
+    });
     finalScore = data.score;
     total = data.total;
     lastScore = finalScore;

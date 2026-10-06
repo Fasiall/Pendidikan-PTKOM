@@ -26,9 +26,9 @@ const stats = asyncHandler(async (req, res) => {
          LEFT JOIN materials m ON m.id = q.material_id
         ORDER BY q.position, q.id`
     ),
-    pool.query("SELECT score, total, created_at FROM results ORDER BY id DESC LIMIT 1"),
+    pool.query("SELECT score, total, student_name, created_at FROM results ORDER BY id DESC LIMIT 1"),
     pool.query(
-      `SELECT r.id, r.score, r.total, r.created_at, m.title AS material_title
+      `SELECT r.id, r.student_name, r.score, r.total, r.created_at, m.title AS material_title
          FROM results r
          LEFT JOIN materials m ON m.id = r.material_id
         ORDER BY r.id DESC

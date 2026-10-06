@@ -14,7 +14,8 @@
 
 const { getPool } = require("../db/embedded");
 const { ApiError, asyncHandler } = require("../utils/errors");
-const { toInt } = require("../utils/validate");
+const { toInt, sanitizeStudentName } = require("../utils/validate");
+const { toCsv } = require("../utils/csv");
 
 /** Ambil soal milik sesi kuis (difilter materi bila dipilih). */
 async function fetchSessionQuestions(pool, materialId) {
@@ -108,9 +109,11 @@ const submit = asyncHandler(async (req, res) => {
   const questions = await fetchSessionQuestions(pool, quiz.materialId);
   const total = questions.length;
 
+  const studentName = sanitizeStudentName((req.body || {}).studentName);
+
   const { rows } = await pool.query(
-    "INSERT INTO results (material_id, score, total) VALUES ($1, $2, $3) RETURNING id, created_at",
-    [quiz.materialId, quiz.score, total]
+    "INSERT INTO results (material_id, student_name, score, total) VALUES ($1, $2, $3, $4) RETURNING id, created_at",
+    [quiz.materialId, studentName, quiz.score, total]
   );
 
   req.session.quiz = null;
@@ -118,22 +121,69 @@ const submit = asyncHandler(async (req, res) => {
   res.json({
     score: quiz.score,
     total,
+    studentName,
     savedAt: rows[0].created_at
   });
 });
 
-/** Riwayat skor terbaru (dipakai dashboard guru). */
+/** Riwayat skor terbaru (dipakai dashboard guru). Mendukung ?format=csv. */
 const results = asyncHandler(async (req, res) => {
   const pool = getPool();
   const { rows } = await pool.query(
-    `SELECT r.id, r.score, r.total, r.created_at, m.title AS material_title
+    `SELECT r.id, r.student_name, r.score, r.total, r.created_at, m.title AS material_title
        FROM results r
        LEFT JOIN materials m ON m.id = r.material_id
       ORDER BY r.id DESC
-      LIMIT 10`
+      LIMIT 100`
   );
 
-  res.json({ results: rows });
+  if (req.query.format === "csv") {
+    const csv = toCsv(rows, [
+      { header: "ID", value: (r) => r.id },
+      { header: "Nama Siswa", value: (r) => r.student_name },
+      { header: "Materi", value: (r) => r.material_title },
+      { header: "Skor", value: (r) => r.score },
+      { header: "Total", value: (r) => r.total },
+      { header: "Waktu", value: (r) => r.created_at }
+    ]);
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader("Content-Disposition", 'attachment; filename="hasil-kuis.csv"');
+    return res.send(csv);
+  }
+
+  res.json({ results: rows.slice(0, 10) });
 });
 
-module.exports = { start, answer, submit, results };
+/** Papan peringkat: skor tertinggi (publik, opsional filter materialId). */
+const leaderboard = asyncHandler(async (req, res) => {
+  const pool = getPool();
+
+  const materialId =
+    req.query.materialId === undefined || req.query.materialId === ""
+      ? null
+      : toInt(req.query.materialId, "materialId", { min: 1 });
+
+  const limitRaw = req.query.limit === undefined ? 10 : toInt(req.query.limit, "limit", { min: 1, max: 50 });
+
+  const params = [];
+  let where = "";
+  if (materialId !== null) {
+    params.push(materialId);
+    where = "WHERE r.material_id = $1";
+  }
+  params.push(limitRaw);
+
+  const { rows } = await pool.query(
+    `SELECT r.student_name, r.score, r.total, r.created_at, m.title AS material_title
+       FROM results r
+       LEFT JOIN materials m ON m.id = r.material_id
+       ${where}
+      ORDER BY r.score DESC, r.total DESC, r.created_at ASC
+      LIMIT $${params.length}`,
+    params
+  );
+
+  res.json({ leaderboard: rows });
+});
+
+module.exports = { start, answer, submit, results, leaderboard };

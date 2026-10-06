@@ -25,6 +25,7 @@
     "pg": "^8.23.1"
   },
   "allowScripts": {
-    "@embedded-postgres/linux-x64@17.10.0-beta.17": true
+    "@embedded-postgres/linux-x64@17.10.0-beta.17": true,
+    "@embedded-postgres/windows-x64@17.10.0-beta.17": true
   }
 }

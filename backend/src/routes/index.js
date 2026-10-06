@@ -23,8 +23,9 @@
 
      POST   /api/quiz/start                 mulai sesi kuis (siswa)
      POST   /api/quiz/answer                kirim jawaban (siswa)
-     POST   /api/quiz/submit                simpan skor (siswa)
-     GET    /api/quiz/results               riwayat skor (guru)
+     POST   /api/quiz/submit                simpan skor (siswa, {studentName?})
+     GET    /api/quiz/results               riwayat skor (guru, ?format=csv)
+     GET    /api/quiz/leaderboard           papan peringkat publik
 
      GET    /api/teacher/stats              statistik dashboard (guru)
    ========================================================================== */
@@ -80,6 +81,7 @@ router.post("/quiz/start", quizController.start);
 router.post("/quiz/answer", quizController.answer);
 router.post("/quiz/submit", quizController.submit);
 router.get("/quiz/results", authenticate(), quizController.results);
+router.get("/quiz/leaderboard", quizController.leaderboard);
 
 /* --------------------------- DASHBOARD GURU ----------------------------- */
 router.get("/teacher/stats", authenticate(), teacherController.stats);
