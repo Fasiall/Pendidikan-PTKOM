@@ -136,6 +136,15 @@ button{ font-family: inherit; }
   gap: 22px;
 }
 
+/* Halaman registrasi diatur agar lurus di tengah layar */
+#page-register.active{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+}
+
 /* ==================== (5) KOMPONEN TOMBOL UMUM ========================== */
 .btn{
   border: none;

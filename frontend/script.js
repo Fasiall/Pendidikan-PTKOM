@@ -593,9 +593,9 @@ async function handleRegister(event) {
     // Jika registrasi berhasil, langsung login otomatis?
     // Atau kita bisa alihkan ke halaman login dengan pesan sukses.
     // Untuk saat ini, kita akan alihkan ke halaman login dan beri tahu pengguna bahwa registrasi berhasil.
-    showToast("Registrasi berhasil! Silakan login.");
+    showToast("Registrasi berhasil! Selamat datang.");
     registerForm.reset();
-    showPage("page-login"); // Alihkan ke halaman login
+    showPage("page-home"); // Alihkan ke halaman landing
   } catch (err) {
     showRegisterError(err.message || "Registrasi gagal, coba lagi.");
     shakeForm(registerForm);
