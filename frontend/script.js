@@ -646,10 +646,15 @@ async function renderDashboard() {
       data.results.forEach((r, index) => {
         const li = document.createElement("li");
         li.style.animationDelay = (index * 0.06) + "s";
+        const waktu = new Date(r.created_at).toLocaleString("id-ID", {
+          timeZone: "Asia/Jakarta",
+          weekday: "long", day: "numeric", month: "long", year: "numeric",
+          hour: "2-digit", minute: "2-digit", second: "2-digit"
+        }) + " WIB";
         li.innerHTML =
           '<span class="ql-num">🏅</span>' +
-          "<div><strong>" + r.score + "/" + r.total + " benar</strong>" +
-          '<p class="ql-text">' + r.created_at + "</p></div>";
+          "<div><strong>" + (r.student_name || "Siswa") + " — " + r.score + "/" + r.total + " benar</strong>" +
+          '<p class="ql-text">' + (r.material_title || "Semua materi") + " • " + waktu + "</p></div>";
         resultsList.appendChild(li);
       });
     }

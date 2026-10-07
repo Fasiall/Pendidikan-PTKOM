@@ -883,7 +883,7 @@ button{ font-family: inherit; }
 .dash-actions{ margin-top: 26px; text-align: center; }
 
 /* Riwayat skor siswa (dashboard guru) */
-.results-list{ list-style: none; display: grid; gap: 12px; }
+.results-list{ list-style: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
 .results-list li{
   display: flex;
   align-items: center;
@@ -1454,11 +1454,13 @@ a.btn{ display: inline-block; text-decoration: none; }
 .form-actions .btn-ghost{ flex: 0 0 auto; min-width: 0; }
 
 /* Daftar data (materi / soal) di panel admin */
-.admin-list{ list-style: none; display: grid; gap: 12px; margin: 0; padding: 0; }
+.admin-list{ list-style: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; margin: 0; padding: 0; }
 .admin-list li{
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
+  overflow: hidden;
   background: #F9FBFF;
   border: 2px solid #EDF0F6;
   border-radius: 16px;
@@ -1485,18 +1487,16 @@ a.btn{ display: inline-block; text-decoration: none; }
   display: block;
   font-size: .98rem;
   font-weight: 800;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 .admin-info small{
   display: block;
   color: var(--muted);
   font-size: .82rem;
   font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .tag{
