@@ -73,6 +73,7 @@ router.patch("/materials/:id/publish", authenticate(), materiController.publish)
 
 /* ----------------------------- SET SOAL --------------------------------- */
 router.get("/sets", quizSetController.list);
+router.get("/sets/code/:code", quizSetController.getByCode);
 router.get("/sets/manage", authenticate(), quizSetController.manage);
 router.post("/sets", authenticate(), quizSetController.create);
 router.put("/sets/:id", authenticate(), quizSetController.update);

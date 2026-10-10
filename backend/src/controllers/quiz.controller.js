@@ -53,12 +53,15 @@ const start = asyncHandler(async (req, res) => {
       ? null
       : toInt(body.materialId, "materialId", { min: 1 });
 
+  let timeLimit = 0;
+
   if (setId !== null) {
     const { rows } = await pool.query(
-      "SELECT id, material_id FROM quiz_sets WHERE id = $1 AND is_published = TRUE",
+      "SELECT id, material_id, time_limit FROM quiz_sets WHERE id = $1 AND is_published = TRUE",
       [setId]
     );
     if (!rows.length) throw ApiError.notFound("Set soal tidak ditemukan.");
+    timeLimit = rows[0].time_limit;
   } else if (materialId !== null) {
     const { rows } = await pool.query(
       "SELECT id FROM materials WHERE id = $1 AND is_published = TRUE",
@@ -72,7 +75,7 @@ const start = asyncHandler(async (req, res) => {
 
   req.session.quiz = { score: 0, results: {}, setId, materialId, startedAt: Date.now() };
 
-  res.json({ ok: true, total: questions.length, setId, materialId });
+  res.json({ ok: true, total: questions.length, setId, materialId, timeLimit });
 });
 
 /** Validasi satu jawaban siswa di server. */

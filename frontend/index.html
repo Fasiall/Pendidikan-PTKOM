@@ -42,15 +42,18 @@
   </noscript>
 
   <!-- =====================================================
-       MODAL PILIH SET SOAL
+       MODAL MASUKKAN KODE KUIS
   ====================================================== -->
-  <div class="modal-overlay" id="modalSelectSet">
-    <div class="modal-card">
-      <button class="modal-close" id="btnCloseModalSet" aria-label="Tutup">&times;</button>
-      <h3>Pilih Kuis yang Ingin Dimainkan</h3>
-      <div class="quiz-sets-list" id="modalSetList">
-        <!-- Diisi oleh JS -->
+  <div class="modal-overlay" id="modalJoinQuiz">
+    <div class="modal-card" style="max-width: 400px;">
+      <button class="modal-close" id="btnCloseModalJoin" aria-label="Tutup">&times;</button>
+      <h3>Masukkan Kode Kuis</h3>
+      <p style="text-align:center; color:var(--muted); margin-bottom: 20px;">Minta kode 6 digit dari gurumu.</p>
+      <div class="input-wrap" style="margin-bottom: 20px;">
+        <input type="text" id="joinCodeInput" placeholder="Contoh: A1B2C3" maxlength="6" style="text-align:center; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 4px;">
       </div>
+      <button class="btn btn-start" id="btnSubmitJoin" style="width: 100%;">Mulai Kuis</button>
+      <p class="form-error" id="joinError" style="text-align:center; margin-top:10px;"></p>
     </div>
   </div>
 
@@ -162,6 +165,7 @@
 
         <span class="progress-text" id="progressText">1/8</span>
         <span class="score-chip" id="scoreChip">⭐ 0</span>
+        <span class="quiz-timer hidden" id="quizTimer">⏱️ 00:00</span>
       </div>
 
       <!-- Kartu pertanyaan -->
@@ -387,6 +391,11 @@
               <input type="text" id="sSetDesc" placeholder="Keterangan singkat" maxlength="300">
             </div>
 
+            <div class="field">
+              <label for="sSetTime">Waktu Pengerjaan (menit)</label>
+              <input type="number" id="sSetTime" placeholder="0 untuk tanpa batas waktu" min="0">
+            </div>
+
             <label class="check-line">
               <input type="checkbox" id="sSetPublish" checked>
               <span>Publikasikan untuk siswa</span>
@@ -505,6 +514,6 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <!-- File logika utama kuis -->
-  <script src="script.js?v=4"></script>
+  <script src="script.js?v=5"></script>
 </body>
 </html>

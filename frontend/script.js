@@ -60,7 +60,6 @@ const loginError    = $("#loginError");
 
 const registerForm  = $("#registerForm");
 const regUsernameInput = $("#regUsername");
-const regFullNameInput = $("#regFullName");
 const regEmailInput = $("#regEmail");
 const regPasswordInput = $("#regPassword");
 const regConfirmPasswordInput = $("#regConfirmPassword");
@@ -111,6 +110,7 @@ const setError      = $("#setError");
 const sSetMaterial  = $("#sSetMaterial");
 const sSetTitle     = $("#sSetTitle");
 const sSetDesc      = $("#sSetDesc");
+const sSetTime      = $("#sSetTime");
 const sSetPublish   = $("#sSetPublish");
 const btnCancelSet  = $("#btnCancelSet");
 const setAdminList  = $("#setAdminList");
@@ -124,6 +124,8 @@ let isAnswered  = false;// soal ini sudah dijawab atau belum
 let lastScore   = null; // skor terakhir (untuk dashboard guru)
 let fxTimer     = null; // timer menyembunyikan flash layar
 let toastTimer  = null; // timer menyembunyikan notifikasi
+let timerInterval = null; // interval timer kuis
+let timeRemaining = 0;    // sisa waktu dalam detik
 
 /* Status form admin: daftar materi + id yang sedang diedit (null = mode tambah) */
 let materiList      = [];
@@ -193,6 +195,9 @@ function showToast(message) {
  * Semua halaman memakai class .page; halaman aktif memakai .active.
  */
 function showPage(pageId) {
+  if (pageId !== "page-quiz") {
+    clearInterval(timerInterval);
+  }
   document.querySelectorAll(".page").forEach((page) => {
     page.classList.remove("active");
   });
@@ -204,9 +209,22 @@ function showPage(pageId) {
 }
 
 /* Navigasi universal: elemen dengan data-page="id-halaman" berpindah halaman. */
-document.addEventListener("click", (event) => {
+document.addEventListener("click", async (event) => {
   const trigger = event.target.closest("[data-page]");
-  if (trigger) showPage(trigger.dataset.page);
+  if (trigger) {
+    const pageId = trigger.dataset.page;
+    if (pageId === "page-login" && getToken()) {
+      try {
+        await renderDashboard();
+        showPage("page-dashboard");
+      } catch (err) {
+        clearToken();
+        showPage("page-login");
+      }
+    } else {
+      showPage(pageId);
+    }
+  }
 });
 
 /* =============== (5) HIASAN: JUDUL & LATAR ============================= */
@@ -306,6 +324,28 @@ async function startQuiz(forceSetId = null) {
     score = 0;
     showPage("page-quiz");
     renderQuestion();
+
+    /* Mulai timer jika ada batas waktu */
+    const quizTimer = $("#quizTimer");
+    if (startData.timeLimit > 0) {
+      timeRemaining = startData.timeLimit * 60;
+      quizTimer.classList.remove("hidden");
+      updateTimerDisplay();
+      
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        timeRemaining--;
+        updateTimerDisplay();
+        if (timeRemaining <= 0) {
+          clearInterval(timerInterval);
+          showToast("⏳ Waktu habis!");
+          showResult();
+        }
+      }, 1000);
+    } else {
+      quizTimer.classList.add("hidden");
+      clearInterval(timerInterval);
+    }
   } catch (err) {
     showToast(
       err.message && err.message !== "Soal masih kosong."
@@ -318,48 +358,64 @@ async function startQuiz(forceSetId = null) {
   }
 }
 
-/** Menampilkan modal pilihan set soal jika tidak ada parameter di URL */
-async function showSetModal() {
-  const modal = $("#modalSelectSet");
-  const list = $("#modalSetList");
-  modal.classList.add("show");
-  list.innerHTML = '<p style="text-align:center; width:100%; color:var(--muted);">Memuat daftar kuis...</p>';
+/** Memperbarui tampilan timer kuis */
+function updateTimerDisplay() {
+  const quizTimer = $("#quizTimer");
+  if (!quizTimer) return;
+  const m = Math.floor(timeRemaining / 60).toString().padStart(2, "0");
+  const s = (timeRemaining % 60).toString().padStart(2, "0");
+  quizTimer.textContent = "⏱️ " + m + ":" + s;
+}
 
-  try {
-    const data = await api("/api/sets");
-    const sets = data.sets || [];
-    
-    if (!sets.length) {
-      list.innerHTML = '<div class="quiz-sets-empty">Belum ada kuis yang tersedia saat ini.</div>';
+/** Menampilkan modal masukkan kode kuis jika tidak ada parameter di URL */
+async function showSetModal() {
+  const modal = $("#modalJoinQuiz");
+  const input = $("#joinCodeInput");
+  const error = $("#joinError");
+  
+  modal.classList.add("show");
+  input.value = "";
+  error.textContent = "";
+  error.classList.remove("show");
+  input.focus();
+}
+
+/** Menutup modal join */
+if ($("#btnCloseModalJoin")) {
+  $("#btnCloseModalJoin").addEventListener("click", () => {
+    $("#modalJoinQuiz").classList.remove("show");
+  });
+}
+
+/** Submit kode kuis */
+if ($("#btnSubmitJoin")) {
+  $("#btnSubmitJoin").addEventListener("click", async () => {
+    const input = $("#joinCodeInput");
+    const error = $("#joinError");
+    const btn = $("#btnSubmitJoin");
+    const code = input.value.trim().toUpperCase();
+
+    if (code.length !== 6) {
+      error.textContent = "Kode kuis harus 6 karakter.";
+      error.classList.add("show");
       return;
     }
 
-    list.innerHTML = sets.map(set => `
-      <button class="quiz-set-card" type="button" onclick="startQuizWithSet(${set.id})" style="text-align:left; width:100%; cursor:pointer; border: 3px solid #EDF0F6; background: var(--white);">
-        <div class="quiz-set-icon">📋</div>
-        <div class="quiz-set-info">
-          <strong>${set.title}</strong>
-          <p>${set.material_title || "Kuis Umum"}</p>
-          <span class="quiz-set-count">${set.question_count} Soal</span>
-        </div>
-        <div class="quiz-set-go">▶</div>
-      </button>
-    `).join("");
-  } catch (err) {
-    list.innerHTML = '<p style="text-align:center; width:100%; color:var(--pink);">Gagal memuat daftar kuis.</p>';
-  }
-}
+    btn.disabled = true;
+    btn.textContent = "Mencari...";
+    error.classList.remove("show");
 
-/** Memulai kuis dari modal */
-window.startQuizWithSet = function(setId) {
-  $("#modalSelectSet").classList.remove("show");
-  startQuiz(setId);
-};
-
-/** Menutup modal */
-if ($("#btnCloseModalSet")) {
-  $("#btnCloseModalSet").addEventListener("click", () => {
-    $("#modalSelectSet").classList.remove("show");
+    try {
+      const data = await api("/api/sets/code/" + code);
+      $("#modalJoinQuiz").classList.remove("show");
+      startQuiz(data.set.id);
+    } catch (err) {
+      error.textContent = err.message;
+      error.classList.add("show");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Mulai Kuis";
+    }
   });
 }
 
@@ -520,6 +576,7 @@ function animateNumber(element, targetValue, duration = 1200) {
  * lalu menampilkan bintang, skor berjalan, dan pesan motivasi.
  */
 async function showResult() {
+  clearInterval(timerInterval);
   let finalScore = score;
   let total = questions.length;
 
@@ -640,12 +697,11 @@ async function handleRegister(event) {
   event.preventDefault();
 
   const username = regUsernameInput.value.trim();
-  const fullName = regFullNameInput.value.trim();
   const email = regEmailInput.value.trim();
   const password = regPasswordInput.value;
   const confirmPassword = regConfirmPasswordInput.value;
 
-  if (!username || !fullName || !email || !password || !confirmPassword) {
+  if (!username || !email || !password || !confirmPassword) {
     showRegisterError("Semua field wajib diisi!");
     shakeForm(registerForm);
     return;
@@ -672,16 +728,20 @@ async function handleRegister(event) {
         username,
         password,
         confirmPassword,
-        fullName,
         email
       })
     });
-    // Jika registrasi berhasil, langsung login otomatis?
-    // Atau kita bisa alihkan ke halaman login dengan pesan sukses.
-    // Untuk saat ini, kita akan alihkan ke halaman login dan beri tahu pengguna bahwa registrasi berhasil.
-    showToast("Registrasi berhasil! Selamat datang.");
+    
+    // Simpan token agar langsung login
+    saveToken(data.token);
+    
+    showToast("Registrasi berhasil! Mengalihkan...");
     registerForm.reset();
-    showPage("page-home"); // Alihkan ke halaman landing
+    
+    // Alihkan ke halaman utama (index.html)
+    setTimeout(() => {
+      window.location.href = "index.html#dashboard";
+    }, 1500);
   } catch (err) {
     showRegisterError(err.message || "Registrasi gagal, coba lagi.");
     shakeForm(registerForm);
@@ -959,6 +1019,8 @@ function renderSetAdmin() {
             (set.is_published ? "Publish" : "Draf") +
           "</span>" +
           "📚 " + (set.material_title || "?") + " · " + set.question_count + " soal" +
+          (set.time_limit > 0 ? " · ⏱️ " + set.time_limit + " mnt" : "") +
+          " · 🔑 Kode: <strong>" + (set.access_code || "-") + "</strong>" +
         "</small>" +
       "</div>" +
       '<div class="admin-actions">' +
@@ -978,6 +1040,7 @@ function editSet(set) {
   sSetMaterial.value = set.material_id || "";
   sSetTitle.value = set.title;
   sSetDesc.value = set.description || "";
+  sSetTime.value = set.time_limit || "";
   sSetPublish.checked = set.is_published;
   btnCancelSet.hidden = false;
   showFormError(setError, "");
@@ -990,6 +1053,7 @@ function resetSetForm() {
   editingSetId = null;
   setFormTitle.textContent = "➕ Tambah Set Soal Baru";
   setForm.reset();
+  sSetTime.value = "";
   sSetPublish.checked = true;
   btnCancelSet.hidden = true;
   showFormError(setError, "");
@@ -1089,6 +1153,7 @@ function bindAdminEvents() {
       const payload = {
         title: sSetTitle.value.trim(),
         description: sSetDesc.value.trim(),
+        timeLimit: sSetTime.value ? Number(sSetTime.value) : 0,
         materialId: sSetMaterial.value ? Number(sSetMaterial.value) : null,
         is_published: sSetPublish.checked
       };
@@ -1308,15 +1373,24 @@ function init() {
   createDecorations();
 
   /* Tombol memulai kuis (dipakai di home, hasil, dan dashboard guru) */
-  $("#btnStart").addEventListener("click", startQuiz);
-  $("#btnReplay").addEventListener("click", startQuiz);
-  $("#btnGuruMulai").addEventListener("click", startQuiz);
+  const btnStart = $("#btnStart");
+  if (btnStart) btnStart.addEventListener("click", startQuiz);
+  
+  const btnReplay = $("#btnReplay");
+  if (btnReplay) btnReplay.addEventListener("click", startQuiz);
+  
+  const btnGuruMulai = $("#btnGuruMulai");
+  if (btnGuruMulai) btnGuruMulai.addEventListener("click", startQuiz);
 
   /* Tombol lanjut */
-  btnNext.addEventListener("click", nextQuestion);
+  if (typeof btnNext !== "undefined" && btnNext) {
+    btnNext.addEventListener("click", nextQuestion);
+  }
 
   /* Form admin: tab, materi, dan soal */
-  bindAdminEvents();
+  if ($("#materiForm") && typeof bindAdminEvents === "function") {
+    bindAdminEvents();
+  }
 
   /* Form login guru */
   if (loginForm) {
@@ -1326,6 +1400,17 @@ function init() {
   /* Form registrasi guru */
   if (registerForm) {
     registerForm.addEventListener("submit", handleRegister);
+  }
+
+  /* Auto-login jika ada hash #dashboard */
+  if (window.location.hash === "#dashboard" && getToken() && document.getElementById("page-dashboard")) {
+    renderDashboard().then(() => {
+      showPage("page-dashboard");
+      // Hapus hash dari URL agar tidak terus-terusan auto-login saat refresh
+      history.replaceState(null, null, ' ');
+    }).catch(() => {
+      clearToken();
+    });
   }
 
   /* Tombol logout (ada di halaman dashboard) */
@@ -1343,7 +1428,9 @@ function init() {
 
   /* Dukungan keyboard: tekan 1-4 untuk memilih opsi, Enter untuk lanjut */
   document.addEventListener("keydown", (event) => {
-    const quizActive = document.getElementById("page-quiz").classList.contains("active");
+    const pageQuiz = document.getElementById("page-quiz");
+    if (!pageQuiz) return;
+    const quizActive = pageQuiz.classList.contains("active");
     if (!quizActive) return;
 
     const number = parseInt(event.key, 10);
@@ -1351,7 +1438,7 @@ function init() {
       const buttons = answersBox.querySelectorAll(".answer-btn");
       if (buttons[number - 1]) buttons[number - 1].click();
     }
-    if (event.key === "Enter" && !btnNext.classList.contains("hidden")) {
+    if (event.key === "Enter" && typeof btnNext !== "undefined" && btnNext && !btnNext.classList.contains("hidden")) {
       btnNext.click();
     }
   });

@@ -432,6 +432,19 @@ button{ font-family: inherit; }
   white-space: nowrap;
 }
 
+.quiz-timer{
+  background: var(--pink);
+  color: var(--white);
+  font-weight: 800;
+  font-size: .95rem;
+  padding: 8px 14px;
+  border-radius: 999px;
+  box-shadow: var(--shadow-sm);
+  white-space: nowrap;
+  animation: pulseGlow 2s infinite;
+}
+.quiz-timer.hidden{ display: none; }
+
 /* Kartu pertanyaan */
 .question-card{
   position: relative;

@@ -2,7 +2,7 @@
    src/controllers/auth.controller.js — Autentikasi pengajar (JWT)
 
    Endpoint:
-     POST /api/auth/register   { username, password, confirmPassword, fullName, email } -> { token, teacher }
+     POST /api/auth/register   { username, password, confirmPassword, email } -> { token, teacher }
      POST /api/auth/login      { usernameOrEmail, password } -> { token, teacher }
      GET  /api/auth/me         (Bearer)               -> { teacher }
      POST /api/auth/logout     (Bearer)               -> { ok }
@@ -16,11 +16,11 @@ const { ApiError, asyncHandler } = require("../utils/errors");
 const { requireFields } = require("../utils/validate");
 const { signToken } = require("../middleware/auth");
 
-/** Registrasi pengajar baru: username, password, confirmPassword, fullName, email. */
+/** Registrasi pengajar baru: username, password, confirmPassword, email. */
 const register = asyncHandler(async (req, res) => {
-  requireFields(req.body, ["username", "password", "confirmPassword", "fullName", "email"]);
+  requireFields(req.body, ["username", "password", "confirmPassword", "email"]);
 
-  const { username, password, confirmPassword, fullName, email } = req.body;
+  const { username, password, confirmPassword, email } = req.body;
 
   // Validasi password dan konfirmasi password
   if (password !== confirmPassword) {
@@ -63,7 +63,7 @@ const register = asyncHandler(async (req, res) => {
     `INSERT INTO teachers (username, password_hash, full_name, email)
      VALUES ($1, $2, $3, $4)
      RETURNING id, username, full_name, email`,
-    [username.trim(), passwordHash, fullName.trim(), email.trim() || null]
+    [username.trim(), passwordHash, username.trim(), email.trim() || null]
   );
   const teacher = rows[0];
 

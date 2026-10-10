@@ -78,11 +78,12 @@ async function seed() {
         const quizSets = material.quizSets || [{ title: "Kuis Utama", description: "Set soal bawaan" }];
         const setIds = [];
         for (let s = 0; s < quizSets.length; s++) {
+          const accessCode = Math.random().toString(36).substring(2, 8).toUpperCase();
           const { rows: setRows } = await client.query(
-            `INSERT INTO quiz_sets (material_id, title, description, is_published, position)
-             VALUES ($1, $2, $3, TRUE, $4)
+            `INSERT INTO quiz_sets (material_id, title, description, is_published, position, access_code)
+             VALUES ($1, $2, $3, TRUE, $4, $5)
              RETURNING id`,
-            [materialId, quizSets[s].title, quizSets[s].description || "", s]
+            [materialId, quizSets[s].title, quizSets[s].description || "", s, accessCode]
           );
           setIds.push(setRows[0].id);
         }

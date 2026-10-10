@@ -31,7 +31,7 @@ const list = asyncHandler(async (req, res) => {
 
   const { rows } = await pool.query(
     `SELECT qs.id, qs.material_id, qs.title, qs.description,
-            qs.position, qs.created_at,
+            qs.position, qs.created_at, qs.time_limit,
             m.title AS material_title,
             COUNT(q.id)::int AS question_count
        FROM quiz_sets qs
@@ -44,6 +44,29 @@ const list = asyncHandler(async (req, res) => {
   );
 
   res.json({ total: rows.length, sets: rows });
+});
+
+/** Ambil set soal berdasarkan kode akses (siswa). */
+const getByCode = asyncHandler(async (req, res) => {
+  const pool = getPool();
+  const code = String(req.params.code || "").trim().toUpperCase();
+
+  if (!code || code.length !== 6) {
+    throw ApiError.badRequest("Kode kuis harus 6 karakter.");
+  }
+
+  const { rows } = await pool.query(
+    `SELECT id, title, material_id, time_limit 
+       FROM quiz_sets 
+      WHERE access_code = $1 AND is_published = TRUE`,
+    [code]
+  );
+
+  if (!rows.length) {
+    throw ApiError.notFound("Kode kuis tidak valid atau kuis belum dipublish.");
+  }
+
+  res.json({ set: rows[0] });
 });
 
 /* ============================= PENGAJAR ================================== */
@@ -94,16 +117,21 @@ const create = asyncHandler(async (req, res) => {
   );
   if (!matRows.length) throw ApiError.badRequest("materialId tidak ditemukan.");
 
+  /* Generate kode akses 6 karakter */
+  const accessCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+
   const { rows } = await pool.query(
-    `INSERT INTO quiz_sets (material_id, title, description, is_published, position)
-     VALUES ($1, $2, $3, $4, $5)
+    `INSERT INTO quiz_sets (material_id, title, description, is_published, position, access_code, time_limit)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
      RETURNING *`,
     [
       materialId,
       title,
       String(body.description || "").trim().slice(0, 300),
       toBool(body.is_published, true),
-      body.position === undefined ? 0 : toInt(body.position, "position")
+      body.position === undefined ? 0 : toInt(body.position, "position"),
+      accessCode,
+      body.timeLimit === undefined ? 0 : toInt(body.timeLimit, "timeLimit", { min: 0 })
     ]
   );
 
@@ -131,7 +159,7 @@ const update = asyncHandler(async (req, res) => {
 
   const { rows } = await pool.query(
     `UPDATE quiz_sets
-        SET title = $1, description = $2, is_published = $3, position = $4
+        SET title = $1, description = $2, is_published = $3, position = $4, time_limit = $6
       WHERE id = $5
       RETURNING *`,
     [
@@ -145,7 +173,10 @@ const update = asyncHandler(async (req, res) => {
       body.position === undefined
         ? current.position
         : toInt(body.position, "position"),
-      id
+      id,
+      body.timeLimit === undefined
+        ? current.time_limit
+        : toInt(body.timeLimit, "timeLimit", { min: 0 })
     ]
   );
 
@@ -181,4 +212,4 @@ const publish = asyncHandler(async (req, res) => {
   res.json({ ok: true, set: rows[0] });
 });
 
-module.exports = { list, manage, create, update, remove, publish };
+module.exports = { list, getByCode, manage, create, update, remove, publish };
