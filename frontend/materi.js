@@ -145,8 +145,8 @@ async function loadMaterialDetail() {
     /* Isi materi dikirim sebagai HTML oleh pengajar */
     $("#dContent").innerHTML = material.content;
 
-    /* Tombol kuis membawa parameter materi supaya hanya soal terkait yang muncul */
-    $("#dQuizBtn").href = "index.html?materi=" + material.id;
+    /* Tombol kuis: muat daftar set soal dari API */
+    await loadQuizSets(material.id);
 
     document.title = "📖 " + material.title + " | Kuis Petualangan Ceria";
     showState("#materiDetail");
@@ -157,6 +157,52 @@ async function loadMaterialDetail() {
         ? "Materi tidak ditemukan atau belum dipublikasikan."
         : "⚠️ Server belum terhubung. Jalankan backend dulu, ya.";
     showToast($("#dEmptyText").textContent);
+  }
+}
+
+/* ======================== DAFTAR SET SOAL (DETAIL) ====================== */
+
+async function loadQuizSets(materialId) {
+  const list = $("#quizSetsList");
+  const empty = $("#quizSetsEmpty");
+  if (!list) return;
+
+  try {
+    const data = await api("/api/sets?materialId=" + materialId);
+    const sets = data.sets || [];
+
+    if (!sets.length) {
+      list.innerHTML = "";
+      if (empty) empty.classList.remove("hidden");
+      return;
+    }
+
+    if (empty) empty.classList.add("hidden");
+    list.innerHTML = "";
+
+    sets.forEach(function (set, index) {
+      const card = document.createElement("a");
+      card.className = "quiz-set-card";
+      card.href = "index.html?set=" + set.id;
+      card.style.animationDelay = index * 0.08 + "s";
+
+      card.innerHTML =
+        '<div class="quiz-set-icon">📝</div>' +
+        '<div class="quiz-set-info">' +
+          "<strong>" + set.title + "</strong>" +
+          (set.description ? "<p>" + set.description + "</p>" : "") +
+          '<span class="quiz-set-count">' + set.question_count + " soal</span>" +
+        "</div>" +
+        '<span class="quiz-set-go">Mulai ➜</span>';
+
+      list.appendChild(card);
+    });
+  } catch (err) {
+    if (list) list.innerHTML = "";
+    if (empty) {
+      empty.textContent = "Gagal memuat set soal.";
+      empty.classList.remove("hidden");
+    }
   }
 }
 

@@ -17,8 +17,15 @@ const { ApiError, asyncHandler } = require("../utils/errors");
 const { toInt, sanitizeStudentName } = require("../utils/validate");
 const { toCsv } = require("../utils/csv");
 
-/** Ambil soal milik sesi kuis (difilter materi bila dipilih). */
-async function fetchSessionQuestions(pool, materialId) {
+/** Ambil soal milik sesi kuis (difilter set soal atau materi). */
+async function fetchSessionQuestions(pool, { setId, materialId }) {
+  if (setId) {
+    const { rows } = await pool.query(
+      "SELECT id FROM questions WHERE quiz_set_id = $1 ORDER BY position, id",
+      [setId]
+    );
+    return rows;
+  }
   if (materialId) {
     const { rows } = await pool.query(
       "SELECT id FROM questions WHERE material_id = $1 ORDER BY position, id",
@@ -35,12 +42,24 @@ const start = asyncHandler(async (req, res) => {
   const pool = getPool();
   const body = req.body || {};
 
+  /* --- Tentukan filter: setId lebih prioritas daripada materialId --- */
+  const setId =
+    body.setId === undefined || body.setId === null
+      ? null
+      : toInt(body.setId, "setId", { min: 1 });
+
   const materialId =
     body.materialId === undefined || body.materialId === null
       ? null
       : toInt(body.materialId, "materialId", { min: 1 });
 
-  if (materialId !== null) {
+  if (setId !== null) {
+    const { rows } = await pool.query(
+      "SELECT id, material_id FROM quiz_sets WHERE id = $1 AND is_published = TRUE",
+      [setId]
+    );
+    if (!rows.length) throw ApiError.notFound("Set soal tidak ditemukan.");
+  } else if (materialId !== null) {
     const { rows } = await pool.query(
       "SELECT id FROM materials WHERE id = $1 AND is_published = TRUE",
       [materialId]
@@ -48,12 +67,12 @@ const start = asyncHandler(async (req, res) => {
     if (!rows.length) throw ApiError.notFound("Materi tidak ditemukan.");
   }
 
-  const questions = await fetchSessionQuestions(pool, materialId);
+  const questions = await fetchSessionQuestions(pool, { setId, materialId });
   if (!questions.length) throw ApiError.badRequest("Belum ada soal untuk kuis ini.");
 
-  req.session.quiz = { score: 0, results: {}, materialId, startedAt: Date.now() };
+  req.session.quiz = { score: 0, results: {}, setId, materialId, startedAt: Date.now() };
 
-  res.json({ ok: true, total: questions.length, materialId });
+  res.json({ ok: true, total: questions.length, setId, materialId });
 });
 
 /** Validasi satu jawaban siswa di server. */
@@ -65,13 +84,17 @@ const answer = asyncHandler(async (req, res) => {
   const { questionId, choice } = req.body || {};
 
   const { rows } = await pool.query(
-    "SELECT id, material_id, answer, fact FROM questions WHERE id = $1",
+    "SELECT id, material_id, quiz_set_id, answer, fact FROM questions WHERE id = $1",
     [toInt(questionId, "questionId", { min: 1 })]
   );
   const question = rows[0];
 
   if (!question) throw ApiError.notFound("Soal tidak ditemukan.");
-  if (quiz.materialId !== null && question.material_id !== quiz.materialId) {
+
+  /* Validasi: soal harus milik set/materi yang sedang dikerjakan */
+  if (quiz.setId !== null && question.quiz_set_id !== quiz.setId) {
+    throw ApiError.badRequest("Soal ini bukan bagian dari set soal yang sedang dikerjakan.");
+  } else if (quiz.setId === null && quiz.materialId !== null && question.material_id !== quiz.materialId) {
     throw ApiError.badRequest("Soal ini bukan bagian dari materi yang sedang dikerjakan.");
   }
 
@@ -106,14 +129,14 @@ const submit = asyncHandler(async (req, res) => {
   if (!quiz) throw ApiError.badRequest("Belum ada kuis yang berjalan.");
 
   const pool = getPool();
-  const questions = await fetchSessionQuestions(pool, quiz.materialId);
+  const questions = await fetchSessionQuestions(pool, { setId: quiz.setId, materialId: quiz.materialId });
   const total = questions.length;
 
   const studentName = sanitizeStudentName((req.body || {}).studentName);
 
   const { rows } = await pool.query(
-    "INSERT INTO results (material_id, student_name, score, total) VALUES ($1, $2, $3, $4) RETURNING id, created_at",
-    [quiz.materialId, studentName, quiz.score, total]
+    "INSERT INTO results (material_id, quiz_set_id, student_name, score, total) VALUES ($1, $2, $3, $4, $5) RETURNING id, created_at",
+    [quiz.materialId, quiz.setId, studentName, quiz.score, total]
   );
 
   req.session.quiz = null;

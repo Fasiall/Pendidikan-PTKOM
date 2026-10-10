@@ -932,6 +932,70 @@ button{ font-family: inherit; }
   transform: translate(-50%, 0);
 }
 
+/* ==================== MODAL OVERLAY =============================== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(47, 53, 66, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.modal-overlay.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+.modal-card {
+  background: var(--white);
+  border-radius: 24px;
+  padding: 30px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow);
+  position: relative;
+  transform: translateY(20px);
+  transition: transform 0.3s ease;
+}
+.modal-overlay.show .modal-card {
+  transform: translateY(0);
+}
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: #F1ECFF;
+  color: var(--purple);
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+.modal-close:hover {
+  transform: scale(1.1);
+  background: var(--purple);
+  color: var(--white);
+}
+.modal-card h3 {
+  font-size: 1.4rem;
+  font-weight: 900;
+  margin-bottom: 20px;
+  text-align: center;
+  color: var(--ink);
+}
+
 /* Tombol sedang dimuat / dinonaktifkan */
 .btn:disabled{
   opacity: .7;
@@ -1322,6 +1386,109 @@ a.btn{ display: inline-block; text-decoration: none; }
   justify-content: center;
   margin: 34px 32px 6px;
 }
+
+/* Daftar Set Soal di Halaman Materi */
+.quiz-sets-wrap {
+  margin: 34px 32px 6px;
+}
+.quiz-sets-title {
+  font-size: 1.25rem;
+  font-weight: 900;
+  margin-bottom: 16px;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.quiz-sets-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+.quiz-set-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--white);
+  border: 3px solid #EDF0F6;
+  border-radius: 20px;
+  padding: 16px;
+  text-decoration: none;
+  color: inherit;
+  transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+}
+.quiz-set-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--teal);
+  box-shadow: 0 12px 24px rgba(78, 205, 196, .15);
+}
+.quiz-set-icon {
+  flex-shrink: 0;
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  background: var(--sky);
+  border-radius: 16px;
+  font-size: 1.6rem;
+}
+.quiz-set-info {
+  flex: 1;
+  min-width: 0;
+}
+.quiz-set-info strong {
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 800;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.quiz-set-info p {
+  font-size: .85rem;
+  color: var(--muted);
+  font-weight: 600;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.quiz-set-count {
+  display: inline-block;
+  font-size: .75rem;
+  font-weight: 800;
+  background: var(--yellow);
+  color: var(--ink);
+  padding: 3px 10px;
+  border-radius: 999px;
+  margin-top: 6px;
+}
+.quiz-set-go {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  background: var(--teal);
+  color: var(--white);
+  border-radius: 12px;
+  font-size: 1.2rem;
+  transition: transform .2s ease;
+}
+.quiz-set-card:hover .quiz-set-go {
+  transform: scale(1.1) rotate(5deg);
+}
+.quiz-sets-empty {
+  text-align: center;
+  padding: 30px 20px;
+  background: #F9FBFF;
+  border-radius: 20px;
+  border: 2px dashed #D9E1F5;
+  color: var(--muted);
+  font-weight: 600;
+}
+
 .materi-detail .home-footer{ margin-top: 24px; }
 
 /* Responsif */

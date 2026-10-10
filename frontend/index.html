@@ -41,6 +41,19 @@
     <div class="noscript-note">⚠️ Halaman ini membutuhkan JavaScript agar kuis dapat berjalan.</div>
   </noscript>
 
+  <!-- =====================================================
+       MODAL PILIH SET SOAL
+  ====================================================== -->
+  <div class="modal-overlay" id="modalSelectSet">
+    <div class="modal-card">
+      <button class="modal-close" id="btnCloseModalSet" aria-label="Tutup">&times;</button>
+      <h3>Pilih Kuis yang Ingin Dimainkan</h3>
+      <div class="quiz-sets-list" id="modalSetList">
+        <!-- Diisi oleh JS -->
+      </div>
+    </div>
+  </div>
+
   <!-- =========================================================
        HALAMAN 1: HALAMAN UTAMA (SISWA)
   ========================================================== -->
@@ -285,6 +298,7 @@
       <!-- Tab navigasi dashboard -->
       <nav class="dash-tabs" role="tablist">
         <button class="dash-tab active" type="button" data-tab="tabMateri">📚 Materi</button>
+        <button class="dash-tab" type="button" data-tab="tabSetSoal">📋 Set Soal</button>
         <button class="dash-tab" type="button" data-tab="tabSoal">📝 Soal</button>
         <button class="dash-tab" type="button" data-tab="tabRiwayat">📊 Riwayat</button>
       </nav>
@@ -350,7 +364,51 @@
         </div>
       </section>
 
-      <!-- ================= TAB 2: KELOLA SOAL ================= -->
+      <!-- ================= TAB 2: KELOLA SET SOAL ================= -->
+      <section class="tab-panel" id="tabSetSoal">
+        <div class="admin-grid">
+
+          <!-- Form tambah / ubah set soal -->
+          <form class="admin-card" id="setForm" novalidate>
+            <h4 id="setFormTitle">➕ Tambah Set Soal Baru</h4>
+
+            <div class="field">
+              <label for="sSetMaterial">Materi Induk</label>
+              <select id="sSetMaterial"></select>
+            </div>
+
+            <div class="field">
+              <label for="sSetTitle">Judul Set Soal</label>
+              <input type="text" id="sSetTitle" placeholder="Mis. Latihan Mudah" maxlength="160">
+            </div>
+
+            <div class="field">
+              <label for="sSetDesc">Deskripsi (opsional)</label>
+              <input type="text" id="sSetDesc" placeholder="Keterangan singkat" maxlength="300">
+            </div>
+
+            <label class="check-line">
+              <input type="checkbox" id="sSetPublish" checked>
+              <span>Publikasikan untuk siswa</span>
+            </label>
+
+            <div class="form-actions">
+              <button class="btn btn-small" id="btnSaveSet" type="submit">💾 Simpan Set</button>
+              <button class="btn btn-ghost btn-small" id="btnCancelSet" type="button" hidden>Batal Edit</button>
+            </div>
+            <p class="form-error" id="setError" role="alert"></p>
+          </form>
+
+          <!-- Daftar set soal + aksi ubah/hapus -->
+          <div class="admin-card">
+            <h4>📋 Daftar Set Soal <span class="count-chip" id="setCount">0</span></h4>
+            <ul class="admin-list" id="setAdminList"></ul>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ================= TAB 3: KELOLA SOAL ================= -->
       <section class="tab-panel" id="tabSoal">
         <div class="admin-grid">
 
@@ -388,6 +446,11 @@
                 <label for="qMaterial">Terhubung ke Materi</label>
                 <select id="qMaterial"></select>
               </div>
+            </div>
+
+            <div class="field">
+              <label for="qSet">Set Soal</label>
+              <select id="qSet"></select>
             </div>
 
             <div class="field">
@@ -442,6 +505,6 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <!-- File logika utama kuis -->
-  <script src="script.js"></script>
+  <script src="script.js?v=4"></script>
 </body>
 </html>

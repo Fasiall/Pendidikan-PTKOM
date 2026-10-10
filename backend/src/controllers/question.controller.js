@@ -49,7 +49,10 @@ const listPublic = asyncHandler(async (req, res) => {
   const values = [];
   let where = "WHERE TRUE";
 
-  if (req.query.materialId !== undefined) {
+  if (req.query.setId !== undefined) {
+    values.push(toInt(req.query.setId, "setId", { min: 1 }));
+    where += ` AND q.quiz_set_id = $${values.length}`;
+  } else if (req.query.materialId !== undefined) {
     values.push(toInt(req.query.materialId, "materialId", { min: 1 }));
     where += ` AND q.material_id = $${values.length}`;
   }
@@ -100,16 +103,23 @@ const create = asyncHandler(async (req, res) => {
     JSON.stringify(options),
     answer,
     String(body.fact || "").trim(),
-    body.position === undefined ? 0 : toInt(body.position, "position")
+    body.position === undefined ? 0 : toInt(body.position, "position"),
+    body.quizSetId === undefined || body.quizSetId === null
+      ? null
+      : toInt(body.quizSetId, "quizSetId", { min: 1 })
   ];
 
   const pool = getPool();
   if (values[0] !== null) await assertMaterialExists(pool, values[0]);
+  if (values[8] !== null) {
+    const { rows: setRows } = await pool.query("SELECT id FROM quiz_sets WHERE id = $1", [values[8]]);
+    if (!setRows.length) throw ApiError.badRequest("quizSetId tidak ditemukan.");
+  }
 
   const { rows } = await pool.query(
     `INSERT INTO questions
-       (material_id, subject, image, question, options, answer, fact, position)
-     VALUES ($1,$2,$3,$4,$5::jsonb,$6,$7,$8)
+       (material_id, subject, image, question, options, answer, fact, position, quiz_set_id)
+     VALUES ($1,$2,$3,$4,$5::jsonb,$6,$7,$8,$9)
      RETURNING *`,
     values
   );
@@ -141,6 +151,18 @@ const update = asyncHandler(async (req, res) => {
 
   if (materialId !== null) await assertMaterialExists(pool, materialId);
 
+  const quizSetId =
+    body.quizSetId === undefined
+      ? current.quiz_set_id
+      : body.quizSetId === null
+        ? null
+        : toInt(body.quizSetId, "quizSetId", { min: 1 });
+
+  if (quizSetId !== null) {
+    const { rows: setRows } = await pool.query("SELECT id FROM quiz_sets WHERE id = $1", [quizSetId]);
+    if (!setRows.length) throw ApiError.badRequest("quizSetId tidak ditemukan.");
+  }
+
   const values = [
     materialId,
     body.subject === undefined ? current.subject : String(body.subject).trim(),
@@ -150,14 +172,16 @@ const update = asyncHandler(async (req, res) => {
     answer,
     body.fact === undefined ? current.fact : String(body.fact).trim(),
     body.position === undefined ? current.position : toInt(body.position, "position"),
+    quizSetId,
     id
   ];
 
   const { rows } = await pool.query(
     `UPDATE questions
         SET material_id = $1, subject = $2, image = $3, question = $4,
-            options = $5::jsonb, answer = $6, fact = $7, position = $8
-      WHERE id = $9
+            options = $5::jsonb, answer = $6, fact = $7, position = $8,
+            quiz_set_id = $9
+      WHERE id = $10
       RETURNING *`,
     values
   );

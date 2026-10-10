@@ -68,6 +68,9 @@ const MATERIALS = [
         answer: 1,
         fact: "9 × 6 = 54. Triknya: 10 × 6 = 60, lalu kurangi 6."
       }
+    ],
+    quizSets: [
+      { title: "Kuis Utama", description: "Set soal bawaan" }
     ]
   },
 
@@ -124,6 +127,9 @@ const MATERIALS = [
         answer: 1,
         fact: "Laba-laba berkelas Arachnida dan memiliki 8 kaki."
       }
+    ],
+    quizSets: [
+      { title: "Kuis Utama", description: "Set soal bawaan" }
     ]
   },
 
@@ -179,6 +185,9 @@ const MATERIALS = [
         answer: 1,
         fact: "Senang = bahagia = gembira. Semuanya punya arti sama!"
       }
+    ],
+    quizSets: [
+      { title: "Kuis Utama", description: "Set soal bawaan" }
     ]
   },
 
@@ -236,6 +245,9 @@ const MATERIALS = [
         answer: 3,
         fact: "Menanam pohon dan memilah sampah membuat bumi tetap sehat!"
       }
+    ],
+    quizSets: [
+      { title: "Kuis Utama", description: "Set soal bawaan" }
     ]
   }
 ];

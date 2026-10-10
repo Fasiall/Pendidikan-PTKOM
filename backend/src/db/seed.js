@@ -74,14 +74,31 @@ async function seed() {
         );
         const materialId = rows[0].id;
 
+        /* Buat set soal untuk materi ini */
+        const quizSets = material.quizSets || [{ title: "Kuis Utama", description: "Set soal bawaan" }];
+        const setIds = [];
+        for (let s = 0; s < quizSets.length; s++) {
+          const { rows: setRows } = await client.query(
+            `INSERT INTO quiz_sets (material_id, title, description, is_published, position)
+             VALUES ($1, $2, $3, TRUE, $4)
+             RETURNING id`,
+            [materialId, quizSets[s].title, quizSets[s].description || "", s]
+          );
+          setIds.push(setRows[0].id);
+        }
+
+        /* Soal dihubungkan ke set pertama secara default */
+        const defaultSetId = setIds[0] || null;
+
         let position = 0;
         for (const question of material.questions || []) {
           await client.query(
             `INSERT INTO questions
-               (material_id, subject, image, question, options, answer, fact, position)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+               (material_id, quiz_set_id, subject, image, question, options, answer, fact, position)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
             [
               materialId,
+              defaultSetId,
               question.subject,
               question.image || "",
               question.question,

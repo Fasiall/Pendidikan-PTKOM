@@ -38,7 +38,12 @@
       <div class="materi-content" id="dContent"></div>
 
       <div class="materi-cta">
-        <a class="btn btn-start" id="dQuizBtn" href="index.html">🚀 Kerjakan Kuis Materi Ini</a>
+        <!-- Daftar set soal (diisi oleh materi.js) -->
+        <div class="quiz-sets-wrap" id="quizSetsWrap">
+          <h3 class="quiz-sets-title">📝 Pilih Set Soal</h3>
+          <div class="quiz-sets-list" id="quizSetsList"></div>
+          <p class="quiz-sets-empty hidden" id="quizSetsEmpty">Belum ada set soal untuk materi ini.</p>
+        </div>
         <a class="btn btn-ghost" href="materi.html">📖 Semua Materi</a>
       </div>
 

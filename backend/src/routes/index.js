@@ -37,6 +37,7 @@ const { asyncHandler } = require("../utils/errors");
 
 const authController = require("../controllers/auth.controller");
 const materiController = require("../controllers/materi.controller");
+const quizSetController = require("../controllers/quiz_set.controller");
 const questionController = require("../controllers/question.controller");
 const quizController = require("../controllers/quiz.controller");
 const teacherController = require("../controllers/teacher.controller");
@@ -69,6 +70,14 @@ router.post("/materials", authenticate(), materiController.create);
 router.put("/materials/:id", authenticate(), materiController.update);
 router.delete("/materials/:id", authenticate(), materiController.remove);
 router.patch("/materials/:id/publish", authenticate(), materiController.publish);
+
+/* ----------------------------- SET SOAL --------------------------------- */
+router.get("/sets", quizSetController.list);
+router.get("/sets/manage", authenticate(), quizSetController.manage);
+router.post("/sets", authenticate(), quizSetController.create);
+router.put("/sets/:id", authenticate(), quizSetController.update);
+router.delete("/sets/:id", authenticate(), quizSetController.remove);
+router.patch("/sets/:id/publish", authenticate(), quizSetController.publish);
 
 /* ------------------------------ SOAL ------------------------------------ */
 router.get("/questions", questionController.listPublic);
