@@ -735,16 +735,55 @@ async function handleRegister(event) {
     // Simpan token agar langsung login
     saveToken(data.token);
     
-    showToast("Registrasi berhasil! Mengalihkan...");
+    const namaGuru = data.teacher?.fullName || data.teacher?.username || username;
+    showToast("🎉 Registrasi berhasil! Selamat datang, " + namaGuru + "!");
     registerForm.reset();
-    
-    // Alihkan ke halaman utama (index.html)
-    setTimeout(() => {
-      window.location.href = "index.html#dashboard";
-    }, 1500);
+    registerError.classList.remove("show");
+
+    const pageDashboard = document.getElementById("page-dashboard");
+    if (pageDashboard) {
+      await renderDashboard();
+      showPage("page-dashboard");
+    } else {
+      setTimeout(() => {
+        window.location.href = "index.html#dashboard";
+      }, 1200);
+    }
   } catch (err) {
     showRegisterError(err.message || "Registrasi gagal, coba lagi.");
     shakeForm(registerForm);
+  }
+}
+
+/** Berpindah tab antara login dan daftar akun baru pada halaman auth guru */
+function switchAuthTab(mode) {
+  const tabLogin = $("#tabBtnLogin");
+  const tabRegister = $("#tabBtnRegister");
+  const formLogin = $("#loginForm");
+  const formRegister = $("#registerForm");
+  const avatar = $("#authAvatar");
+
+  if (!tabLogin || !tabRegister || !formLogin || !formRegister) return;
+
+  if (loginError) loginError.classList.remove("show");
+  if (registerError) registerError.classList.remove("show");
+
+  if (mode === "register") {
+    tabLogin.classList.remove("active");
+    tabLogin.setAttribute("aria-selected", "false");
+    tabRegister.classList.add("active");
+    tabRegister.setAttribute("aria-selected", "true");
+    formLogin.style.display = "none";
+    formRegister.style.display = "block";
+    if (avatar) avatar.textContent = "📝";
+  } else {
+    tabRegister.classList.remove("active");
+    tabRegister.setAttribute("aria-selected", "false");
+    tabLogin.classList.add("active");
+    tabLogin.setAttribute("aria-selected", "true");
+    formRegister.style.display = "none";
+    formLogin.style.display = "block";
+    if (avatar) avatar.textContent = "🏫";
   }
 }
 
@@ -764,6 +803,15 @@ function shakeForm(element) {
 /** Mengisi dashboard guru: statistik, daftar soal, dan riwayat skor. */
 async function renderDashboard() {
   try {
+    /* Ambil profil guru yang login untuk menyapa di header dashboard */
+    try {
+      const meData = await api("/api/auth/me");
+      const teacherNameEl = $("#dashTeacherName");
+      if (teacherNameEl && meData && meData.teacher) {
+        teacherNameEl.textContent = meData.teacher.fullName || meData.teacher.username || "Guru";
+      }
+    } catch (_) { /* abaikan jika gagal memuat profil */ }
+
     const data = await api("/api/teacher/stats");
 
     statMaterials.textContent = data.totalMaterials ?? 0;
@@ -1375,6 +1423,9 @@ function init() {
   /* Tombol memulai kuis (dipakai di home, hasil, dan dashboard guru) */
   const btnStart = $("#btnStart");
   if (btnStart) btnStart.addEventListener("click", startQuiz);
+
+  const navBtnJoin = $("#navBtnJoin");
+  if (navBtnJoin) navBtnJoin.addEventListener("click", showSetModal);
   
   const btnReplay = $("#btnReplay");
   if (btnReplay) btnReplay.addEventListener("click", startQuiz);
@@ -1401,6 +1452,17 @@ function init() {
   if (registerForm) {
     registerForm.addEventListener("submit", handleRegister);
   }
+
+  /* Tab switcher auth guru (Login / Daftar) */
+  const tabBtnLogin = $("#tabBtnLogin");
+  const tabBtnRegister = $("#tabBtnRegister");
+  const linkToRegister = $("#linkToRegister");
+  const linkToLogin = $("#linkToLogin");
+
+  if (tabBtnLogin) tabBtnLogin.addEventListener("click", () => switchAuthTab("login"));
+  if (tabBtnRegister) tabBtnRegister.addEventListener("click", () => switchAuthTab("register"));
+  if (linkToRegister) linkToRegister.addEventListener("click", () => switchAuthTab("register"));
+  if (linkToLogin) linkToLogin.addEventListener("click", () => switchAuthTab("login"));
 
   /* Auto-login jika ada hash #dashboard */
   if (window.location.hash === "#dashboard" && getToken() && document.getElementById("page-dashboard")) {
