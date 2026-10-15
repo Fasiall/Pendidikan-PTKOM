@@ -10,60 +10,88 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%93%9A%3C/text%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Poppins:wght@600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 
-  <header class="materi-top">
-    <a class="icon-btn" href="materi.html" title="Kembali ke daftar materi">←</a>
-    <div class="materi-top-text">
-      <span class="pill-badge" id="dSubject">📖</span>
-      <h1 class="materi-title" id="dTitle">Memuat materi...</h1>
-    </div>
-    <span class="materi-count" id="dCount"></span>
-  </header>
+  <!-- ================= CONTAINER HALAMAN KONSISTEN ================= -->
+  <div class="page-container">
 
-  <main class="materi-wrap">
-    <article class="materi-detail hidden" id="materiDetail">
-      <!-- Ilustrasi pendukung -->
-      <div class="materi-hero">
-        <img id="dImage" alt="" src="">
-        <span class="materi-hero-badge" id="dBadge">📘</span>
+    <!-- Header Navigasi Konsisten & Elegan -->
+    <header class="home-nav">
+      <a href="index.html" class="nav-brand">
+        <span class="nav-brand-icon"><i data-lucide="graduation-cap"></i></span>
+        <span class="nav-title">Kuis Ceria</span>
+      </a>
+      <nav class="nav-menu">
+        <a href="index.html" class="nav-link"><i data-lucide="home"></i> <span>Home</span></a>
+        <a href="materi.html" class="nav-link active"><i data-lucide="book-open"></i> <span>Materi</span></a>
+        <a href="index.html#page-login" class="nav-link" title="Buat &amp; Kelola Kuis"><i data-lucide="file-pen"></i> <span>Kreator Soal</span></a>
+      </nav>
+      <div class="nav-spacer" aria-hidden="true"></div>
+    </header>
+
+    <header class="materi-top">
+      <a class="icon-btn" href="materi.html" title="Kembali ke daftar materi"><i data-lucide="arrow-left"></i></a>
+      <div class="materi-top-text">
+        <span class="pill-badge" id="dSubject"><i data-lucide="book-open" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;"></i> Materi</span>
+        <h1 class="materi-title" id="dTitle">Memuat materi...</h1>
       </div>
+      <span class="materi-count" id="dCount"></span>
+    </header>
 
-      <p class="materi-summary" id="dSummary"></p>
-
-      <!-- Isi materi (boleh HTML, dikirim oleh pengajar lewat API) -->
-      <div class="materi-content" id="dContent"></div>
-
-      <div class="materi-cta">
-        <!-- Daftar set soal (diisi oleh materi.js) -->
-        <div class="quiz-sets-wrap" id="quizSetsWrap">
-          <h3 class="quiz-sets-title">📝 Pilih Set Soal</h3>
-          <div class="quiz-sets-list" id="quizSetsList"></div>
-          <p class="quiz-sets-empty hidden" id="quizSetsEmpty">Belum ada set soal untuk materi ini.</p>
+    <main class="materi-wrap">
+      <article class="materi-detail hidden" id="materiDetail">
+        <!-- Ilustrasi pendukung -->
+        <div class="materi-hero">
+          <img id="dImage" alt="" src="">
+          <span class="materi-hero-badge" id="dBadge">📘</span>
         </div>
-        <a class="btn btn-ghost" href="materi.html">📖 Semua Materi</a>
+
+        <p class="materi-summary" id="dSummary"></p>
+
+        <!-- Isi materi (boleh HTML, dikirim oleh pengajar lewat API) -->
+        <div class="materi-content" id="dContent"></div>
+
+        <div class="materi-cta">
+          <!-- Daftar set soal (diisi oleh materi.js) -->
+          <div class="quiz-sets-wrap" id="quizSetsWrap">
+            <h3 class="quiz-sets-title"><i data-lucide="list-checks" style="vertical-align:middle;margin-right:6px;"></i> Set Soal Kuis</h3>
+            <p style="font-size:0.9rem; color:var(--text-sub); margin-bottom:14px;">Untuk mengerjakan kuis, masukkan kode kuis dari gurumu di halaman utama.</p>
+            <div class="quiz-sets-list" id="quizSetsList"></div>
+            <p class="quiz-sets-empty hidden" id="quizSetsEmpty">Belum ada set soal untuk materi ini.</p>
+          </div>
+          <a class="btn btn-ghost" href="materi.html"><i data-lucide="book-open"></i> Semua Materi</a>
+        </div>
+
+        <footer class="home-footer">Dibuat dengan ❤️ untuk seluruh siswa Indonesia</footer>
+      </article>
+
+      <div class="materi-loading" id="dLoading">
+        <div class="materi-loading-icon"><i data-lucide="loader-2" class="spin" style="width:36px;height:36px;color:var(--primary);"></i></div>
+        <p>Memuat materi...</p>
       </div>
 
-      <footer class="home-footer">Dibuat dengan ❤️ untuk seluruh siswa Indonesia</footer>
-    </article>
+      <div class="materi-empty hidden" id="dEmpty">
+        <div class="materi-empty-icon"><i data-lucide="search-x" style="width:48px;height:48px;color:var(--text-sub);"></i></div>
+        <p id="dEmptyText">Materi tidak ditemukan.</p>
+        <a class="btn btn-ghost btn-small" href="materi.html"><i data-lucide="book-open"></i> Kembali ke Daftar Materi</a>
+      </div>
+    </main>
 
-    <div class="materi-loading" id="dLoading">
-      <span class="materi-loading-emoji">⏳</span>
-      <p>Memuat materi...</p>
-    </div>
-
-    <div class="materi-empty hidden" id="dEmpty">
-      <span class="materi-empty-emoji">🔍</span>
-      <p id="dEmptyText">Materi tidak ditemukan.</p>
-      <a class="btn btn-ghost btn-small" href="materi.html">📖 Kembali ke Daftar Materi</a>
-    </div>
-  </main>
+  </div>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="materi.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (window.lucide) lucide.createIcons();
+    });
+  </script>
 </body>
 </html>

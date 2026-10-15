@@ -92,13 +92,17 @@ async function loadMaterials() {
           "<h2>" + material.title + "</h2>" +
           "<p>" + (material.summary || "") + "</p>" +
           '<div class="materi-meta">' +
-            "<span>📚 " + material.question_count + " soal</span>" +
-            "<span class=\"materi-go\">Baca ➜</span>" +
+            "<span><i data-lucide=\"book-open\" style=\"width:14px;height:14px;vertical-align:middle;margin-right:4px;\"></i>" + material.question_count + " soal</span>" +
+            "<span class=\"materi-go\">Baca <i data-lucide=\"arrow-right\" style=\"width:14px;height:14px;vertical-align:middle;\"></i></span>" +
           "</div>" +
         "</div>";
 
       grid.appendChild(card);
     });
+
+    if (window.lucide && typeof lucide.createIcons === "function") {
+      lucide.createIcons();
+    }
 
     showState("#materiGrid");
   } catch (err) {
@@ -183,20 +187,23 @@ async function loadQuizSets(materialId) {
     sets.forEach(function (set, index) {
       const card = document.createElement("a");
       card.className = "quiz-set-card";
-      card.href = "index.html?set=" + set.id;
+      card.href = "index.html";
       card.style.animationDelay = index * 0.08 + "s";
 
       card.innerHTML =
-        '<div class="quiz-set-icon">📝</div>' +
+        '<div class="quiz-set-icon"><i data-lucide="file-question"></i></div>' +
         '<div class="quiz-set-info">' +
           "<strong>" + set.title + "</strong>" +
           (set.description ? "<p>" + set.description + "</p>" : "") +
           '<span class="quiz-set-count">' + set.question_count + " soal</span>" +
         "</div>" +
-        '<span class="quiz-set-go">Mulai ➜</span>';
+        '<span class="quiz-set-go">Ikuti Kuis <i data-lucide="arrow-right"></i></span>';
 
       list.appendChild(card);
     });
+    if (window.lucide && typeof lucide.createIcons === "function") {
+      lucide.createIcons();
+    }
   } catch (err) {
     if (list) list.innerHTML = "";
     if (empty) {

@@ -10,10 +10,13 @@
   <!-- Ikon tab browser (emoji burung hantu) -->
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%A6%89%3C/text%3E%3C/svg%3E">
 
-  <!-- Font Poppins (untuk tampilan rapi & mudah dibaca) -->
+  <!-- Font Plus Jakarta Sans + Poppins -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Poppins:wght@600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
 
   <!-- File styling utama -->
   <link rel="stylesheet" href="style.css">
@@ -21,8 +24,7 @@
 <body>
 
   <!-- =====================================================
-       LAPISAN HIASAN: emoji melayang di latar belakang
-       (diisi otomatis oleh script.js)
+       LAPISAN HIASAN: motif edukasi di latar belakang
   ====================================================== -->
   <div class="decor-layer" id="decorLayer" aria-hidden="true"></div>
 
@@ -44,7 +46,7 @@
   ========================================================== -->
   <section class="page active" id="page-register">
     <div class="login-card">
-      <div class="login-avatar">📝</div>
+      <div class="login-avatar"><i data-lucide="user-plus" style="width:36px;height:36px;color:var(--primary);"></i></div>
       <h2>Daftar Akun Baru</h2>
       <p class="login-sub">Silakan daftar untuk mengakses fitur guru</p>
 
@@ -53,7 +55,7 @@
         <div class="field">
           <label for="regUsername">Username</label>
           <div class="input-wrap">
-            <span class="input-icon">👤</span>
+            <span class="input-icon"><i data-lucide="user"></i></span>
             <input type="text" id="regUsername" name="username"
                    placeholder="Masukkan username" autocomplete="username">
           </div>
@@ -63,7 +65,7 @@
         <div class="field">
           <label for="regEmail">Email</label>
           <div class="input-wrap">
-            <span class="input-icon">📧</span>
+            <span class="input-icon"><i data-lucide="mail"></i></span>
             <input type="email" id="regEmail" name="email"
                    placeholder="Masukkan email" autocomplete="email">
           </div>
@@ -73,11 +75,11 @@
         <div class="field">
           <label for="regPassword">Password</label>
           <div class="input-wrap">
-            <span class="input-icon">🔒</span>
+            <span class="input-icon"><i data-lucide="lock"></i></span>
             <input type="password" id="regPassword" name="password"
                    placeholder="Masukkan password" autocomplete="new-password">
             <button type="button" class="toggle-pass" id="toggleRegPass"
-                    aria-label="Tampilkan password">👁️</button>
+                    aria-label="Tampilkan password"><i data-lucide="eye"></i></button>
           </div>
         </div>
 
@@ -85,7 +87,7 @@
         <div class="field">
           <label for="regConfirmPassword">Konfirmasi Password</label>
           <div class="input-wrap">
-            <span class="input-icon">🔁</span>
+            <span class="input-icon"><i data-lucide="check-check"></i></span>
             <input type="password" id="regConfirmPassword" name="confirmPassword"
                    placeholder="Masukkan ulang password" autocomplete="new-password">
           </div>
@@ -94,7 +96,7 @@
         <!-- Pesan error validasi -->
         <p class="form-error" id="registerError" role="alert"></p>
 
-        <button class="btn btn-login" type="submit">Daftar & Masuk Sekarang 🚀</button>
+        <button class="btn btn-login" type="submit">Daftar & Masuk Sekarang <i data-lucide="arrow-right"></i></button>
         <div class="login-options">
           <a href="index.html#page-login" class="register-link">Sudah punya akun? Masuk di sini</a>
         </div>
@@ -104,5 +106,10 @@
 
   <!-- File logika utama -->
   <script src="script.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (window.lucide) lucide.createIcons();
+    });
+  </script>
 </body>
 </html>

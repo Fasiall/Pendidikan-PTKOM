@@ -205,6 +205,9 @@ function showPage(pageId) {
   if (target) {
     target.classList.add("active");
     window.scrollTo({ top: 0, behavior: "smooth" });
+    if (window.lucide && typeof window.lucide.createIcons === "function") {
+      window.lucide.createIcons();
+    }
   }
 }
 
@@ -213,13 +216,23 @@ document.addEventListener("click", async (event) => {
   const trigger = event.target.closest("[data-page]");
   if (trigger) {
     const pageId = trigger.dataset.page;
-    if (pageId === "page-login" && getToken()) {
-      try {
-        await renderDashboard();
-        showPage("page-dashboard");
-      } catch (err) {
-        clearToken();
+    if (pageId === "page-login") {
+      event.preventDefault();
+      if (getToken()) {
+        try {
+          await renderDashboard();
+          showPage("page-dashboard");
+        } catch (err) {
+          clearToken();
+          showPage("page-login");
+        }
+      } else {
         showPage("page-login");
+      }
+    } else if (pageId === "page-home") {
+      if (document.getElementById("page-home")) {
+        event.preventDefault();
+        showPage("page-home");
       }
     } else {
       showPage(pageId);
@@ -229,83 +242,202 @@ document.addEventListener("click", async (event) => {
 
 /* =============== (5) HIASAN: JUDUL & LATAR ============================= */
 
-/** Memecah judul menjadi per huruf agar bisa dianimasi satu per satu. */
+/** Memecah judul menjadi per kata / huruf dengan transisi elegan */
 function splitTitle() {
   const titleEl = $("#mainTitle");
   if (!titleEl) return;
-
+  // Tetapkan teks asli tanpa warna pelangi acak
   const text = titleEl.textContent.trim();
-  const colors = ["#FF6B6B", "#FFD93D", "#4ECDC4", "#A78BFA", "#5B8DEF", "#FF6B9D"];
-  titleEl.textContent = "";
-
+  titleEl.innerHTML = "";
   [...text].forEach((char, index) => {
     const span = document.createElement("span");
     span.className = "t-letter";
-    span.textContent = char === " " ? " " : char;
-    span.style.color = colors[index % colors.length];
-    span.style.animationDelay = (index * 0.08) + "s";
+    span.textContent = char === " " ? "\u00A0" : char;
     titleEl.appendChild(span);
   });
 }
 
-/** Membuat emoji melayang di latar belakang (posisi acak tapi seragam). */
+/** Membuat ornamen edukasi melayang di latar belakang (buku, bintang, pensil, rumus) */
 function createDecorations() {
-  const emojis = ["🎈", "⭐", "🌈", "🌸", "☁️", "🦋", "🍭", "🐟", "🍋", "🐝", "🌺", "🐚"];
-  for (let i = 0; i < 12; i++) {
-    const el = document.createElement("span");
-    el.className = "decor";
-    el.textContent = emojis[i % emojis.length];
-    el.style.left = (Math.random() * 94) + "%";
-    el.style.top = (Math.random() * 88) + "%";
-    el.style.fontSize = (24 + Math.random() * 30) + "px";
-    el.style.animationDuration = (4 + Math.random() * 5) + "s";
-    el.style.animationDelay = (Math.random() * 4) + "s";
+  const decorItems = [
+    { type: "icon", name: "book-open" },
+    { type: "icon", name: "sparkles" },
+    { type: "icon", name: "pencil" },
+    { type: "icon", name: "compass" },
+    { type: "icon", name: "shapes" },
+    { type: "icon", name: "award" },
+    { type: "symbol", text: "π" },
+    { type: "symbol", text: "∑" },
+    { type: "symbol", text: "√" },
+    { type: "symbol", text: "A+" }
+  ];
+  if (!decorLayer) return;
+  decorLayer.innerHTML = "";
+  const positions = [
+    { l: 4, t: 12 }, { l: 92, t: 18 }, { l: 8, t: 48 }, { l: 90, t: 55 },
+    { l: 15, t: 82 }, { l: 85, t: 80 }, { l: 50, t: 8 }, { l: 30, t: 30 }
+  ];
+  positions.forEach((pos, i) => {
+    const item = decorItems[i % decorItems.length];
+    const el = document.createElement("div");
+    el.className = "decor decor-edu";
+    el.style.left = pos.l + "%";
+    el.style.top = pos.t + "%";
+    el.style.animationDelay = (i * 0.7) + "s";
+    if (item.type === "icon") {
+      el.innerHTML = `<i data-lucide="${item.name}"></i>`;
+    } else {
+      el.textContent = item.text;
+    }
     decorLayer.appendChild(el);
+  });
+  if (window.lucide && typeof window.lucide.createIcons === "function") {
+    window.lucide.createIcons();
   }
 }
 
 /* =============== (6) LOGIKA KUIS ======================================= */
 
+let currentQuizSetId = null;
+
 /**
- * Memulai kuis: minta sesi baru ke server dan ambil daftar soal.
- * Prioritas parameter URL:
- *   ?set=ID   → hanya soal dari set soal tertentu
- *   ?materi=ID → hanya soal dari materi itu (backward compatible)
- * Bila tidak ada parameter, semua soal dimuat.
+ * Validasi nama siswa lalu buka modal permintaan kode kuis
+ */
+function onStartQuizClick() {
+  const nameInput = $("#studentName");
+  const errEl = $("#studentNameError");
+  const studentName = nameInput ? nameInput.value.trim() : "";
+  if (!studentName) {
+    if (errEl) {
+      errEl.classList.remove("hidden");
+    }
+    if (nameInput) {
+      nameInput.classList.add("is-invalid");
+      const group = nameInput.closest(".student-input-group");
+      if (group) {
+        group.classList.remove("shake");
+        void group.offsetWidth;
+        group.classList.add("shake");
+      }
+      nameInput.focus();
+      nameInput.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+    return;
+  }
+  if (errEl) errEl.classList.add("hidden");
+  if (nameInput) nameInput.classList.remove("is-invalid");
+  showSetModal();
+}
+
+/**
+ * Menampilkan modal masukkan kode kuis
+ */
+function showSetModal() {
+  const modal = $("#modalJoinQuiz");
+  const input = $("#joinCodeInput");
+  const error = $("#joinError");
+  if (!modal) return;
+  
+  modal.classList.add("show");
+  if (input) {
+    input.value = "";
+    setTimeout(() => input.focus(), 100);
+  }
+  if (error) {
+    error.textContent = "";
+    error.classList.remove("show");
+  }
+}
+
+/**
+ * Menutup modal kode kuis
+ */
+function hideSetModal() {
+  const modal = $("#modalJoinQuiz");
+  if (modal) modal.classList.remove("show");
+}
+
+/**
+ * Memproses dan memvalidasi kode kuis 6-karakter dari guru/kreator soal
+ */
+async function handleJoinCodeSubmit() {
+  const input = $("#joinCodeInput");
+  const error = $("#joinError");
+  const btn = $("#btnSubmitJoin");
+  if (!input) return;
+
+  const code = input.value.trim().toUpperCase();
+
+  if (code.length !== 6) {
+    if (error) {
+      error.textContent = "Kode kuis harus terdiri dari 6 karakter.";
+      error.classList.add("show");
+    }
+    input.focus();
+    return;
+  }
+
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span>Mencari kuis...</span>';
+  }
+  if (error) {
+    error.classList.remove("show");
+  }
+
+  try {
+    const data = await api("/api/sets/code/" + encodeURIComponent(code));
+    if (!data || !data.set || !data.set.id) {
+      throw new Error("Set kuis tidak ditemukan.");
+    }
+
+    hideSetModal();
+    startQuiz(data.set.id);
+  } catch (err) {
+    if (error) {
+      error.textContent = err.message || "Kode kuis tidak valid atau belum dipublikasikan oleh guru.";
+      error.classList.add("show");
+    }
+    input.focus();
+    input.select();
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<span>Mulai Kuis</span> <i data-lucide="arrow-right"></i>';
+      if (window.lucide && typeof lucide.createIcons === "function") {
+        lucide.createIcons();
+      }
+    }
+  }
+}
+
+/**
+ * Memulai kuis berdasarkan set soal (wajib diverifikasi lewat kode kuis)
  */
 async function startQuiz(forceSetId = null) {
-  /* Jika dipanggil dari event listener (klik tombol), argumen pertama adalah Event object */
+  /* Jika dipanggil dari event listener biasa tanpa setId, minta kode kuis */
   if (typeof forceSetId !== "number" && typeof forceSetId !== "string") {
     forceSetId = null;
   }
 
-  const btnStart = $("#btnStart");
-  const labelBefore = btnStart.textContent;
-
-  const params = new URLSearchParams(location.search);
-  let setId = forceSetId ? Number(forceSetId) : (Number(params.get("set")) || null);
-  const materialId = setId ? null : (Number(params.get("materi")) || null);
-
-  /* Jika diakses dari halaman utama tanpa parameter, tampilkan modal pilihan set soal */
-  if (!setId && !materialId) {
-    showSetModal();
+  if (!forceSetId) {
+    onStartQuizClick();
     return;
   }
 
-  btnStart.disabled = true;
-  btnStart.textContent = "⏳ Memuat soal...";
+  const setId = Number(forceSetId);
+  currentQuizSetId = setId;
 
-  /* Bangun URL dan body berdasarkan filter */
-  let questionUrl = "/api/questions";
-  const startBody = {};
+  const btnStart = $("#btnStart");
+  const labelBefore = btnStart ? btnStart.innerHTML : "";
 
-  if (setId) {
-    questionUrl += "?setId=" + setId;
-    startBody.setId = setId;
-  } else if (materialId) {
-    questionUrl += "?materialId=" + materialId;
-    startBody.materialId = materialId;
+  if (btnStart) {
+    btnStart.disabled = true;
+    btnStart.innerHTML = '<span>⏳ Memuat soal...</span>';
   }
+
+  const questionUrl = "/api/questions?setId=" + setId;
+  const startBody = { setId: setId };
 
   try {
     const [startData, listData] = await Promise.all([
@@ -317,7 +449,7 @@ async function startQuiz(forceSetId = null) {
     ]);
 
     const list = Array.isArray(listData) ? listData : listData.questions;
-    if (!list || !list.length) throw new Error("Soal masih kosong.");
+    if (!list || !list.length) throw new Error("Belum ada soal pada set kuis ini.");
 
     questions = list;
     currentIndex = 0;
@@ -329,7 +461,7 @@ async function startQuiz(forceSetId = null) {
     const quizTimer = $("#quizTimer");
     if (startData.timeLimit > 0) {
       timeRemaining = startData.timeLimit * 60;
-      quizTimer.classList.remove("hidden");
+      if (quizTimer) quizTimer.classList.remove("hidden");
       updateTimerDisplay();
       
       clearInterval(timerInterval);
@@ -343,18 +475,23 @@ async function startQuiz(forceSetId = null) {
         }
       }, 1000);
     } else {
-      quizTimer.classList.add("hidden");
+      if (quizTimer) quizTimer.classList.add("hidden");
       clearInterval(timerInterval);
     }
   } catch (err) {
     showToast(
-      err.message && err.message !== "Soal masih kosong."
+      err.message && err.message !== "Belum ada soal pada set kuis ini."
         ? "⚠️ " + err.message
-        : "⚠️ Server belum terhubung. Jalankan \"npm start\" lalu muat ulang halaman."
+        : "⚠️ Gagal memuat kuis. Pastikan server aktif dan soal sudah dibuat oleh guru."
     );
   } finally {
-    btnStart.disabled = false;
-    btnStart.textContent = labelBefore;
+    if (btnStart) {
+      btnStart.disabled = false;
+      btnStart.innerHTML = labelBefore;
+      if (window.lucide && typeof lucide.createIcons === "function") {
+        lucide.createIcons();
+      }
+    }
   }
 }
 
@@ -365,58 +502,6 @@ function updateTimerDisplay() {
   const m = Math.floor(timeRemaining / 60).toString().padStart(2, "0");
   const s = (timeRemaining % 60).toString().padStart(2, "0");
   quizTimer.textContent = "⏱️ " + m + ":" + s;
-}
-
-/** Menampilkan modal masukkan kode kuis jika tidak ada parameter di URL */
-async function showSetModal() {
-  const modal = $("#modalJoinQuiz");
-  const input = $("#joinCodeInput");
-  const error = $("#joinError");
-  
-  modal.classList.add("show");
-  input.value = "";
-  error.textContent = "";
-  error.classList.remove("show");
-  input.focus();
-}
-
-/** Menutup modal join */
-if ($("#btnCloseModalJoin")) {
-  $("#btnCloseModalJoin").addEventListener("click", () => {
-    $("#modalJoinQuiz").classList.remove("show");
-  });
-}
-
-/** Submit kode kuis */
-if ($("#btnSubmitJoin")) {
-  $("#btnSubmitJoin").addEventListener("click", async () => {
-    const input = $("#joinCodeInput");
-    const error = $("#joinError");
-    const btn = $("#btnSubmitJoin");
-    const code = input.value.trim().toUpperCase();
-
-    if (code.length !== 6) {
-      error.textContent = "Kode kuis harus 6 karakter.";
-      error.classList.add("show");
-      return;
-    }
-
-    btn.disabled = true;
-    btn.textContent = "Mencari...";
-    error.classList.remove("show");
-
-    try {
-      const data = await api("/api/sets/code/" + code);
-      $("#modalJoinQuiz").classList.remove("show");
-      startQuiz(data.set.id);
-    } catch (err) {
-      error.textContent = err.message;
-      error.classList.add("show");
-    } finally {
-      btn.disabled = false;
-      btn.textContent = "Mulai Kuis";
-    }
-  });
 }
 
 /** Menampilkan soal sesuai currentIndex ke dalam kartu pertanyaan. */
@@ -775,7 +860,12 @@ function switchAuthTab(mode) {
     tabRegister.setAttribute("aria-selected", "true");
     formLogin.style.display = "none";
     formRegister.style.display = "block";
-    if (avatar) avatar.textContent = "📝";
+    if (avatar) {
+      avatar.innerHTML = '<i data-lucide="user-plus"></i>';
+      if (window.lucide && typeof window.lucide.createIcons === "function") {
+        window.lucide.createIcons();
+      }
+    }
   } else {
     tabRegister.classList.remove("active");
     tabRegister.setAttribute("aria-selected", "false");
@@ -783,7 +873,12 @@ function switchAuthTab(mode) {
     tabLogin.setAttribute("aria-selected", "true");
     formRegister.style.display = "none";
     formLogin.style.display = "block";
-    if (avatar) avatar.textContent = "🏫";
+    if (avatar) {
+      avatar.innerHTML = '<i data-lucide="shield-check"></i>';
+      if (window.lucide && typeof window.lucide.createIcons === "function") {
+        window.lucide.createIcons();
+      }
+    }
   }
 }
 
@@ -895,12 +990,15 @@ async function loadAdminData() {
 
     materiList = materiData.materials || [];
     setList = setData.sets || [];
-    renderMateriAdmin();
+    if (materiAdminList && materiCount) renderMateriAdmin();
     renderSetAdmin();
     renderSoalAdmin(soalData.questions || []);
     fillMaterialSelect();
     fillSetSelect();
     fillSetMaterialSelect();
+    if (window.lucide && typeof lucide.createIcons === "function") {
+      lucide.createIcons();
+    }
   } catch (err) {
     if (err.status === 401) return; // biarkan renderDashboard yang menangani
     showToast("Gagal memuat data admin.");
@@ -910,6 +1008,7 @@ async function loadAdminData() {
 /* ------------------------- DAFTAR MATERI ------------------------------- */
 
 function renderMateriAdmin() {
+  if (!materiCount || !materiAdminList) return;
   materiCount.textContent = materiList.length;
   materiAdminList.innerHTML = "";
 
@@ -950,6 +1049,7 @@ function renderMateriAdmin() {
 
 /** Isi form materi dari data yang dipilih (mode ubah). */
 function editMateri(material) {
+  if (!materiForm || !materiFormTitle) return;
   editingMateriId = material.id;
   materiFormTitle.textContent = "✏️ Ubah Materi: " + material.title;
   mTitle.value = material.title;
@@ -959,7 +1059,7 @@ function editMateri(material) {
   mImage.value = material.image_url || "";
   mContent.value = material.content || "";
   mPublish.checked = material.is_published;
-  btnCancelMateri.hidden = false;
+  if (btnCancelMateri) btnCancelMateri.hidden = false;
   showFormError(materiError, "");
   switchTab("tabMateri");
   materiForm.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -968,12 +1068,13 @@ function editMateri(material) {
 
 /** Kembali ke mode tambah materi. */
 function resetMateriForm() {
+  if (!materiForm || !materiFormTitle) return;
   editingMateriId = null;
   materiFormTitle.textContent = "➕ Tambah Materi Baru";
   materiForm.reset();
   mEmoji.value = "📘";
   mPublish.checked = true;
-  btnCancelMateri.hidden = true;
+  if (btnCancelMateri) btnCancelMateri.hidden = true;
   showFormError(materiError, "");
 }
 
@@ -1151,47 +1252,51 @@ function bindAdminEvents() {
   });
 
   /* Simpan materi (tambah / ubah) */
-  materiForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
+  if (materiForm) {
+    materiForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
 
-    const payload = {
-      title: mTitle.value.trim(),
-      summary: mSummary.value.trim(),
-      subject: mSubject.value.trim(),
-      emoji: mEmoji.value.trim() || "📘",
-      image_url: mImage.value.trim(),
-      content: mContent.value,
-      is_published: mPublish.checked
-    };
+      const payload = {
+        title: mTitle.value.trim(),
+        summary: mSummary.value.trim(),
+        subject: mSubject.value.trim(),
+        emoji: mEmoji.value.trim() || "📘",
+        image_url: mImage.value.trim(),
+        content: mContent.value,
+        is_published: mPublish.checked
+      };
 
-    if (!payload.title || !payload.content) {
-      showFormError(materiError, "Judul dan isi materi wajib diisi.");
-      return;
-    }
-
-    try {
-      if (editingMateriId) {
-        await api("/api/materials/" + editingMateriId, {
-          method: "PUT",
-          body: JSON.stringify(payload)
-        });
-        showToast("✅ Materi berhasil diperbarui.");
-      } else {
-        await api("/api/materials", {
-          method: "POST",
-          body: JSON.stringify(payload)
-        });
-        showToast("✅ Materi baru berhasil ditambahkan.");
+      if (!payload.title || !payload.content) {
+        showFormError(materiError, "Judul dan isi materi wajib diisi.");
+        return;
       }
 
-      resetMateriForm();
-      await renderDashboard();
-    } catch (err) {
-      showFormError(materiError, err.message);
-    }
-  });
+      try {
+        if (editingMateriId) {
+          await api("/api/materials/" + editingMateriId, {
+            method: "PUT",
+            body: JSON.stringify(payload)
+          });
+          showToast("✅ Materi berhasil diperbarui.");
+        } else {
+          await api("/api/materials", {
+            method: "POST",
+            body: JSON.stringify(payload)
+          });
+          showToast("✅ Materi baru berhasil ditambahkan.");
+        }
 
-  btnCancelMateri.addEventListener("click", resetMateriForm);
+        resetMateriForm();
+        await renderDashboard();
+      } catch (err) {
+        showFormError(materiError, err.message);
+      }
+    });
+  }
+
+  if (btnCancelMateri) {
+    btnCancelMateri.addEventListener("click", resetMateriForm);
+  }
 
   /* Simpan set soal (tambah / ubah) */
   if (setForm) {
@@ -1274,41 +1379,44 @@ function bindAdminEvents() {
   }
 
   /* Aksi pada daftar materi (ubah / publish / hapus) */
-  materiAdminList.addEventListener("click", async (event) => {
-    const button = event.target.closest("button[data-action]");
-    if (!button) return;
+  if (materiAdminList) {
+    materiAdminList.addEventListener("click", async (event) => {
+      const button = event.target.closest("button[data-action]");
+      if (!button) return;
 
-    const id = Number(button.dataset.id);
-    const material = materiList.find((item) => item.id === id);
-    if (!material) return;
+      const id = Number(button.dataset.id);
+      const material = materiList.find((item) => item.id === id);
+      if (!material) return;
 
-    try {
-      if (button.dataset.action === "edit") {
-        editMateri(material);
-      } else if (button.dataset.action === "toggle") {
-        await api("/api/materials/" + id + "/publish", {
-          method: "PATCH",
-          body: JSON.stringify({ is_published: !material.is_published })
-        });
-        showToast(material.is_published
-          ? "📄 Materi dipindahkan ke draf."
-          : "✅ Materi dipublikasikan untuk siswa.");
-        await loadAdminData();
-      } else if (button.dataset.action === "delete") {
-        if (!confirm('Hapus materi "' + material.title + '" beserta datanya?')) return;
-        await api("/api/materials/" + id, { method: "DELETE" });
-        showToast("🗑️ Materi dihapus.");
-        if (editingMateriId === id) resetMateriForm();
-        await loadAdminData();
-        await renderDashboard();
+      try {
+        if (button.dataset.action === "edit") {
+          editMateri(material);
+        } else if (button.dataset.action === "toggle") {
+          await api("/api/materials/" + id + "/publish", {
+            method: "PATCH",
+            body: JSON.stringify({ is_published: !material.is_published })
+          });
+          showToast(material.is_published
+            ? "📄 Materi dipindahkan ke draf."
+            : "✅ Materi dipublikasikan untuk siswa.");
+          await loadAdminData();
+        } else if (button.dataset.action === "delete") {
+          if (!confirm('Hapus materi "' + material.title + '" beserta datanya?')) return;
+          await api("/api/materials/" + id, { method: "DELETE" });
+          showToast("🗑️ Materi dihapus.");
+          if (editingMateriId === id) resetMateriForm();
+          await loadAdminData();
+          await renderDashboard();
+        }
+      } catch (err) {
+        showToast(err.message);
       }
-    } catch (err) {
-      showToast(err.message);
-    }
-  });
+    });
+  }
 
   /* Simpan soal (tambah / ubah) */
-  soalForm.addEventListener("submit", async (event) => {
+  if (soalForm) {
+    soalForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     const options = qOptions.value
@@ -1362,44 +1470,47 @@ function bindAdminEvents() {
       showFormError(soalError, err.message);
     }
   });
+  }
 
-  btnCancelSoal.addEventListener("click", resetSoalForm);
+  if (btnCancelSoal) {
+    btnCancelSoal.addEventListener("click", resetSoalForm);
+  }
 
   /* Aksi pada daftar soal (ubah / hapus) */
-  soalAdminList.addEventListener("click", async (event) => {
-    const button = event.target.closest("button[data-action]");
-    if (!button) return;
+  if (soalAdminList) {
+    soalAdminList.addEventListener("click", async (event) => {
+      const button = event.target.closest("button[data-action]");
+      if (!button) return;
 
-    const id = Number(button.dataset.id);
-    const action = button.dataset.action;
+      const id = Number(button.dataset.id);
+      const action = button.dataset.action;
 
-    try {
-      if (action === "edit-q") {
-        const data = await api("/api/questions/manage");
-        const question = (data.questions || []).find((item) => item.id === id);
-        if (question) editSoal(question);
-      } else if (action === "delete-q") {
-        if (!confirm("Hapus soal ini?")) return;
-        await api("/api/questions/" + id, { method: "DELETE" });
-        showToast("🗑️ Soal dihapus.");
-        if (editingSoalId === id) resetSoalForm();
-        await loadAdminData();
-        await renderDashboard();
+      try {
+        if (action === "edit-q") {
+          const data = await api("/api/questions/manage");
+          const question = (data.questions || []).find((item) => item.id === id);
+          if (question) editSoal(question);
+        } else if (action === "delete-q") {
+          if (!confirm("Hapus soal ini?")) return;
+          await api("/api/questions/" + id, { method: "DELETE" });
+          showToast("🗑️ Soal dihapus.");
+          if (editingSoalId === id) resetSoalForm();
+          await loadAdminData();
+          await renderDashboard();
+        }
+      } catch (err) {
+        showToast(err.message);
       }
-    } catch (err) {
-      showToast(err.message);
-    }
-  });
-}
-
-/* =============== (10) REGISTRASI & LOGIN GURU ========================= */
-
-/* Tampilkan/sembunyikan password untuk login */
-if (togglePass) {
+    });
+  }
   togglePass.addEventListener("click", () => {
     const isPassword = passwordInput.type === "password";
     passwordInput.type = isPassword ? "text" : "password";
-    togglePass.textContent = isPassword ? "🙈" : "👁️";
+    togglePass.innerHTML = isPassword ? '<i data-lucide="eye-off"></i>' : '<i data-lucide="eye"></i>';
+    togglePass.setAttribute("aria-label", isPassword ? "Sembunyikan password" : "Tampilkan password");
+    if (window.lucide && typeof window.lucide.createIcons === "function") {
+      window.lucide.createIcons();
+    }
   });
 }
 
@@ -1408,8 +1519,12 @@ if (regTogglePass) {
   regTogglePass.addEventListener("click", () => {
     const isPassword = regPasswordInput.type === "password";
     regPasswordInput.type = isPassword ? "text" : "password";
-    regConfirmPasswordInput.type = isPassword ? "text" : "password";
-    regTogglePass.textContent = isPassword ? "🙈" : "👁️";
+    if (regConfirmPasswordInput) regConfirmPasswordInput.type = isPassword ? "text" : "password";
+    regTogglePass.innerHTML = isPassword ? '<i data-lucide="eye-off"></i>' : '<i data-lucide="eye"></i>';
+    regTogglePass.setAttribute("aria-label", isPassword ? "Sembunyikan password" : "Tampilkan password");
+    if (window.lucide && typeof window.lucide.createIcons === "function") {
+      window.lucide.createIcons();
+    }
   });
 }
 
@@ -1420,26 +1535,94 @@ function init() {
   splitTitle();
   createDecorations();
 
-  /* Tombol memulai kuis (dipakai di home, hasil, dan dashboard guru) */
+  if (window.lucide && typeof window.lucide.createIcons === "function") {
+    window.lucide.createIcons();
+  }
+
+  /* Tombol memulai kuis (wajib meminta nama & kode kuis) */
   const btnStart = $("#btnStart");
-  if (btnStart) btnStart.addEventListener("click", startQuiz);
+  if (btnStart) btnStart.addEventListener("click", onStartQuizClick);
+
+  const studentNameInput = $("#studentName");
+  if (studentNameInput) {
+    studentNameInput.addEventListener("input", () => {
+      if (studentNameInput.value.trim().length > 0) {
+        studentNameInput.classList.remove("is-invalid");
+        const errEl = $("#studentNameError");
+        if (errEl) errEl.classList.add("hidden");
+      }
+    });
+
+    studentNameInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        onStartQuizClick();
+      }
+    });
+  }
 
   const navBtnJoin = $("#navBtnJoin");
-  if (navBtnJoin) navBtnJoin.addEventListener("click", showSetModal);
+  if (navBtnJoin) navBtnJoin.addEventListener("click", onStartQuizClick);
   
   const btnReplay = $("#btnReplay");
-  if (btnReplay) btnReplay.addEventListener("click", startQuiz);
+  if (btnReplay) {
+    btnReplay.addEventListener("click", () => {
+      if (currentQuizSetId) {
+        startQuiz(currentQuizSetId);
+      } else {
+        onStartQuizClick();
+      }
+    });
+  }
   
   const btnGuruMulai = $("#btnGuruMulai");
-  if (btnGuruMulai) btnGuruMulai.addEventListener("click", startQuiz);
+  if (btnGuruMulai) btnGuruMulai.addEventListener("click", () => showPage("page-home"));
+
+  /* Event listener modal kode kuis */
+  const btnCloseModalJoin = $("#btnCloseModalJoin");
+  if (btnCloseModalJoin) {
+    btnCloseModalJoin.addEventListener("click", hideSetModal);
+  }
+
+  const modalJoin = $("#modalJoinQuiz");
+  if (modalJoin) {
+    modalJoin.addEventListener("click", (e) => {
+      if (e.target === modalJoin) hideSetModal();
+    });
+  }
+
+  const joinInput = $("#joinCodeInput");
+  if (joinInput) {
+    joinInput.addEventListener("input", () => {
+      joinInput.value = joinInput.value.toUpperCase();
+    });
+    joinInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleJoinCodeSubmit();
+      }
+    });
+  }
+
+  const btnSubmitJoin = $("#btnSubmitJoin");
+  if (btnSubmitJoin) {
+    btnSubmitJoin.addEventListener("click", handleJoinCodeSubmit);
+  }
+
+  /* Cek apakah ada parameter kode kuis di URL (?code=A1B2C3) */
+  const urlParams = new URLSearchParams(window.location.search);
+  const codeParam = urlParams.get("code");
+  if (codeParam && joinInput) {
+    joinInput.value = codeParam.trim().toUpperCase();
+  }
 
   /* Tombol lanjut */
   if (typeof btnNext !== "undefined" && btnNext) {
     btnNext.addEventListener("click", nextQuestion);
   }
 
-  /* Form admin: tab, materi, dan soal */
-  if ($("#materiForm") && typeof bindAdminEvents === "function") {
+  /* Form admin: tab, set soal, dan soal */
+  if (typeof bindAdminEvents === "function") {
     bindAdminEvents();
   }
 
@@ -1464,16 +1647,25 @@ function init() {
   if (linkToRegister) linkToRegister.addEventListener("click", () => switchAuthTab("register"));
   if (linkToLogin) linkToLogin.addEventListener("click", () => switchAuthTab("login"));
 
-  /* Auto-login jika ada hash #dashboard */
-  if (window.location.hash === "#dashboard" && getToken() && document.getElementById("page-dashboard")) {
-    renderDashboard().then(() => {
-      showPage("page-dashboard");
-      // Hapus hash dari URL agar tidak terus-terusan auto-login saat refresh
-      history.replaceState(null, null, ' ');
-    }).catch(() => {
-      clearToken();
-    });
+  /* Auto-login & routing jika ada hash #dashboard atau #page-login */
+  function handleHashRoute() {
+    const hash = window.location.hash;
+    if (hash === "#dashboard" || hash === "#page-login" || hash === "#creator") {
+      if (getToken() && document.getElementById("page-dashboard")) {
+        renderDashboard().then(() => {
+          showPage("page-dashboard");
+        }).catch(() => {
+          clearToken();
+          showPage("page-login");
+        });
+      } else {
+        showPage("page-login");
+      }
+    }
   }
+
+  handleHashRoute();
+  window.addEventListener("hashchange", handleHashRoute);
 
   /* Tombol logout (ada di halaman dashboard) */
   const btnLogout = $("#btnLogout");

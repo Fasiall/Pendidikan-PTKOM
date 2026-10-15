@@ -10,39 +10,68 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%93%9A%3C/text%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Poppins:wght@600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 
-  <!-- ================= HEADER HALAMAN MATERI ================= -->
-  <header class="materi-top">
-    <a class="icon-btn" href="index.html" title="Kembali ke halaman awal">←</a>
-    <div class="materi-top-text">
-      <span class="pill-badge">📖 Belajar dulu, baru kuis</span>
-      <h1 class="materi-title">📚 Materi Belajar</h1>
-    </div>
-    <span class="materi-count" id="materiCount">…</span>
-  </header>
+  <!-- ================= CONTAINER HALAMAN KONSISTEN ================= -->
+  <div class="page-container">
 
-  <!-- ================= KARTU MATERI ================= -->
-  <main class="materi-wrap">
-    <div class="materi-grid" id="materiGrid"></div>
+    <!-- Header Navigasi Konsisten & Elegan -->
+    <header class="home-nav">
+      <a href="index.html" class="nav-brand">
+        <span class="nav-brand-icon"><i data-lucide="graduation-cap"></i></span>
+        <span class="nav-title">Kuis Ceria</span>
+      </a>
+      <nav class="nav-menu">
+        <a href="index.html" class="nav-link"><i data-lucide="home"></i> <span>Home</span></a>
+        <a href="materi.html" class="nav-link active"><i data-lucide="book-open"></i> <span>Materi</span></a>
+        <a href="index.html#page-login" class="nav-link" title="Buat &amp; Kelola Kuis"><i data-lucide="file-pen"></i> <span>Kreator Soal</span></a>
+      </nav>
+      <div class="nav-spacer" aria-hidden="true"></div>
+    </header>
 
-    <div class="materi-empty hidden" id="materiEmpty">
-      <span class="materi-empty-emoji">📭</span>
-      <p>Belum ada materi yang dipublikasikan.<br>Minta gurumu menambahkan materi, ya!</p>
-      <a class="btn btn-ghost btn-small" href="index.html">🏠 Halaman Awal</a>
-    </div>
+    <!-- ================= HEADER SUB-HALAMAN MATERI ================= -->
+    <header class="materi-top">
+      <a class="icon-btn" href="index.html" title="Kembali ke halaman awal"><i data-lucide="arrow-left"></i></a>
+      <div class="materi-top-text">
+        <span class="pill-badge"><i data-lucide="sparkles" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i> Belajar dulu, baru kuis</span>
+        <h1 class="materi-title">Materi Belajar</h1>
+      </div>
+      <span class="materi-count" id="materiCount">…</span>
+    </header>
 
-    <div class="materi-loading" id="materiLoading">
-      <span class="materi-loading-emoji">⏳</span>
-      <p>Memuat materi...</p>
-    </div>
-  </main>
+    <!-- ================= KARTU MATERI ================= -->
+    <main class="materi-wrap">
+      <div class="materi-grid" id="materiGrid"></div>
+
+      <div class="materi-empty hidden" id="materiEmpty">
+        <div class="materi-empty-icon"><i data-lucide="inbox" style="width:48px;height:48px;color:var(--text-sub);"></i></div>
+        <p>Belum ada materi yang dipublikasikan saat ini.</p>
+        <a class="btn btn-ghost btn-small" href="index.html"><i data-lucide="home"></i> Halaman Awal</a>
+      </div>
+
+      <div class="materi-loading" id="materiLoading">
+        <div class="materi-loading-icon"><i data-lucide="loader-2" class="spin" style="width:36px;height:36px;color:var(--primary);"></i></div>
+        <p>Memuat materi...</p>
+      </div>
+    </main>
+
+    <footer class="home-footer">Platform Pembelajaran Interaktif untuk Siswa & Pengajar</footer>
+
+  </div>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="materi.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (window.lucide) lucide.createIcons();
+    });
+  </script>
 </body>
 </html>
