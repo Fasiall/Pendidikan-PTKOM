@@ -20,7 +20,8 @@ function signToken(teacher) {
     {
       sub: teacher.id,
       username: teacher.username,
-      fullName: teacher.fullName
+      fullName: teacher.fullName || teacher.full_name,
+      avatarUrl: teacher.avatarUrl || teacher.avatar_url || null
     },
     config.jwt.secret,
     { expiresIn: config.jwt.expiresIn }
@@ -50,7 +51,8 @@ function authenticate({ required = true } = {}) {
       req.teacher = {
         id: Number(payload.sub),
         username: payload.username,
-        fullName: payload.fullName
+        fullName: payload.fullName,
+        avatarUrl: payload.avatarUrl || null
       };
       next();
     } catch (err) {

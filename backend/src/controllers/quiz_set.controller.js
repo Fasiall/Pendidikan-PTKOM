@@ -71,16 +71,17 @@ const getByCode = asyncHandler(async (req, res) => {
 
 /* ============================= PENGAJAR ================================== */
 
-/** Semua set soal (termasuk draf) untuk dashboard pengajar. */
+/** Semua set soal milik akun pengajar yang login (termasuk draf) untuk dashboard pengajar. */
 const manage = asyncHandler(async (req, res) => {
   const pool = getPool();
+  const teacherId = req.teacher.id;
 
-  const values = [];
-  let where = "";
+  const values = [teacherId];
+  let where = "WHERE qs.teacher_id = $1";
 
   if (req.query.materialId !== undefined && req.query.materialId !== "") {
     values.push(toInt(req.query.materialId, "materialId", { min: 1 }));
-    where = `WHERE qs.material_id = $${values.length}`;
+    where += ` AND qs.material_id = $${values.length}`;
   }
 
   const { rows } = await pool.query(
@@ -88,17 +89,40 @@ const manage = asyncHandler(async (req, res) => {
             COUNT(q.id)::int AS question_count
        FROM quiz_sets qs
        LEFT JOIN materials m ON m.id = qs.material_id
-       LEFT JOIN questions q ON q.quiz_set_id = qs.id
+       LEFT JOIN questions q ON q.quiz_set_id = qs.id AND q.teacher_id = qs.teacher_id
       ${where}
       GROUP BY qs.id, m.title
-      ORDER BY qs.material_id, qs.position, qs.id`,
+      ORDER BY qs.material_id NULLS LAST, qs.position, qs.id`,
     values
   );
 
   res.json({ total: rows.length, sets: rows });
 });
 
-/** Buat set soal baru. */
+/** Ambil seluruh soal dalam satu set kuis (dengan kunci jawaban) untuk keperluan pengaturan soal. */
+const getQuestions = asyncHandler(async (req, res) => {
+  const id = toInt(req.params.id, "id", { min: 1 });
+  const teacherId = req.teacher.id;
+  const pool = getPool();
+
+  const { rows: setRows } = await pool.query(
+    `SELECT qs.*, m.title AS material_title
+       FROM quiz_sets qs
+       LEFT JOIN materials m ON m.id = qs.material_id
+      WHERE qs.id = $1 AND qs.teacher_id = $2`,
+    [id, teacherId]
+  );
+  if (!setRows.length) throw ApiError.notFound("Set soal tidak ditemukan atau Anda tidak memiliki akses.");
+
+  const { rows: questionRows } = await pool.query(
+    `SELECT q.* FROM questions q WHERE q.quiz_set_id = $1 AND q.teacher_id = $2 ORDER BY q.position, q.id`,
+    [id, teacherId]
+  );
+
+  res.json({ ok: true, set: setRows[0], questions: questionRows, total: questionRows.length });
+});
+
+/** Buat set soal baru (tersimpan ke akun pengajar yang login). */
 const create = asyncHandler(async (req, res) => {
   requireFields(req.body, ["title", "materialId"]);
 
@@ -107,6 +131,7 @@ const create = asyncHandler(async (req, res) => {
   if (title.length < 2) throw ApiError.badRequest("Judul set soal minimal 2 karakter.");
 
   const materialId = toInt(body.materialId, "materialId", { min: 1 });
+  const teacherId = req.teacher.id;
 
   const pool = getPool();
 
@@ -121,8 +146,8 @@ const create = asyncHandler(async (req, res) => {
   const accessCode = Math.random().toString(36).substring(2, 8).toUpperCase();
 
   const { rows } = await pool.query(
-    `INSERT INTO quiz_sets (material_id, title, description, is_published, position, access_code, time_limit)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `INSERT INTO quiz_sets (material_id, title, description, is_published, position, access_code, time_limit, teacher_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
      RETURNING *`,
     [
       materialId,
@@ -131,7 +156,8 @@ const create = asyncHandler(async (req, res) => {
       toBool(body.is_published, true),
       body.position === undefined ? 0 : toInt(body.position, "position"),
       accessCode,
-      body.timeLimit === undefined ? 0 : toInt(body.timeLimit, "timeLimit", { min: 0 })
+      body.timeLimit === undefined ? 0 : toInt(body.timeLimit, "timeLimit", { min: 0 }),
+      teacherId
     ]
   );
 
@@ -142,13 +168,14 @@ const create = asyncHandler(async (req, res) => {
 const update = asyncHandler(async (req, res) => {
   const id = toInt(req.params.id, "id", { min: 1 });
   const body = req.body || {};
+  const teacherId = req.teacher.id;
   const pool = getPool();
 
   const { rows: existing } = await pool.query(
-    "SELECT * FROM quiz_sets WHERE id = $1",
-    [id]
+    "SELECT * FROM quiz_sets WHERE id = $1 AND teacher_id = $2",
+    [id, teacherId]
   );
-  if (!existing.length) throw ApiError.notFound("Set soal tidak ditemukan.");
+  if (!existing.length) throw ApiError.notFound("Set soal tidak ditemukan atau Anda tidak memiliki akses.");
 
   const current = existing[0];
 
@@ -157,10 +184,14 @@ const update = asyncHandler(async (req, res) => {
     : String(body.title).trim();
   if (title.length < 2) throw ApiError.badRequest("Judul set soal minimal 2 karakter.");
 
+  const materialId = body.materialId === undefined
+    ? current.material_id
+    : toInt(body.materialId, "materialId", { min: 1 });
+
   const { rows } = await pool.query(
     `UPDATE quiz_sets
-        SET title = $1, description = $2, is_published = $3, position = $4, time_limit = $6
-      WHERE id = $5
+        SET title = $1, description = $2, is_published = $3, position = $4, time_limit = $6, material_id = $7
+      WHERE id = $5 AND teacher_id = $8
       RETURNING *`,
     [
       title,
@@ -176,7 +207,9 @@ const update = asyncHandler(async (req, res) => {
       id,
       body.timeLimit === undefined
         ? current.time_limit
-        : toInt(body.timeLimit, "timeLimit", { min: 0 })
+        : toInt(body.timeLimit, "timeLimit", { min: 0 }),
+      materialId,
+      teacherId
     ]
   );
 
@@ -186,13 +219,14 @@ const update = asyncHandler(async (req, res) => {
 /** Hapus set soal (soal terkait otomatis dilepas relasinya via ON DELETE SET NULL). */
 const remove = asyncHandler(async (req, res) => {
   const id = toInt(req.params.id, "id", { min: 1 });
+  const teacherId = req.teacher.id;
   const pool = getPool();
 
   const { rows } = await pool.query(
-    "DELETE FROM quiz_sets WHERE id = $1 RETURNING id",
-    [id]
+    "DELETE FROM quiz_sets WHERE id = $1 AND teacher_id = $2 RETURNING id",
+    [id, teacherId]
   );
-  if (!rows.length) throw ApiError.notFound("Set soal tidak ditemukan.");
+  if (!rows.length) throw ApiError.notFound("Set soal tidak ditemukan atau Anda tidak memiliki akses.");
 
   res.json({ ok: true, deletedId: id });
 });
@@ -201,15 +235,16 @@ const remove = asyncHandler(async (req, res) => {
 const publish = asyncHandler(async (req, res) => {
   const id = toInt(req.params.id, "id", { min: 1 });
   const isPublished = toBool((req.body || {}).is_published, true);
+  const teacherId = req.teacher.id;
 
   const pool = getPool();
   const { rows } = await pool.query(
-    "UPDATE quiz_sets SET is_published = $1 WHERE id = $2 RETURNING *",
-    [isPublished, id]
+    "UPDATE quiz_sets SET is_published = $1 WHERE id = $2 AND teacher_id = $3 RETURNING *",
+    [isPublished, id, teacherId]
   );
-  if (!rows.length) throw ApiError.notFound("Set soal tidak ditemukan.");
+  if (!rows.length) throw ApiError.notFound("Set soal tidak ditemukan atau Anda tidak memiliki akses.");
 
   res.json({ ok: true, set: rows[0] });
 });
 
-module.exports = { list, getByCode, manage, create, update, remove, publish };
+module.exports = { list, getByCode, manage, getQuestions, create, update, remove, publish };

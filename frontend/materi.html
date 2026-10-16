@@ -18,22 +18,22 @@
 </head>
 <body>
 
+  <!-- Header Navigasi Konsisten & Elegan (Sticky & Edge-to-Edge) -->
+  <header class="home-nav">
+    <a href="index.html" class="nav-brand">
+      <span class="nav-brand-icon"><i data-lucide="graduation-cap"></i></span>
+      <span class="nav-title">Kuis Ceria</span>
+    </a>
+    <nav class="nav-menu">
+      <a href="index.html" class="nav-link"><i data-lucide="home"></i> <span>Home</span></a>
+      <a href="materi.html" class="nav-link active"><i data-lucide="book-open"></i> <span>Materi</span></a>
+      <a href="index.html#page-login" class="nav-link" title="Buat &amp; Kelola Kuis"><i data-lucide="file-pen"></i> <span>Kreator Soal</span></a>
+    </nav>
+    <div class="nav-spacer" aria-hidden="true"></div>
+  </header>
+
   <!-- ================= CONTAINER HALAMAN KONSISTEN ================= -->
   <div class="page-container">
-
-    <!-- Header Navigasi Konsisten & Elegan -->
-    <header class="home-nav">
-      <a href="index.html" class="nav-brand">
-        <span class="nav-brand-icon"><i data-lucide="graduation-cap"></i></span>
-        <span class="nav-title">Kuis Ceria</span>
-      </a>
-      <nav class="nav-menu">
-        <a href="index.html" class="nav-link"><i data-lucide="home"></i> <span>Home</span></a>
-        <a href="materi.html" class="nav-link active"><i data-lucide="book-open"></i> <span>Materi</span></a>
-        <a href="index.html#page-login" class="nav-link" title="Buat &amp; Kelola Kuis"><i data-lucide="file-pen"></i> <span>Kreator Soal</span></a>
-      </nav>
-      <div class="nav-spacer" aria-hidden="true"></div>
-    </header>
 
     <!-- ================= HEADER SUB-HALAMAN MATERI ================= -->
     <header class="materi-top">
@@ -44,6 +44,17 @@
       </div>
       <span class="materi-count" id="materiCount">…</span>
     </header>
+
+    <!-- ================= FILTER KATEGORI MATERI ================= -->
+    <div class="materi-filters" id="materiFilters" role="tablist" aria-label="Filter kategori materi">
+      <button type="button" class="materi-filter-btn active" data-subject="all">Semua</button>
+      <button type="button" class="materi-filter-btn" data-subject="Matematika">🧮 Matematika</button>
+      <button type="button" class="materi-filter-btn" data-subject="IPA">🐰 IPA</button>
+      <button type="button" class="materi-filter-btn" data-subject="Bahasa Indonesia">📚 B. Indonesia</button>
+      <button type="button" class="materi-filter-btn" data-subject="Pengetahuan Umum">🌍 Pengetahuan Umum</button>
+      <button type="button" class="materi-filter-btn" data-subject="Informatika">💻 Informatika</button>
+      <button type="button" class="materi-filter-btn" data-subject="Seni Budaya">🎨 Seni Budaya</button>
+    </div>
 
     <!-- ================= KARTU MATERI ================= -->
     <main class="materi-wrap">

@@ -55,12 +55,15 @@ router.get(
 /* ------------------------------- AUTH ----------------------------------- */
 router.post("/auth/login", authController.login);
 router.post("/auth/register", authController.register);
+router.get("/auth/google/client-id", authController.getGoogleClientId);
+router.post("/auth/google", authController.googleLogin);
 router.get("/auth/me", authenticate(), authController.me);
 router.post("/auth/logout", authController.logout);
 
 /* Kompatibilitas dengan frontend lama (halaman Login Pengajar). */
 router.post("/login", authController.login);
 router.post("/logout", authController.logout);
+router.post("/google-login", authController.googleLogin);
 
 /* ----------------------------- MATERI ----------------------------------- */
 router.get("/materials", materiController.list);
@@ -75,6 +78,7 @@ router.patch("/materials/:id/publish", authenticate(), materiController.publish)
 router.get("/sets", quizSetController.list);
 router.get("/sets/code/:code", quizSetController.getByCode);
 router.get("/sets/manage", authenticate(), quizSetController.manage);
+router.get("/sets/:id/questions", authenticate(), quizSetController.getQuestions);
 router.post("/sets", authenticate(), quizSetController.create);
 router.put("/sets/:id", authenticate(), quizSetController.update);
 router.delete("/sets/:id", authenticate(), quizSetController.remove);
@@ -85,6 +89,7 @@ router.get("/questions", questionController.listPublic);
 router.get("/questions/manage", authenticate(), questionController.manage);
 router.post("/questions", authenticate(), questionController.create);
 router.put("/questions/:id", authenticate(), questionController.update);
+router.patch("/questions/:id/answer", authenticate(), questionController.setAnswer);
 router.delete("/questions/:id", authenticate(), questionController.remove);
 
 /* ------------------------------ KUIS ------------------------------------ */

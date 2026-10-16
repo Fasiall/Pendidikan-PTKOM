@@ -92,8 +92,6 @@ const soalForm      = $("#soalForm");
 const soalFormTitle = $("#soalFormTitle");
 const soalError     = $("#soalError");
 const qQuestion     = $("#qQuestion");
-const qOptions      = $("#qOptions");
-const qAnswer       = $("#qAnswer");
 const adEmoji       = $("#adEmoji");
 const adSubject     = $("#adSubject");
 const qMaterial     = $("#qMaterial");
@@ -102,6 +100,21 @@ const qSet          = $("#qSet");
 const btnCancelSoal = $("#btnCancelSoal");
 const soalAdminList = $("#soalAdminList");
 const soalCount     = $("#soalCount");
+
+/* Input Pilihan Jawaban Visual (A-D) */
+const optInput0          = $("#optInput0");
+const optInput1          = $("#optInput1");
+const optInput2          = $("#optInput2");
+const optInput3          = $("#optInput3");
+const optionsCreatorList = $("#optionsCreatorList");
+
+/* Panel Atur Soal & Kunci Jawaban Kuis */
+const quizQuestionsManager = $("#quizQuestionsManager");
+const mgrSetTitle          = $("#mgrSetTitle");
+const mgrSetMeta           = $("#mgrSetMeta");
+const btnMgrAddQuestion    = $("#btnMgrAddQuestion");
+const btnMgrClose          = $("#btnMgrClose");
+const mgrQuestionsList     = $("#mgrQuestionsList");
 
 /* Elemen form admin set soal */
 const setForm       = $("#setForm");
@@ -133,6 +146,7 @@ let setList         = [];
 let editingMateriId = null;
 let editingSetId    = null;
 let editingSoalId   = null;
+let activeManagerSetId = null;
 
 /* =============== (3) HELPER API + TOAST ================================ */
 
@@ -188,6 +202,37 @@ function showToast(message) {
   toastTimer = setTimeout(() => toastBox.classList.remove("show"), 4000);
 }
 
+/** Sanitasi string HTML untuk keamanan tampilan XSS. */
+function escapeHtml(text) {
+  if (text === null || text === undefined) return "";
+  return String(text)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+/** Mengatur radio pilihan jawaban benar pada form pembuat soal. */
+function setSelectedCorrectRadio(targetIdx) {
+  const num = Number(targetIdx);
+  const radios = document.querySelectorAll('input[name="optCorrectRadio"]');
+  radios.forEach((r) => {
+    const isChecked = Number(r.value) === num;
+    r.checked = isChecked;
+    const parent = r.closest(".option-create-item");
+    if (parent) {
+      parent.classList.toggle("is-correct", isChecked);
+    }
+  });
+}
+
+/** Mengambil indeks (0..3) opsi jawaban benar yang sedang dicentang. */
+function getSelectedCorrectRadio() {
+  const checked = document.querySelector('input[name="optCorrectRadio"]:checked');
+  return checked ? Number(checked.value) : 0;
+}
+
 /* =============== (4) NAVIGASI ANTAR HALAMAN ============================= */
 
 /**
@@ -205,6 +250,9 @@ function showPage(pageId) {
   if (target) {
     target.classList.add("active");
     window.scrollTo({ top: 0, behavior: "smooth" });
+    if (pageId === "page-login" && typeof initGoogleSignIn === "function") {
+      initGoogleSignIn();
+    }
     if (window.lucide && typeof window.lucide.createIcons === "function") {
       window.lucide.createIcons();
     }
@@ -739,6 +787,109 @@ function renderResult(finalScore, total) {
 
 /* =============== (9) LOGIN & DASHBOARD GURU =========================== */
 
+let googleClientId = "";
+let googleClientInitialized = false;
+
+/** Inisialisasi Google Identity Services (GIS) untuk Login Pengajar */
+function initGoogleSignIn() {
+  const container = document.getElementById("googleBtnContainer");
+  if (!container) return;
+
+  // Tunggu pustaka GIS siap bila dimuat secara asynchronous
+  if (typeof google === "undefined" || !google.accounts || !google.accounts.id) {
+    let attempts = 0;
+    const interval = setInterval(() => {
+      attempts++;
+      if (typeof google !== "undefined" && google.accounts && google.accounts.id) {
+        clearInterval(interval);
+        setupGoogleButton();
+      } else if (attempts >= 25) {
+        clearInterval(interval);
+      }
+    }, 200);
+    return;
+  }
+
+  setupGoogleButton();
+}
+
+async function setupGoogleButton() {
+  const container = document.getElementById("googleBtnContainer");
+  if (!container) return;
+
+  try {
+    if (!googleClientId) {
+      try {
+        const res = await api("/api/auth/google/client-id");
+        if (res && res.data && res.data.clientId) {
+          googleClientId = res.data.clientId;
+        }
+      } catch (_) {}
+    }
+
+    if (!googleClientId) return;
+
+    if (!googleClientInitialized) {
+      google.accounts.id.initialize({
+        client_id: googleClientId,
+        callback: handleGoogleCredentialResponse,
+        auto_select: false,
+        cancel_on_tap_outside: true
+      });
+      googleClientInitialized = true;
+    }
+
+    container.innerHTML = "";
+    google.accounts.id.renderButton(container, {
+      type: "standard",
+      theme: "outline",
+      size: "large",
+      text: "continue_with",
+      shape: "pill",
+      logo_alignment: "left",
+      width: 280
+    });
+  } catch (err) {
+    console.error("[Google Auth Error]", err);
+  }
+}
+
+/** Callback respons kredensial dari Google Identity Services */
+async function handleGoogleCredentialResponse(response) {
+  if (!response || !response.credential) {
+    showLoginError("Gagal menerima kredensial dari akun Google.");
+    return;
+  }
+
+  const loadingEl = $("#googleAuthLoading");
+  if (loadingEl) loadingEl.classList.remove("hidden");
+  if (loginError) loginError.classList.remove("show");
+
+  try {
+    showToast("⏳ Sedang memverifikasi akun Google...");
+
+    const data = await api("/api/auth/google", {
+      method: "POST",
+      body: JSON.stringify({ credential: response.credential })
+    });
+
+    saveToken(data.token);
+
+    const teacherName = data.teacher?.fullName || data.teacher?.username || "Pengajar";
+    showToast("🎉 Berhasil masuk! Selamat datang, " + teacherName + "!");
+
+    await renderDashboard();
+    showPage("page-dashboard");
+  } catch (err) {
+    showLoginError(err.message || "Login Google gagal, silakan coba lagi.");
+    showToast("⚠️ " + (err.message || "Gagal masuk dengan Google"));
+  } finally {
+    if (loadingEl) loadingEl.classList.add("hidden");
+  }
+}
+
+window.handleGoogleCredentialResponse = handleGoogleCredentialResponse;
+
 /** Validasi login ke server: benar -> dashboard, salah -> efek getar. */
 async function handleLogin(event) {
   event.preventDefault();
@@ -902,8 +1053,28 @@ async function renderDashboard() {
     try {
       const meData = await api("/api/auth/me");
       const teacherNameEl = $("#dashTeacherName");
-      if (teacherNameEl && meData && meData.teacher) {
-        teacherNameEl.textContent = meData.teacher.fullName || meData.teacher.username || "Guru";
+      const teacherEmailEl = $("#dashTeacherEmail");
+      const teacherAvatarEl = $("#dashTeacherAvatar");
+
+      if (meData && meData.teacher) {
+        if (teacherNameEl) {
+          teacherNameEl.textContent = meData.teacher.fullName || meData.teacher.username || "Guru";
+        }
+        if (teacherEmailEl && meData.teacher.email) {
+          teacherEmailEl.textContent = meData.teacher.email + " • Pengajar";
+        }
+        if (teacherAvatarEl) {
+          if (meData.teacher.avatarUrl) {
+            teacherAvatarEl.referrerPolicy = "no-referrer";
+            teacherAvatarEl.src = meData.teacher.avatarUrl;
+            teacherAvatarEl.classList.remove("hidden");
+            teacherAvatarEl.onerror = () => {
+              teacherAvatarEl.classList.add("hidden");
+            };
+          } else {
+            teacherAvatarEl.classList.add("hidden");
+          }
+        }
       }
     } catch (_) { /* abaikan jika gagal memuat profil */ }
 
@@ -1086,40 +1257,57 @@ function renderSoalAdmin(questions) {
 
   if (!questions.length) {
     soalAdminList.innerHTML =
-      '<li class="admin-empty">Belum ada soal. Buat soal pertama lewat form di samping 👉</li>';
+      '<li class="admin-empty">Belum ada butir soal. Mulai tulis soal pertama Anda menggunakan formulir di sebelah kiri.</li>';
     return;
   }
 
   questions.forEach((question, index) => {
     const li = document.createElement("li");
-    li.style.animationDelay = index * 0.05 + "s";
+    li.className = "claude-soal-item";
+    li.style.animationDelay = index * 0.04 + "s";
     li.innerHTML =
       '<span class="admin-thumb">' + (question.image || "❓") + "</span>" +
       '<div class="admin-info">' +
-        "<strong>" + question.question + "</strong>" +
+        '<div class="admin-q-head">' +
+          "<strong>" + escapeHtml(question.question) + "</strong>" +
+        "</div>" +
         "<small>" +
-          '<span class="tag">' + (question.subject || "Umum") + "</span>" +
+          '<span class="claude-pill-tag">' + escapeHtml(question.subject || "Umum") + "</span>" +
           (question.material_title
-            ? "📚 " + question.material_title
-            : "Tanpa materi") +
+            ? ' <span class="claude-meta-chunk">📚 ' + escapeHtml(question.material_title) + "</span>"
+            : "") +
+          (question.quiz_set_title
+            ? ' <span class="claude-meta-chunk">📋 ' + escapeHtml(question.quiz_set_title) + "</span>"
+            : "") +
         "</small>" +
       "</div>" +
       '<div class="admin-actions">' +
-        '<button class="icon-mini edit" type="button" title="Ubah soal" data-action="edit-q" data-id="' + question.id + '">✏️</button>' +
-        '<button class="icon-mini danger" type="button" title="Hapus soal" data-action="delete-q" data-id="' + question.id + '">🗑️</button>' +
+        '<button class="icon-mini edit" type="button" title="Ubah soal" data-action="edit-q" data-id="' + question.id + '"><i data-lucide="edit-3"></i></button>' +
+        '<button class="icon-mini danger" type="button" title="Hapus soal" data-action="delete-q" data-id="' + question.id + '"><i data-lucide="trash-2"></i></button>' +
       "</div>";
 
     soalAdminList.appendChild(li);
   });
+
+  if (window.lucide && typeof window.lucide.createIcons === "function") {
+    window.lucide.createIcons();
+  }
 }
 
 /** Isi form soal dari data yang dipilih (mode ubah). */
 function editSoal(question) {
   editingSoalId = question.id;
-  soalFormTitle.textContent = "✏️ Ubah Soal";
-  qQuestion.value = question.question;
-  qOptions.value = (question.options || []).join("\n");
-  qAnswer.value = (question.answer ?? 0) + 1; // UI memakai nomor mulai dari 1
+  soalFormTitle.textContent = "Ubah Soal";
+  qQuestion.value = question.question || "";
+
+  const opts = Array.isArray(question.options) ? question.options : [];
+  const inputs = [$("#optInput0"), $("#optInput1"), $("#optInput2"), $("#optInput3")];
+  inputs.forEach((inp, idx) => {
+    if (inp) inp.value = opts[idx] || "";
+  });
+
+  setSelectedCorrectRadio(question.answer ?? 0);
+
   adEmoji.value = question.image || "❓";
   adSubject.value = question.subject || "";
   qMaterial.value = question.material_id || "";
@@ -1135,10 +1323,14 @@ function editSoal(question) {
 /** Kembali ke mode tambah soal. */
 function resetSoalForm() {
   editingSoalId = null;
-  soalFormTitle.textContent = "➕ Tambah Soal Baru";
+  soalFormTitle.textContent = "Tambah Soal Baru";
   soalForm.reset();
+  const inputs = [$("#optInput0"), $("#optInput1"), $("#optInput2"), $("#optInput3")];
+  inputs.forEach((inp) => {
+    if (inp) inp.value = "";
+  });
+  setSelectedCorrectRadio(0);
   adEmoji.value = "❓";
-  qAnswer.value = "1";
   btnCancelSoal.hidden = true;
   showFormError(soalError, "");
 }
@@ -1162,17 +1354,20 @@ function renderSetAdmin() {
     li.innerHTML =
       '<span class="admin-thumb">📋</span>' +
       '<div class="admin-info">' +
-        "<strong>" + set.title + "</strong>" +
+        "<strong>" + escapeHtml(set.title) + "</strong>" +
         "<small>" +
           '<span class="tag' + (set.is_published ? "" : " warn") + '">' +
             (set.is_published ? "Publish" : "Draf") +
           "</span>" +
-          "📚 " + (set.material_title || "?") + " · " + set.question_count + " soal" +
+          "📚 " + escapeHtml(set.material_title || "?") + " · " + set.question_count + " soal" +
           (set.time_limit > 0 ? " · ⏱️ " + set.time_limit + " mnt" : "") +
-          " · 🔑 Kode: <strong>" + (set.access_code || "-") + "</strong>" +
+          " · 🔑 Kode: <strong>" + escapeHtml(set.access_code || "-") + "</strong>" +
         "</small>" +
       "</div>" +
       '<div class="admin-actions">' +
+        '<button class="btn-manage-q" type="button" title="Atur Soal & Kunci Jawaban Kuis Ini" data-action="manage-questions" data-id="' + set.id + '">' +
+          '🎯 Atur Soal (' + set.question_count + ')' +
+        '</button>' +
         '<button class="icon-mini edit" type="button" title="Ubah set" data-action="edit-set" data-id="' + set.id + '">✏️</button>' +
         '<button class="icon-mini" type="button" title="Publish / draf" data-action="toggle-set" data-id="' + set.id + '">' +
           (set.is_published ? "🙈" : "✅") + "</button>" +
@@ -1181,6 +1376,117 @@ function renderSetAdmin() {
 
     setAdminList.appendChild(li);
   });
+  if (window.lucide && typeof lucide.createIcons === "function") {
+    lucide.createIcons();
+  }
+}
+
+/** Buka panel atur soal & jawaban kuis */
+async function openQuizQuestionsManager(setId) {
+  const set = setList.find((s) => s.id === setId);
+  if (!set) return;
+
+  activeManagerSetId = setId;
+  if (quizQuestionsManager) {
+    quizQuestionsManager.classList.remove("hidden");
+    quizQuestionsManager.hidden = false;
+  }
+
+  if (mgrSetTitle) {
+    mgrSetTitle.textContent = set.title;
+  }
+  if (mgrSetMeta) {
+    mgrSetMeta.textContent =
+      "📚 " + (set.material_title || "Umum") +
+      (set.time_limit > 0 ? " · ⏱️ " + set.time_limit + " menit" : " · ⏱️ Tanpa batas waktu") +
+      " · 🔑 Kode Akses Siswa: " + (set.access_code || "-");
+  }
+
+  await loadQuizQuestions(setId);
+  if (quizQuestionsManager) {
+    quizQuestionsManager.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
+
+/** Muat soal-soal dalam satu set kuis beserta pilihan jawaban & tombol atur kunci */
+async function loadQuizQuestions(setId) {
+  if (!mgrQuestionsList) return;
+  mgrQuestionsList.innerHTML = '<div class="mgr-empty-state"><p>Memuat soal...</p></div>';
+
+  try {
+    const data = await api("/api/sets/" + setId + "/questions");
+    const questions = data.questions || [];
+
+    if (!questions.length) {
+      mgrQuestionsList.innerHTML =
+        '<div class="mgr-empty-state">' +
+          '<strong>Belum ada soal pada kuis ini</strong>' +
+          '<p>Tambahkan soal pertama untuk kuis ini agar siswa dapat mengerjakan kuis ini.</p>' +
+          '<button type="button" class="btn btn-small btn-primary" data-action="mgr-add-q" data-setid="' + setId + '">' +
+            '➕ Tambah Soal Pertama' +
+          '</button>' +
+        '</div>';
+      return;
+    }
+
+    const letters = ["A", "B", "C", "D", "E"];
+    mgrQuestionsList.innerHTML = questions.map((q, qIndex) => {
+      const optionsHtml = (q.options || []).map((opt, optIndex) => {
+        const isCorrect = Number(q.answer) === optIndex;
+        return (
+          '<div class="mgr-option ' + (isCorrect ? 'is-correct' : '') + '">' +
+            '<div class="mgr-option-left">' +
+              '<span class="mgr-option-letter">' + (letters[optIndex] || (optIndex + 1)) + '</span>' +
+              '<span class="mgr-option-text" title="' + escapeHtml(opt) + '">' + escapeHtml(opt) + '</span>' +
+            '</div>' +
+            (isCorrect
+              ? '<span class="mgr-correct-tag">✓ Kunci Jawaban</span>'
+              : '<button type="button" class="btn-set-correct" data-action="set-answer" data-qid="' + q.id + '" data-idx="' + optIndex + '" title="Tandai sebagai kunci jawaban yang benar">Jadikan Kunci</button>') +
+          '</div>'
+        );
+      }).join("");
+
+      return (
+        '<div class="mgr-question-card" id="mgrCard-' + q.id + '">' +
+          '<div class="mgr-q-header">' +
+            '<span class="mgr-q-badge">' + (q.image || "❓") + ' Soal #' + (qIndex + 1) + (q.subject ? " · " + escapeHtml(q.subject) : "") + '</span>' +
+            '<div class="mgr-q-actions">' +
+              '<button type="button" class="btn-xs" data-action="edit-mgr-q" data-qid="' + q.id + '" title="Ubah soal ini">✏️ Edit</button>' +
+              '<button type="button" class="btn-xs btn-danger" data-action="delete-mgr-q" data-qid="' + q.id + '" title="Hapus soal ini">🗑️ Hapus</button>' +
+            '</div>' +
+          '</div>' +
+          '<p class="mgr-q-text">' + escapeHtml(q.question) + '</p>' +
+          '<div class="mgr-options-grid">' +
+            optionsHtml +
+          '</div>' +
+          (q.fact ? '<span class="mgr-q-fact">💡 <strong>Penjelasan:</strong> ' + escapeHtml(q.fact) + '</span>' : '') +
+        '</div>'
+      );
+    }).join("");
+
+    if (window.lucide && typeof lucide.createIcons === "function") {
+      lucide.createIcons();
+    }
+  } catch (err) {
+    mgrQuestionsList.innerHTML =
+      '<div class="mgr-empty-state"><p style="color:var(--danger)">Gagal memuat soal: ' + escapeHtml(err.message) + '</p></div>';
+  }
+}
+
+/** Navigasi cepat untuk menambah soal ke set tertentu */
+function handleAddQuestionToSet(setId) {
+  resetSoalForm();
+  fillSetSelect();
+  if (qSet) qSet.value = setId;
+  const set = setList.find((s) => s.id === setId);
+  if (set && set.material_id && qMaterial) {
+    qMaterial.value = set.material_id;
+  }
+  switchTab("tabSoal");
+  if (soalForm) {
+    soalForm.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+  if (qQuestion) qQuestion.focus();
 }
 
 function editSet(set) {
@@ -1343,7 +1649,7 @@ function bindAdminEvents() {
     btnCancelSet.addEventListener("click", resetSetForm);
   }
 
-  /* Aksi pada daftar set soal (ubah / publish / hapus) */
+  /* Aksi pada daftar set soal (ubah / publish / hapus / atur soal) */
   if (setAdminList) {
     setAdminList.addEventListener("click", async (event) => {
       const button = event.target.closest("button[data-action]");
@@ -1354,7 +1660,9 @@ function bindAdminEvents() {
       if (!set) return;
 
       try {
-        if (button.dataset.action === "edit-set") {
+        if (button.dataset.action === "manage-questions") {
+          await openQuizQuestionsManager(id);
+        } else if (button.dataset.action === "edit-set") {
           editSet(set);
         } else if (button.dataset.action === "toggle-set") {
           await api("/api/sets/" + id + "/publish", {
@@ -1370,10 +1678,110 @@ function bindAdminEvents() {
           await api("/api/sets/" + id, { method: "DELETE" });
           showToast("🗑️ Set soal dihapus.");
           if (editingSetId === id) resetSetForm();
+          if (activeManagerSetId === id) {
+            if (quizQuestionsManager) {
+              quizQuestionsManager.classList.add("hidden");
+              quizQuestionsManager.hidden = true;
+            }
+            activeManagerSetId = null;
+          }
           await loadAdminData();
         }
       } catch (err) {
         showToast(err.message);
+      }
+    });
+  }
+
+  /* Event pada Panel Atur Soal & Kunci Jawaban Kuis */
+  if (btnMgrClose) {
+    btnMgrClose.addEventListener("click", () => {
+      if (quizQuestionsManager) {
+        quizQuestionsManager.classList.add("hidden");
+        quizQuestionsManager.hidden = true;
+      }
+      activeManagerSetId = null;
+    });
+  }
+
+  if (btnMgrAddQuestion) {
+    btnMgrAddQuestion.addEventListener("click", () => {
+      if (activeManagerSetId) {
+        handleAddQuestionToSet(activeManagerSetId);
+      }
+    });
+  }
+
+  if (mgrQuestionsList) {
+    mgrQuestionsList.addEventListener("click", async (event) => {
+      const button = event.target.closest("button[data-action]");
+      if (!button) return;
+
+      const action = button.dataset.action;
+
+      if (action === "set-answer") {
+        const qid = Number(button.dataset.qid);
+        const idx = Number(button.dataset.idx);
+        const letters = ["A", "B", "C", "D", "E"];
+        try {
+          await api("/api/questions/" + qid + "/answer", {
+            method: "PATCH",
+            body: JSON.stringify({ answer: idx })
+          });
+          showToast("✅ Kunci jawaban diubah menjadi Opsi " + (letters[idx] || (idx + 1)) + "!");
+          if (activeManagerSetId) {
+            await loadQuizQuestions(activeManagerSetId);
+          }
+        } catch (err) {
+          showToast(err.message);
+        }
+      } else if (action === "edit-mgr-q") {
+        const qid = Number(button.dataset.qid);
+        try {
+          const data = await api("/api/questions/manage");
+          const question = (data.questions || []).find((item) => item.id === qid);
+          if (question) editSoal(question);
+        } catch (err) {
+          showToast(err.message);
+        }
+      } else if (action === "delete-mgr-q") {
+        const qid = Number(button.dataset.qid);
+        if (!confirm("Hapus soal ini dari kuis?")) return;
+        try {
+          await api("/api/questions/" + qid, { method: "DELETE" });
+          showToast("🗑️ Soal dihapus.");
+          if (editingSoalId === qid) resetSoalForm();
+          if (activeManagerSetId) {
+            await loadQuizQuestions(activeManagerSetId);
+          }
+          await loadAdminData();
+          await renderDashboard();
+        } catch (err) {
+          showToast(err.message);
+        }
+      } else if (action === "mgr-add-q") {
+        const setId = Number(button.dataset.setid);
+        if (setId) handleAddQuestionToSet(setId);
+      }
+    });
+  }
+
+  /* Saat set kuis dipilih di form soal, otomatis cocokan materi induknya */
+  if (qSet) {
+    qSet.addEventListener("change", () => {
+      const setId = Number(qSet.value);
+      const set = setList.find((s) => s.id === setId);
+      if (set && set.material_id && qMaterial) {
+        qMaterial.value = set.material_id;
+      }
+    });
+  }
+
+  /* Interaksi radio button & kartu pembuat pilihan jawaban */
+  if (optionsCreatorList) {
+    optionsCreatorList.addEventListener("change", (event) => {
+      if (event.target.name === "optCorrectRadio") {
+        setSelectedCorrectRadio(event.target.value);
       }
     });
   }
@@ -1417,59 +1825,72 @@ function bindAdminEvents() {
   /* Simpan soal (tambah / ubah) */
   if (soalForm) {
     soalForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
+      event.preventDefault();
 
-    const options = qOptions.value
-      .split("\n")
-      .map((line) => line.trim())
-      .filter(Boolean);
-    const answerIndex = Number(qAnswer.value) - 1; // UI 1-based -> API 0-based
+      const rawA = $("#optInput0") ? $("#optInput0").value.trim() : "";
+      const rawB = $("#optInput1") ? $("#optInput1").value.trim() : "";
+      const rawC = $("#optInput2") ? $("#optInput2").value.trim() : "";
+      const rawD = $("#optInput3") ? $("#optInput3").value.trim() : "";
 
-    if (!qQuestion.value.trim()) {
-      showFormError(soalError, "Pertanyaan wajib diisi.");
-      return;
-    }
-    if (options.length < 2) {
-      showFormError(soalError, "Pilihan jawaban minimal 2 baris (satu per baris).");
-      return;
-    }
-    if (answerIndex < 0 || answerIndex >= options.length) {
-      showFormError(soalError, "Nomor jawaban benar harus antara 1 dan " + options.length + ".");
-      return;
-    }
+      const rawOptions = [rawA, rawB, rawC, rawD];
+      const selectedRadio = getSelectedCorrectRadio();
 
-    const payload = {
-      question: qQuestion.value.trim(),
-      options,
-      answer: answerIndex,
-      image: adEmoji.value.trim(),
-      subject: adSubject.value.trim(),
-      fact: qFact.value.trim(),
-      materialId: qMaterial.value ? Number(qMaterial.value) : null,
-      quizSetId: qSet && qSet.value ? Number(qSet.value) : null
-    };
-
-    try {
-      if (editingSoalId) {
-        await api("/api/questions/" + editingSoalId, {
-          method: "PUT",
-          body: JSON.stringify(payload)
-        });
-        showToast("✅ Soal berhasil diperbarui.");
-      } else {
-        await api("/api/questions", {
-          method: "POST",
-          body: JSON.stringify(payload)
-        });
-        showToast("✅ Soal baru berhasil ditambahkan.");
+      if (!qQuestion.value.trim()) {
+        showFormError(soalError, "Pertanyaan kuis wajib diisi.");
+        return;
+      }
+      if (!rawA || !rawB) {
+        showFormError(soalError, "Pilihan jawaban A dan B wajib diisi.");
+        return;
+      }
+      if (!rawC && rawD) {
+        showFormError(soalError, "Harap isi Pilihan C sebelum mengisi Pilihan D.");
+        return;
       }
 
-      resetSoalForm();
-      await renderDashboard();
-    } catch (err) {
-      showFormError(soalError, err.message);
-    }
-  });
+      const options = rawOptions.filter(Boolean);
+      if (selectedRadio >= options.length) {
+        const letters = ["A", "B", "C", "D"];
+        showFormError(soalError, "Opsi " + letters[selectedRadio] + " ditandai sebagai kunci jawaban tetapi teksnya masih kosong.");
+        return;
+      }
+
+      const payload = {
+        question: qQuestion.value.trim(),
+        options,
+        answer: selectedRadio,
+        image: adEmoji.value.trim() || "❓",
+        subject: adSubject.value.trim(),
+        fact: qFact.value.trim(),
+        materialId: qMaterial.value ? Number(qMaterial.value) : null,
+        quizSetId: qSet && qSet.value ? Number(qSet.value) : null
+      };
+
+      try {
+        if (editingSoalId) {
+          await api("/api/questions/" + editingSoalId, {
+            method: "PUT",
+            body: JSON.stringify(payload)
+          });
+          showToast("✅ Soal berhasil diperbarui.");
+        } else {
+          await api("/api/questions", {
+            method: "POST",
+            body: JSON.stringify(payload)
+          });
+          showToast("✅ Soal baru berhasil disimpan ke akun Anda.");
+        }
+
+        resetSoalForm();
+        if (activeManagerSetId) {
+          await loadQuizQuestions(activeManagerSetId);
+        }
+        await loadAdminData();
+        await renderDashboard();
+      } catch (err) {
+        showFormError(soalError, err.message);
+      }
+    });
   }
 
   if (btnCancelSoal) {
@@ -1631,10 +2052,23 @@ function init() {
     loginForm.addEventListener("submit", handleLogin);
   }
 
+  /* Tombol buka/tutup form login manual alternatif */
+  const btnToggleManual = $("#btnToggleManualLogin");
+  if (btnToggleManual && loginForm) {
+    btnToggleManual.addEventListener("click", () => {
+      const isHidden = loginForm.style.display === "none";
+      loginForm.style.display = isHidden ? "block" : "none";
+      btnToggleManual.classList.toggle("active", isHidden);
+    });
+  }
+
   /* Form registrasi guru */
   if (registerForm) {
     registerForm.addEventListener("submit", handleRegister);
   }
+
+  /* Inisialisasi awal Google Sign-In */
+  initGoogleSignIn();
 
   /* Tab switcher auth guru (Login / Daftar) */
   const tabBtnLogin = $("#tabBtnLogin");

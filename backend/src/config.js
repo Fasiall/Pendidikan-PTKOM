@@ -4,12 +4,12 @@
    Semua nilai bisa di-override lewat file .env (lihat .env.example).
    ========================================================================== */
 
-require("dotenv").config();
-
 const path = require("path");
 const crypto = require("crypto");
 
 const ROOT = __dirname.replace(/[\\/]+src$/, "");
+require("dotenv").config({ path: path.join(ROOT, ".env") });
+require("dotenv").config();
 
 /** Ambil nilai env dengan default. */
 function env(name, fallback = undefined) {
@@ -54,5 +54,11 @@ module.exports = {
 
   session: {
     secret: env("SESSION_SECRET", "rahasia-sesi-kuis-sd")
+  },
+
+  google: {
+    clientId: env("GOOGLE_CLIENT_ID", ""),
+    clientSecret: env("GOOGLE_CLIENT_SECRET", ""),
+    projectId: env("GOOGLE_PROJECT_ID", "")
   }
 };
