@@ -425,6 +425,16 @@ function showPage(pageId) {
       window.lucide.createIcons();
     }
   }
+
+  // Update status link aktif di header navigasi
+  document.querySelectorAll(".home-nav .nav-link").forEach((link) => {
+    const linkPage = link.dataset.page;
+    if (pageId === "page-dashboard") {
+      link.classList.toggle("active", linkPage === "page-dashboard" || linkPage === "page-login");
+    } else if (pageId === "page-home" || pageId === "page-quiz" || pageId === "page-result") {
+      link.classList.toggle("active", linkPage === "page-home");
+    }
+  });
 }
 
 /* Navigasi universal: elemen dengan data-page="id-halaman" berpindah halaman. */
@@ -433,6 +443,10 @@ document.addEventListener("click", async (event) => {
   if (trigger) {
     const pageId = trigger.dataset.page;
     if (pageId === "page-login") {
+      if (!document.getElementById("modalLogin")) {
+        // Jika tidak ada modal di halaman ini (seperti di register.html), biarkan tautan bernavigasi ke index.html#page-login
+        return;
+      }
       event.preventDefault();
       if (getToken()) {
         try {
@@ -2498,15 +2512,17 @@ function bindAdminEvents() {
       }
     });
   }
-  togglePass.addEventListener("click", () => {
-    const isPassword = passwordInput.type === "password";
-    passwordInput.type = isPassword ? "text" : "password";
-    togglePass.innerHTML = isPassword ? '<i data-lucide="eye-off"></i>' : '<i data-lucide="eye"></i>';
-    togglePass.setAttribute("aria-label", isPassword ? "Sembunyikan password" : "Tampilkan password");
-    if (window.lucide && typeof window.lucide.createIcons === "function") {
-      window.lucide.createIcons();
-    }
-  });
+  if (togglePass && passwordInput) {
+    togglePass.addEventListener("click", () => {
+      const isPassword = passwordInput.type === "password";
+      passwordInput.type = isPassword ? "text" : "password";
+      togglePass.innerHTML = isPassword ? '<i data-lucide="eye-off"></i>' : '<i data-lucide="eye"></i>';
+      togglePass.setAttribute("aria-label", isPassword ? "Sembunyikan password" : "Tampilkan password");
+      if (window.lucide && typeof window.lucide.createIcons === "function") {
+        window.lucide.createIcons();
+      }
+    });
+  }
 }
 
 /* Tampilkan/sembunyikan password untuk registrasi */

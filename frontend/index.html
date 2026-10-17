@@ -170,23 +170,25 @@
   </div>
 
   <!-- =========================================================
+       HEADER NAVIGASI PERSISTEN & FULL SCREEN (SEMUA HALAMAN)
+  ========================================================== -->
+  <header class="home-nav">
+    <a href="index.html" class="nav-brand" data-page="page-home">
+      <span class="nav-brand-icon"><i data-lucide="graduation-cap"></i></span>
+      <span class="nav-title">Kuis Ceria</span>
+    </a>
+    <nav class="nav-menu">
+      <a href="index.html" class="nav-link active" data-page="page-home"><i data-lucide="home"></i> <span>Home</span></a>
+      <a href="materi.html" class="nav-link"><i data-lucide="book-open"></i> <span>Materi</span></a>
+      <a href="index.html#page-login" class="nav-link" data-page="page-login" title="Buat &amp; Kelola Kuis"><i data-lucide="layout-dashboard"></i> <span>Kreator Soal</span></a>
+    </nav>
+    <div class="nav-spacer" aria-hidden="true"></div>
+  </header>
+
+  <!-- =========================================================
        HALAMAN 1: HALAMAN UTAMA (SISWA)
   ========================================================== -->
   <section class="page active" id="page-home">
-
-    <!-- Header Navigasi Konsisten & Elegan -->
-    <header class="home-nav">
-      <a href="index.html" class="nav-brand">
-        <span class="nav-brand-icon"><i data-lucide="graduation-cap"></i></span>
-        <span class="nav-title">Kuis Ceria</span>
-      </a>
-      <nav class="nav-menu">
-        <a href="index.html" class="nav-link active" data-page="page-home"><i data-lucide="home"></i> <span>Home</span></a>
-        <a href="materi.html" class="nav-link"><i data-lucide="book-open"></i> <span>Materi</span></a>
-        <a href="#page-login" class="nav-link" data-page="page-login" title="Buat &amp; Kelola Kuis"><i data-lucide="file-pen"></i> <span>Kreator Soal</span></a>
-      </nav>
-      <div class="nav-spacer" aria-hidden="true"></div>
-    </header>
 
     <!-- Ambient Glow Blobs Minimalis & Elegan -->
     <div class="hero-blobs" aria-hidden="true">
@@ -197,10 +199,9 @@
 
     <div class="home-inner">
 
-      <!-- HERO INTERAKTIF: Grid 2 Kolom menyatukan teks, aksi, dan maskot -->
+      <!-- HERO INTERAKTIF: Layout Terpusat Modern -->
       <div class="hero-container">
 
-        <!-- Kolom Kiri: Teks Pengantar, Input Nama, Tombol Aksi 3D -->
         <div class="hero-content">
           <!-- Pill Badge di Atas -->
           <div class="badge-wrapper">
@@ -215,43 +216,13 @@
             Uji wawasan dan asah kemampuanmu lewat kuis interaktif seru Matematika, IPA, Bahasa Indonesia, dan Pengetahuan Umum!
           </p>
 
-          <!-- Input Nama Siswa & Action Hub -->
-          <div class="student-action-box">
-            <div class="student-input-group">
-              <label for="studentName" class="student-label">
-                <i data-lucide="user-pen"></i> Nama Peserta Kuis
-              </label>
-              <div class="input-with-icon">
-                <i data-lucide="user" class="input-icon-left"></i>
-                <input type="text" id="studentName" maxlength="60" placeholder="Tuliskan namamu di sini..." autocomplete="off">
+          <!-- Maskot Burung Hantu di Tengah -->
+          <div class="hero-mascot-center">
+            <div class="mascot-card">
+              <div class="speech-bubble">
+                <span class="speech-sparkle">👋</span>
+                <span>Halo! Sudah siap jadi juara kuis hari ini?</span>
               </div>
-              <p class="student-name-error hidden" id="studentNameError" role="alert">
-                <i data-lucide="alert-circle"></i>
-                <span>Silakan tuliskan namamu terlebih dahulu!</span>
-              </p>
-            </div>
-
-            <!-- Tombol Utama Memulai Kuis & Belajar (3D Pushable) -->
-            <div class="hero-actions">
-              <button class="btn btn-3d btn-primary btn-start" id="btnStart" type="button">
-                <i data-lucide="play"></i>
-                <span>Mulai Kuis</span>
-              </button>
-              <a class="btn btn-3d btn-secondary btn-materi" href="materi.html">
-                <i data-lucide="book-open"></i>
-                <span>Baca Materi Belajar</span>
-              </a>
-            </div>
-          </div>
-        </div>
-
-        <!-- Kolom Kanan: Maskot Burung Hantu Terintegrasi -->
-        <div class="hero-mascot-col">
-          <div class="mascot-card">
-            <div class="speech-bubble">
-              <span class="speech-sparkle">👋</span>
-              <span>Halo! Sudah siap jadi juara kuis hari ini?</span>
-            </div>
 
             <svg class="mascot-svg" viewBox="0 0 240 230" xmlns="http://www.w3.org/2000/svg"
                  role="img" aria-label="Maskot burung hantu pintar dan keren">
@@ -374,6 +345,36 @@
           </div>
         </div>
 
+          <!-- Input Nama Siswa & Action Hub -->
+          <div class="student-action-box">
+            <div class="student-input-group">
+              <label for="studentName" class="student-label">
+                <i data-lucide="user-pen"></i> Nama Peserta Kuis
+              </label>
+              <div class="input-with-icon">
+                <i data-lucide="user" class="input-icon-left"></i>
+                <input type="text" id="studentName" maxlength="60" placeholder="Tuliskan namamu di sini..." autocomplete="off">
+              </div>
+              <p class="student-name-error hidden" id="studentNameError" role="alert">
+                <i data-lucide="alert-circle"></i>
+                <span>Silakan tuliskan namamu terlebih dahulu!</span>
+              </p>
+            </div>
+
+            <!-- Tombol Utama Memulai Kuis & Belajar (3D Pushable) -->
+            <div class="hero-actions">
+              <button class="btn btn-3d btn-primary btn-start" id="btnStart" type="button">
+                <i data-lucide="play"></i>
+                <span>Mulai Kuis</span>
+              </button>
+              <a class="btn btn-3d btn-secondary btn-materi" href="materi.html">
+                <i data-lucide="book-open"></i>
+                <span>Baca Materi Belajar</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <!-- Stats counter cards -->
@@ -425,6 +426,30 @@
           <p>Navigasi cepat, umpan balik seketika, dan pengalaman belajar tanpa gangguan</p>
         </div>
       </div>
+
+      <!-- Galeri Foto Berjalan Otomatis (Infinite Marquee Slider) -->
+      <section class="gallery-section" aria-label="Galeri Keseruan Belajar">
+        <h2 class="gallery-title">
+          <i data-lucide="camera"></i>
+          Keseruan Belajar Bersama Kuis Ceria
+        </h2>
+        <div class="gallery-marquee">
+          <div class="gallery-track">
+            <!-- 5 foto asli -->
+            <img src="public/1.jpg" alt="Keseruan belajar 1" loading="lazy">
+            <img src="public/2.jpg" alt="Keseruan belajar 2" loading="lazy">
+            <img src="public/3.jpg" alt="Keseruan belajar 3" loading="lazy">
+            <img src="public/4.jpg" alt="Keseruan belajar 4" loading="lazy">
+            <img src="public/5.jpg" alt="Keseruan belajar 5" loading="lazy">
+            <!-- Duplikasi untuk infinite loop mulus -->
+            <img src="public/1.jpg" alt="Keseruan belajar 1" loading="lazy" aria-hidden="true">
+            <img src="public/2.jpg" alt="Keseruan belajar 2" loading="lazy" aria-hidden="true">
+            <img src="public/3.jpg" alt="Keseruan belajar 3" loading="lazy" aria-hidden="true">
+            <img src="public/4.jpg" alt="Keseruan belajar 4" loading="lazy" aria-hidden="true">
+            <img src="public/5.jpg" alt="Keseruan belajar 5" loading="lazy" aria-hidden="true">
+          </div>
+        </div>
+      </section>
 
       <footer class="home-footer">
         <span>Platform Pembelajaran Interaktif untuk Siswa &amp; Pengajar</span>
@@ -516,20 +541,6 @@
        HALAMAN 5: DASHBOARD GURU (tampil setelah login berhasil)
   ========================================================== -->
   <section class="page" id="page-dashboard">
-
-    <!-- Header Navigasi Konsisten dengan Beranda & Halaman Login -->
-    <header class="home-nav">
-      <a href="index.html" class="nav-brand" data-page="page-home">
-        <span class="nav-brand-icon"><i data-lucide="graduation-cap"></i></span>
-        <span class="nav-title">Kuis Ceria</span>
-      </a>
-      <nav class="nav-menu">
-        <a href="index.html" class="nav-link" data-page="page-home"><i data-lucide="home"></i> <span>Home</span></a>
-        <a href="materi.html" class="nav-link"><i data-lucide="book-open"></i> <span>Materi</span></a>
-        <a href="#page-dashboard" class="nav-link active" data-page="page-dashboard" title="Kreator Soal"><i data-lucide="layout-dashboard"></i> <span>Kreator Soal</span></a>
-      </nav>
-      <div class="nav-spacer" aria-hidden="true"></div>
-    </header>
 
     <div class="dash-shell">
 

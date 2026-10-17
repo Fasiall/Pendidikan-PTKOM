@@ -530,11 +530,6 @@ function renderMaterialCards() {
     ? allMaterials
     : allMaterials.filter((m) => (m.subject || "").toLowerCase() === activeSubjectFilter.toLowerCase());
 
-  const countBadge = $("#materiCount");
-  if (countBadge) {
-    countBadge.textContent = filtered.length + " materi";
-  }
-
   if (!filtered.length) {
     grid.innerHTML = "";
     if (empty) empty.classList.remove("hidden");
@@ -577,17 +572,81 @@ function renderMaterialCards() {
   showState("#materiGrid");
 }
 
-/** Pasang interaktivitas filter kategori materi. */
+/** Pasang interaktivitas filter kategori materi via tombol dropdown "Semua". */
 function setupCategoryFilters() {
-  const buttons = document.querySelectorAll(".materi-filter-btn");
-  buttons.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      buttons.forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-      activeSubjectFilter = btn.dataset.subject || "all";
+  const dropdown = $("#materiFilterDropdown");
+  const trigger = $("#materiFilterTrigger");
+  const menu = $("#materiFilterMenu");
+  const triggerText = $("#materiFilterTriggerText");
+
+  if (!trigger || !menu) return;
+
+  function closeMenu() {
+    menu.classList.add("hidden");
+    trigger.setAttribute("aria-expanded", "false");
+    if (dropdown) dropdown.classList.remove("open");
+  }
+
+  function openMenu() {
+    menu.classList.remove("hidden");
+    trigger.setAttribute("aria-expanded", "true");
+    if (dropdown) dropdown.classList.add("open");
+    if (window.lucide && typeof lucide.createIcons === "function") {
+      lucide.createIcons({ root: menu });
+    }
+  }
+
+  function toggleMenu() {
+    if (menu.classList.contains("hidden")) {
+      openMenu();
+    } else {
+      closeMenu();
+    }
+  }
+
+  if (!trigger.dataset.bound) {
+    trigger.dataset.bound = "true";
+    trigger.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleMenu();
+    });
+
+    document.addEventListener("click", (e) => {
+      if (dropdown && !dropdown.contains(e.target)) {
+        closeMenu();
+      }
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        closeMenu();
+      }
+    });
+
+    menu.addEventListener("click", (e) => {
+      const item = e.target.closest(".materi-filter-item, .materi-filter-btn");
+      if (!item || !menu.contains(item)) return;
+      e.stopPropagation();
+
+      const allItems = menu.querySelectorAll(".materi-filter-item, .materi-filter-btn");
+      allItems.forEach((it) => {
+        it.classList.remove("active");
+        it.setAttribute("aria-selected", "false");
+      });
+      item.classList.add("active");
+      item.setAttribute("aria-selected", "true");
+
+      const labelSpan = item.querySelector("span");
+      const labelText = labelSpan ? labelSpan.textContent.trim() : item.textContent.trim();
+      if (triggerText) {
+        triggerText.textContent = labelText;
+      }
+
+      activeSubjectFilter = item.dataset.subject || "all";
+      closeMenu();
       renderMaterialCards();
     });
-  });
+  }
 }
 
 /** Muat materi: tampilkan dummy seketika, sinkronkan ke backend jika tersedia. */
@@ -645,6 +704,10 @@ function renderDetailContent(material) {
 
   document.title = "📖 " + material.title + " | Kuis Petualangan Ceria";
   showState("#materiDetail");
+
+  if (window.lucide && typeof lucide.createIcons === "function") {
+    lucide.createIcons();
+  }
 }
 
 async function loadMaterialDetail() {

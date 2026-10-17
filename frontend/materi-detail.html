@@ -22,14 +22,14 @@
 
   <!-- Header Navigasi Konsisten & Elegan (Sticky & Edge-to-Edge) -->
   <header class="home-nav">
-    <a href="index.html" class="nav-brand">
+    <a href="index.html" class="nav-brand" data-page="page-home">
       <span class="nav-brand-icon"><i data-lucide="graduation-cap"></i></span>
       <span class="nav-title">Kuis Ceria</span>
     </a>
     <nav class="nav-menu">
-      <a href="index.html" class="nav-link"><i data-lucide="home"></i> <span>Home</span></a>
+      <a href="index.html" class="nav-link" data-page="page-home"><i data-lucide="home"></i> <span>Home</span></a>
       <a href="materi.html" class="nav-link active"><i data-lucide="book-open"></i> <span>Materi</span></a>
-      <a href="index.html#page-login" class="nav-link" data-page="page-login" title="Buat &amp; Kelola Kuis"><i data-lucide="file-pen"></i> <span>Kreator Soal</span></a>
+      <a href="index.html#page-login" class="nav-link" data-page="page-login" title="Buat &amp; Kelola Kuis"><i data-lucide="layout-dashboard"></i> <span>Kreator Soal</span></a>
     </nav>
     <div class="nav-spacer" aria-hidden="true"></div>
   </header>
@@ -48,13 +48,19 @@
 
     <main class="materi-wrap">
       <article class="materi-detail hidden" id="materiDetail">
-        <!-- Ilustrasi pendukung -->
-        <div class="materi-hero">
-          <img id="dImage" alt="" src="">
-          <span class="materi-hero-badge" id="dBadge">📘</span>
+        <!-- Header Info & Ringkasan Materi (Tanpa Foto Hero) -->
+        <div class="materi-lead-card">
+          <div class="materi-lead-badge-wrap">
+            <span class="materi-lead-emoji" id="dBadge">📘</span>
+          </div>
+          <div class="materi-lead-body">
+            <div class="materi-lead-tag">
+              <i data-lucide="sparkles" style="width:15px;height:15px;"></i>
+              <span>Ringkasan Materi</span>
+            </div>
+            <p class="materi-lead-summary" id="dSummary"></p>
+          </div>
         </div>
-
-        <p class="materi-summary" id="dSummary"></p>
 
         <!-- Isi materi (boleh HTML, dikirim oleh pengajar lewat API) -->
         <div class="materi-content" id="dContent"></div>
@@ -63,11 +69,11 @@
           <!-- Daftar set soal (diisi oleh materi.js) -->
           <div class="quiz-sets-wrap" id="quizSetsWrap">
             <h3 class="quiz-sets-title"><i data-lucide="list-checks" style="vertical-align:middle;margin-right:6px;"></i> Set Soal Kuis</h3>
-            <p style="font-size:0.9rem; color:var(--text-sub); margin-bottom:14px;">Untuk mengerjakan kuis, masukkan kode kuis dari gurumu di halaman utama.</p>
+            <p class="quiz-sets-subtitle">Untuk mengerjakan kuis, kamu dapat memilih set soal di bawah atau masukkan kode kuis dari gurumu di halaman utama.</p>
             <div class="quiz-sets-list" id="quizSetsList"></div>
             <p class="quiz-sets-empty hidden" id="quizSetsEmpty">Belum ada set soal untuk materi ini.</p>
           </div>
-          <a class="btn btn-ghost" href="materi.html"><i data-lucide="book-open"></i> Semua Materi</a>
+          <a class="btn btn-ghost" href="materi.html"><i data-lucide="book-open"></i> Kembali ke Semua Materi</a>
         </div>
 
         <footer class="home-footer">Dibuat dengan ❤️ untuk seluruh siswa Indonesia</footer>
