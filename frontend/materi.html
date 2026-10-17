@@ -15,6 +15,8 @@
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Identity Services (GSI) -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
@@ -27,7 +29,7 @@
     <nav class="nav-menu">
       <a href="index.html" class="nav-link"><i data-lucide="home"></i> <span>Home</span></a>
       <a href="materi.html" class="nav-link active"><i data-lucide="book-open"></i> <span>Materi</span></a>
-      <a href="index.html#page-login" class="nav-link" title="Buat &amp; Kelola Kuis"><i data-lucide="file-pen"></i> <span>Kreator Soal</span></a>
+      <a href="index.html#page-login" class="nav-link" data-page="page-login" title="Buat &amp; Kelola Kuis"><i data-lucide="file-pen"></i> <span>Kreator Soal</span></a>
     </nav>
     <div class="nav-spacer" aria-hidden="true"></div>
   </header>
@@ -74,6 +76,107 @@
 
     <footer class="home-footer">Platform Pembelajaran Interaktif untuk Siswa & Pengajar</footer>
 
+  </div>
+
+  <!-- =====================================================
+       MODAL VERIFIKASI LOGIN KREATOR SOAL (POPUP & LATAR BLUR)
+  ====================================================== -->
+  <div class="modal-overlay login-modal-overlay" id="modalLogin" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalLoginTitle">
+    <div class="modal-card login-modal-card">
+      <button class="modal-close" id="btnCloseModalLogin" type="button" aria-label="Tutup"><i data-lucide="x"></i></button>
+
+      <!-- Badge Pill Header -->
+      <div class="login-badge-wrap">
+        <span class="pill-badge">
+          <i data-lucide="shield-check"></i> Area Pengajar &amp; Kreator
+        </span>
+      </div>
+
+      <!-- Avatar Icon -->
+      <div class="login-avatar-circle">
+        <i data-lucide="graduation-cap"></i>
+      </div>
+
+      <h2 class="login-title" id="modalLoginTitle">Masuk Kreator Soal</h2>
+      <p class="login-desc">
+        Masuk untuk membuat kuis, menyusun butir soal, dan mengevaluasi hasil belajar siswa secara instan.
+      </p>
+
+      <!-- Wadah Tombol Google Identity Services (GIS) -->
+      <div class="google-auth-wrapper">
+        <div id="googleBtnContainer" class="google-btn-container">
+          <div class="google-loading" id="googleBtnPlaceholder">
+            <span class="auth-spinner"></span>
+            <span>Menyiapkan Google Sign-In...</span>
+          </div>
+        </div>
+        <div id="googleAuthLoading" class="google-loading hidden">
+          <span class="auth-spinner"></span>
+          <span>Memverifikasi akun Google...</span>
+        </div>
+      </div>
+
+      <!-- Pesan status & error validasi -->
+      <p class="form-error" id="loginError" role="alert"></p>
+
+      <div class="auth-security-badge">
+        <i data-lucide="shield-check"></i>
+        <span>Login cepat &amp; aman didukung oleh Google Identity</span>
+      </div>
+
+      <!-- Pembatas Opsi Masuk Alternatif -->
+      <div class="auth-divider">
+        <span>atau masuk dengan akun pengajar</span>
+      </div>
+
+      <button type="button" class="btn-toggle-manual" id="btnToggleManualLogin">
+        <i data-lucide="key-round"></i>
+        <span>Masuk dengan Username &amp; Password</span>
+        <i data-lucide="chevron-down" class="toggle-arrow"></i>
+      </button>
+
+      <!-- FORM LOGIN MANUAL (TERSEMBUNYI SECARA DEFAULT) -->
+      <form id="loginForm" novalidate style="display: none;" class="manual-login-form">
+        <!-- Input Username -->
+        <div class="field">
+          <label for="username"><i data-lucide="user"></i> Username atau email</label>
+          <div class="input-wrap">
+            <span class="input-icon"><i data-lucide="user"></i></span>
+            <input type="text" id="username" name="username"
+                   placeholder="Masukkan username atau email" autocomplete="username">
+          </div>
+        </div>
+
+        <!-- Input Password -->
+        <div class="field">
+          <label for="password"><i data-lucide="lock"></i> Password</label>
+          <div class="input-wrap">
+            <span class="input-icon"><i data-lucide="lock"></i></span>
+            <input type="password" id="password" name="password"
+                   placeholder="Masukkan password" autocomplete="current-password">
+            <button type="button" class="toggle-pass" id="togglePass"
+                    aria-label="Tampilkan password"><i data-lucide="eye"></i></button>
+          </div>
+        </div>
+
+        <button class="btn btn-3d btn-secondary btn-login-submit" type="submit" id="btnLoginSubmit">
+          <i data-lucide="log-in"></i>
+          <span>Masuk Sekarang</span>
+        </button>
+
+        <!-- Petunjuk akun demo -->
+        <div class="demo-account-hint">
+          <i data-lucide="info"></i>
+          <span>Akun demo: username <strong>guru</strong> &bull; password <strong>guru123</strong></span>
+        </div>
+
+        <!-- Link pendaftaran akun baru -->
+        <div class="auth-register-prompt">
+          <span>Belum memiliki akun pengajar?</span>
+          <a href="register.html" class="register-link">Daftar Akun Baru <i data-lucide="arrow-right"></i></a>
+        </div>
+      </form>
+    </div>
   </div>
 
   <div class="toast-container" id="toastContainer" role="region" aria-label="Notifikasi" aria-live="polite"></div>

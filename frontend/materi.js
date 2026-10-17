@@ -341,14 +341,32 @@ DUMMY_MATERIALS.forEach((m) => {
 });
 
 /** Pembungkus fetch + parsing JSON dengan batas waktu agar tidak menggantung. */
-async function api(path, timeoutMs = 2000) {
+async function api(path, options = {}) {
+  let timeoutMs = 3500;
+  let fetchOptions = {};
+  if (typeof options === "number") {
+    timeoutMs = options;
+  } else if (options && typeof options === "object") {
+    fetchOptions = options;
+    if (fetchOptions.timeout) timeoutMs = fetchOptions.timeout;
+  }
+
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
+    const headers = {
+      Accept: "application/json",
+      ...(fetchOptions.body ? { "Content-Type": "application/json" } : {}),
+      ...(fetchOptions.headers || {})
+    };
+    const token = localStorage.getItem("kuis.token");
+    if (token) headers.Authorization = "Bearer " + token;
+
     const res = await fetch(API_BASE + path, {
       credentials: "include",
-      headers: { Accept: "application/json" },
+      ...fetchOptions,
+      headers,
       signal: controller.signal
     });
     clearTimeout(timer);
@@ -714,9 +732,343 @@ async function loadQuizSets(materialId) {
   }
 }
 
+/* ==================== MODAL LOGIN KREATOR SOAL ==================== */
+
+let googleClientId = null;
+let googleClientInitialized = false;
+
+function escapeHtml(str) {
+  if (!str) return "";
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function showLoginError(message) {
+  const loginError = document.getElementById("loginError");
+  if (!loginError) return;
+  loginError.innerHTML = '<i data-lucide="alert-circle"></i><span>' + escapeHtml(message) + '</span>';
+  loginError.classList.add("show");
+  if (window.lucide && typeof lucide.createIcons === "function") {
+    lucide.createIcons({ root: loginError });
+  }
+}
+
+function clearLoginError() {
+  const loginError = document.getElementById("loginError");
+  if (!loginError) return;
+  loginError.classList.remove("show");
+  loginError.innerHTML = "";
+}
+
+function initGoogleSignIn() {
+  const container = document.getElementById("googleBtnContainer");
+  if (!container) return;
+
+  if (typeof google === "undefined" || !google.accounts || !google.accounts.id) {
+    let attempts = 0;
+    const interval = setInterval(() => {
+      attempts++;
+      if (typeof google !== "undefined" && google.accounts && google.accounts.id) {
+        clearInterval(interval);
+        setupGoogleButton();
+      } else if (attempts >= 30) {
+        clearInterval(interval);
+        if (container && (!googleClientId || !container.querySelector("iframe"))) {
+          container.innerHTML = `
+            <div class="google-offline-note">
+              <i data-lucide="wifi-off"></i>
+              <span>Layanan Google Identity belum dapat dimuat. Silakan gunakan login manual.</span>
+            </div>
+          `;
+          if (window.lucide && typeof window.lucide.createIcons === "function") {
+            window.lucide.createIcons();
+          }
+        }
+      }
+    }, 150);
+    return;
+  }
+
+  setupGoogleButton();
+}
+
+function openLoginModal() {
+  const modal = document.getElementById("modalLogin");
+  if (!modal) return;
+
+  modal.classList.add("show");
+  modal.classList.add("active");
+  modal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("login-modal-open");
+
+  clearLoginError();
+
+  if (typeof initGoogleSignIn === "function") {
+    initGoogleSignIn();
+  }
+
+  if (window.lucide && typeof window.lucide.createIcons === "function") {
+    window.lucide.createIcons();
+  }
+
+  const uInput = document.getElementById("username");
+  const mForm = document.getElementById("loginForm");
+  if (uInput && mForm && mForm.style.display !== "none") {
+    setTimeout(() => uInput.focus(), 150);
+  }
+}
+
+function closeLoginModal() {
+  const modal = document.getElementById("modalLogin");
+  if (!modal) return;
+
+  modal.classList.remove("show");
+  modal.classList.remove("active");
+  modal.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("login-modal-open");
+
+  clearLoginError();
+}
+
+async function setupGoogleButton() {
+  const container = document.getElementById("googleBtnContainer");
+  if (!container) return;
+
+  try {
+    if (!googleClientId) {
+      try {
+        const res = await api("/api/auth/google/client-id");
+        if (res && (res.clientId || (res.data && res.data.clientId))) {
+          googleClientId = res.clientId || (res.data && res.data.clientId);
+        }
+      } catch (fetchErr) {
+        console.warn("[Google Auth] Gagal mengambil Client ID:", fetchErr);
+      }
+    }
+
+    if (!googleClientId) {
+      container.innerHTML = `
+        <div class="google-offline-note">
+          <i data-lucide="info"></i>
+          <span>Google Client ID belum dikonfigurasi di server. Silakan masuk manual.</span>
+        </div>
+      `;
+      const manualForm = document.getElementById("loginForm");
+      const btnToggle = document.getElementById("btnToggleManualLogin");
+      if (manualForm) manualForm.style.display = "block";
+      if (btnToggle) btnToggle.classList.add("active");
+      if (window.lucide && typeof window.lucide.createIcons === "function") {
+        window.lucide.createIcons();
+      }
+      return;
+    }
+
+    if (!googleClientInitialized && typeof google !== "undefined" && google.accounts?.id) {
+      google.accounts.id.initialize({
+        client_id: googleClientId,
+        callback: handleGoogleCredentialResponse,
+        auto_select: false,
+        cancel_on_tap_outside: true
+      });
+      googleClientInitialized = true;
+    }
+
+    if (typeof google !== "undefined" && google.accounts?.id) {
+      container.innerHTML = "";
+      google.accounts.id.renderButton(container, {
+        type: "standard",
+        theme: "outline",
+        size: "large",
+        text: "continue_with",
+        shape: "pill",
+        logo_alignment: "left",
+        width: 320
+      });
+    }
+  } catch (err) {
+    console.error("[Google Auth Error]", err);
+  }
+}
+
+async function handleGoogleCredentialResponse(response) {
+  if (!response || !response.credential) {
+    showLoginError("Gagal menerima kredensial dari akun Google.");
+    return;
+  }
+
+  const loadingEl = document.getElementById("googleAuthLoading");
+  if (loadingEl) loadingEl.classList.remove("hidden");
+  clearLoginError();
+
+  try {
+    showToast("Sedang memverifikasi kredensial Google...", "info", "Menghubungkan Akun");
+
+    const data = await api("/api/auth/google", {
+      method: "POST",
+      body: JSON.stringify({ credential: response.credential })
+    });
+
+    localStorage.setItem("kuis.token", data.token);
+    closeLoginModal();
+
+    const teacherName = data.teacher?.fullName || data.teacher?.username || "Pengajar";
+    showToast("Selamat datang di Kreator Soal, " + escapeHtml(teacherName) + "!", "success", "Berhasil Masuk");
+
+    setTimeout(() => {
+      window.location.href = "index.html#page-dashboard";
+    }, 400);
+  } catch (err) {
+    showLoginError(err.message || "Login Google gagal, silakan coba lagi.");
+    showToast(err.message || "Gagal masuk dengan Google", "error", "Login Gagal");
+  } finally {
+    if (loadingEl) loadingEl.classList.add("hidden");
+  }
+}
+
+window.handleGoogleCredentialResponse = handleGoogleCredentialResponse;
+
+async function handleLogin(event) {
+  event.preventDefault();
+
+  const usernameInput = document.getElementById("username");
+  const passwordInput = document.getElementById("password");
+  const loginForm = document.getElementById("loginForm");
+  const submitBtn = document.getElementById("btnLoginSubmit") || document.querySelector(".btn-login-submit");
+
+  const usernameOrEmail = usernameInput ? usernameInput.value.trim() : "";
+  const password = passwordInput ? passwordInput.value : "";
+
+  function shake() {
+    if (loginForm) {
+      loginForm.classList.remove("shake");
+      void loginForm.offsetWidth;
+      loginForm.classList.add("shake");
+      setTimeout(() => loginForm.classList.remove("shake"), 500);
+    }
+  }
+
+  if (!usernameOrEmail || !password) {
+    showLoginError("Username/email dan password wajib diisi!");
+    shake();
+    return;
+  }
+
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i data-lucide="loader-2" class="spin"></i> <span>Memverifikasi...</span>';
+    if (window.lucide && typeof window.lucide.createIcons === "function") lucide.createIcons({ root: submitBtn });
+  }
+
+  try {
+    const data = await api("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ usernameOrEmail, password })
+    });
+
+    localStorage.setItem("kuis.token", data.token);
+    closeLoginModal();
+    clearLoginError();
+
+    if (loginForm) loginForm.reset();
+
+    const teacherName = data.teacher?.fullName || data.teacher?.username || "Pengajar";
+    showToast("Selamat datang di Kreator Soal, " + escapeHtml(teacherName) + "!", "success", "Berhasil Masuk");
+
+    setTimeout(() => {
+      window.location.href = "index.html#page-dashboard";
+    }, 400);
+  } catch (err) {
+    showLoginError(err.message || "Login gagal, coba lagi.");
+    shake();
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i data-lucide="log-in"></i> <span>Masuk Sekarang</span>';
+      if (window.lucide && typeof window.lucide.createIcons === "function") lucide.createIcons({ root: submitBtn });
+    }
+  }
+}
+
+function initLoginModal() {
+  // Tangani klik tautan Kreator Soal di navigasi agar modal pop up di halaman saat ini
+  document.addEventListener("click", (event) => {
+    const trigger = event.target.closest('[data-page="page-login"], a[href*="page-login"]');
+    if (trigger) {
+      event.preventDefault();
+      const token = localStorage.getItem("kuis.token");
+      if (token) {
+        window.location.href = "index.html#page-dashboard";
+      } else {
+        openLoginModal();
+      }
+    }
+  });
+
+  const btnClose = document.getElementById("btnCloseModalLogin");
+  if (btnClose) {
+    btnClose.addEventListener("click", closeLoginModal);
+  }
+
+  const modalOverlay = document.getElementById("modalLogin");
+  if (modalOverlay) {
+    modalOverlay.addEventListener("click", (e) => {
+      if (e.target === modalOverlay) {
+        closeLoginModal();
+      }
+    });
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      const modal = document.getElementById("modalLogin");
+      if (modal && (modal.classList.contains("show") || modal.classList.contains("active"))) {
+        closeLoginModal();
+      }
+    }
+  });
+
+  const btnToggleManual = document.getElementById("btnToggleManualLogin");
+  const manualForm = document.getElementById("loginForm");
+  if (btnToggleManual && manualForm) {
+    btnToggleManual.addEventListener("click", () => {
+      const isHidden = manualForm.style.display === "none";
+      manualForm.style.display = isHidden ? "block" : "none";
+      btnToggleManual.classList.toggle("active", isHidden);
+      if (isHidden) {
+        const uInput = document.getElementById("username");
+        if (uInput) setTimeout(() => uInput.focus(), 150);
+        if (window.lucide && typeof window.lucide.createIcons === "function") {
+          window.lucide.createIcons();
+        }
+      }
+    });
+  }
+
+  const togglePassBtn = document.getElementById("togglePass");
+  const passInput = document.getElementById("password");
+  if (togglePassBtn && passInput) {
+    togglePassBtn.addEventListener("click", () => {
+      const isPassword = passInput.type === "password";
+      passInput.type = isPassword ? "text" : "password";
+      togglePassBtn.innerHTML = isPassword ? '<i data-lucide="eye-off"></i>' : '<i data-lucide="eye"></i>';
+      togglePassBtn.setAttribute("aria-label", isPassword ? "Sembunyikan password" : "Tampilkan password");
+      if (window.lucide && typeof window.lucide.createIcons === "function") {
+        window.lucide.createIcons();
+      }
+    });
+  }
+
+  if (manualForm) {
+    manualForm.addEventListener("submit", handleLogin);
+  }
+}
+
 /* ============================== INISIALISASI ============================= */
 
 document.addEventListener("DOMContentLoaded", () => {
   loadMaterials();
   loadMaterialDetail();
+  initLoginModal();
+  initGoogleSignIn();
 });

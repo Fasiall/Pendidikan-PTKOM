@@ -401,6 +401,19 @@ function showPage(pageId) {
   if (pageId !== "page-quiz") {
     clearInterval(timerInterval);
   }
+  if (pageId === "page-login") {
+    if (getToken()) {
+      renderDashboard().then(() => {
+        showPage("page-dashboard");
+      }).catch(() => {
+        clearToken();
+        openLoginModal();
+      });
+    } else {
+      openLoginModal();
+    }
+    return;
+  }
   document.querySelectorAll(".page").forEach((page) => {
     page.classList.remove("active");
   });
@@ -408,9 +421,6 @@ function showPage(pageId) {
   if (target) {
     target.classList.add("active");
     window.scrollTo({ top: 0, behavior: "smooth" });
-    if (pageId === "page-login" && typeof initGoogleSignIn === "function") {
-      initGoogleSignIn();
-    }
     if (window.lucide && typeof window.lucide.createIcons === "function") {
       window.lucide.createIcons();
     }
@@ -430,17 +440,19 @@ document.addEventListener("click", async (event) => {
           showPage("page-dashboard");
         } catch (err) {
           clearToken();
-          showPage("page-login");
+          openLoginModal();
         }
       } else {
-        showPage("page-login");
+        openLoginModal();
       }
     } else if (pageId === "page-home") {
       if (document.getElementById("page-home")) {
         event.preventDefault();
+        closeLoginModal();
         showPage("page-home");
       }
     } else {
+      closeLoginModal();
       showPage(pageId);
     }
   }
@@ -561,6 +573,71 @@ function showSetModal() {
 function hideSetModal() {
   const modal = $("#modalJoinQuiz");
   if (modal) modal.classList.remove("show");
+}
+
+/**
+ * Menampilkan popup modal verifikasi login Kreator Soal dengan efek pop & latar belakang ngeblur
+ */
+function openLoginModal() {
+  const modal = $("#modalLogin");
+  if (!modal) return;
+
+  // Pastikan halaman aktif (misal home) terlihat di latar belakang agar tampak efek blur
+  let activePage = document.querySelector(".page.active");
+  if (!activePage || activePage.id === "page-login") {
+    const homePage = document.getElementById("page-home");
+    if (homePage) {
+      if (activePage) activePage.classList.remove("active");
+      homePage.classList.add("active");
+    }
+  }
+
+  modal.classList.add("show");
+  modal.classList.add("active");
+  modal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("login-modal-open");
+
+  if (loginError) {
+    loginError.classList.remove("show");
+    loginError.innerHTML = "";
+  }
+
+  if (typeof initGoogleSignIn === "function") {
+    initGoogleSignIn();
+  }
+
+  if (window.lucide && typeof window.lucide.createIcons === "function") {
+    window.lucide.createIcons();
+  }
+
+  // Fokuskan input bila form manual sudah terbuka
+  const uInput = $("#username");
+  const mForm = $("#loginForm");
+  if (uInput && mForm && mForm.style.display !== "none") {
+    setTimeout(() => uInput.focus(), 150);
+  }
+}
+
+/**
+ * Menutup popup modal verifikasi login Kreator Soal dan menghilangkan blur latar
+ */
+function closeLoginModal() {
+  const modal = $("#modalLogin");
+  if (!modal) return;
+
+  modal.classList.remove("show");
+  modal.classList.remove("active");
+  modal.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("login-modal-open");
+
+  if (loginError) {
+    loginError.classList.remove("show");
+    loginError.innerHTML = "";
+  }
+
+  if (window.location.hash === "#page-login" || window.location.hash === "#creator") {
+    history.replaceState(null, document.title, window.location.pathname + window.location.search);
+  }
 }
 
 /**
@@ -1167,6 +1244,10 @@ async function setupGoogleButton() {
           <span>Google Client ID belum dikonfigurasi di server. Silakan masuk manual.</span>
         </div>
       `;
+      const manualForm = $("#loginForm");
+      const btnToggle = $("#btnToggleManualLogin");
+      if (manualForm) manualForm.style.display = "block";
+      if (btnToggle) btnToggle.classList.add("active");
       if (window.lucide && typeof window.lucide.createIcons === "function") {
         window.lucide.createIcons();
       }
@@ -1221,8 +1302,9 @@ async function handleGoogleCredentialResponse(response) {
 
     saveToken(data.token);
 
+    closeLoginModal();
     const teacherName = data.teacher?.fullName || data.teacher?.username || "Pengajar";
-    showToast("Selamat datang kembali, " + escapeHtml(teacherName) + "!", "success", "Berhasil Masuk");
+    showToast("Selamat datang di Kreator Soal, " + escapeHtml(teacherName) + "!", "success", "Berhasil Masuk");
 
     await renderDashboard();
     showPage("page-dashboard");
@@ -1257,9 +1339,14 @@ async function handleLogin(event) {
     });
     saveToken(data.token);
 
+    closeLoginModal();
     loginError.classList.remove("show");
     loginError.innerHTML = "";
     loginForm.reset();
+
+    const teacherName = data.teacher?.fullName || data.teacher?.username || "Pengajar";
+    showToast("Selamat datang di Kreator Soal, " + escapeHtml(teacherName) + "!", "success", "Berhasil Masuk");
+
     await renderDashboard();
     showPage("page-dashboard");
   } catch (err) {
@@ -1497,7 +1584,8 @@ async function renderDashboard() {
   } catch (err) {
     if (err.status === 401) {
       clearToken();
-      showPage("page-login");
+      showPage("page-home");
+      openLoginModal();
       showLoginError("Sesi berakhir, silakan login lagi.");
     } else {
       showToast("Gagal memuat profil pengajar. Silakan muat ulang halaman.", "error", "Gagal Memuat Data");
@@ -2570,19 +2658,34 @@ function init() {
   if (linkToRegister) linkToRegister.addEventListener("click", () => switchAuthTab("register"));
   if (linkToLogin) linkToLogin.addEventListener("click", () => switchAuthTab("login"));
 
+  /* Event listener modal login pop-up Kreator Soal */
+  const btnCloseModalLogin = $("#btnCloseModalLogin");
+  if (btnCloseModalLogin) {
+    btnCloseModalLogin.addEventListener("click", closeLoginModal);
+  }
+
+  const modalLogin = $("#modalLogin");
+  if (modalLogin) {
+    modalLogin.addEventListener("click", (e) => {
+      if (e.target === modalLogin) {
+        closeLoginModal();
+      }
+    });
+  }
+
   /* Auto-login & routing jika ada hash #dashboard atau #page-login */
   function handleHashRoute() {
     const hash = window.location.hash;
-    if (hash === "#dashboard" || hash === "#page-login" || hash === "#creator") {
+    if (hash === "#dashboard" || hash === "#page-login" || hash === "#creator" || hash === "#page-dashboard") {
       if (getToken() && document.getElementById("page-dashboard")) {
         renderDashboard().then(() => {
           showPage("page-dashboard");
         }).catch(() => {
           clearToken();
-          showPage("page-login");
+          openLoginModal();
         });
       } else {
-        showPage("page-login");
+        openLoginModal();
       }
     }
   }
@@ -2603,8 +2706,21 @@ function init() {
     });
   }
 
-  /* Dukungan keyboard: tekan 1-4 untuk memilih opsi, Enter untuk lanjut */
+  /* Dukungan keyboard: Escape untuk menutup modal, 1-4 untuk kuis, Enter untuk lanjut */
   document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      const modalL = $("#modalLogin");
+      if (modalL && (modalL.classList.contains("show") || modalL.classList.contains("active"))) {
+        closeLoginModal();
+        return;
+      }
+      const modalJ = $("#modalJoinQuiz");
+      if (modalJ && (modalJ.classList.contains("show") || modalJ.classList.contains("active"))) {
+        hideSetModal();
+        return;
+      }
+    }
+
     const pageQuiz = document.getElementById("page-quiz");
     if (!pageQuiz) return;
     const quizActive = pageQuiz.classList.contains("active");

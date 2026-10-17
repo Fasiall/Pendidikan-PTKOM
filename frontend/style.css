@@ -3740,21 +3740,138 @@ i[data-lucide] {
 }
 
 /* ==========================================================================
-   17. HALAMAN LOGIN PENGAJAR (SELARAS DENGAN DESAIN BERANDA / EDTECH)
+   17. POPUP MODAL VERIFIKASI LOGIN KREATOR SOAL (POP & LATAR BLUR)
    ========================================================================== */
 
-#page-login {
-  display: none;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 24px 20px 80px;
-  position: relative;
-  z-index: 10;
+/* Transisi filter latar belakang agar blur masuk dan keluar sangat halus */
+.page,
+.page-container,
+.home-nav,
+.materi-wrap,
+.floating-bg {
+  transition: filter 0.36s cubic-bezier(0.16, 1, 0.3, 1),
+              -webkit-filter 0.36s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.36s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.36s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-#page-login.active {
-  display: block;
-  animation: pageFadeIn 0.35s ease forwards;
+.login-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2500;
+  background: rgba(15, 23, 42, 0);
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              visibility 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              background 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              backdrop-filter 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              -webkit-backdrop-filter 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.login-modal-overlay.show,
+.login-modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  background: rgba(15, 23, 42, 0.62);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+/* Efek latar belakang ngeblur saat modal login terbuka */
+body.login-modal-open {
+  overflow: hidden;
+}
+
+body.login-modal-open .page.active,
+body.login-modal-open .page-container,
+body.login-modal-open .home-nav,
+body.login-modal-open .floating-bg {
+  filter: blur(10px);
+  -webkit-filter: blur(10px);
+  pointer-events: none;
+  user-select: none;
+}
+
+.login-modal-card {
+  width: 100%;
+  max-width: 480px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 36px 32px 30px;
+  box-shadow: 0 25px 60px -10px rgba(15, 23, 42, 0.35),
+              0 0 0 1px rgba(255, 255, 255, 0.9) inset;
+  position: relative;
+  text-align: center;
+  box-sizing: border-box;
+  /* Animasi pop snappy dengan spring overshoot yang halus */
+  transform: scale(0.86) translateY(22px);
+  opacity: 0;
+  transition: transform 0.38s cubic-bezier(0.34, 1.48, 0.64, 1),
+              opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+}
+
+.login-modal-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: linear-gradient(90deg, var(--primary), #818CF8, var(--accent));
+  border-top-left-radius: var(--radius-xl);
+  border-top-right-radius: var(--radius-xl);
+}
+
+.login-modal-overlay.show .login-modal-card,
+.login-modal-overlay.active .login-modal-card {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
+
+.login-modal-card .modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: var(--surface-alt);
+  border: 1.5px solid var(--border);
+  color: var(--muted);
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 10;
+}
+.login-modal-card .modal-close:hover {
+  background: #FEE2E2;
+  border-color: #FECACA;
+  color: var(--coral);
+  transform: rotate(90deg) scale(1.06);
+}
+.login-modal-card .modal-close svg,
+.login-modal-card .modal-close i {
+  width: 18px;
+  height: 18px;
+}
+
+#page-login {
+  display: none !important;
 }
 
 .login-wrapper {
