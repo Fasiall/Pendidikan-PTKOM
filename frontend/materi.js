@@ -32,6 +32,19 @@ function svgThumb(emoji, color) {
   return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
 }
 
+/** Menyesuaikan path gambar agar valid baik saat dibuka via HTTP server maupun file:// */
+function resolveImageUrl(url) {
+  if (!url) return "";
+  if (url.startsWith("data:") || url.startsWith("http://") || url.startsWith("https://")) {
+    return url;
+  }
+  const cleanUrl = url.replace(/ /g, "%20");
+  if (location.protocol === "file:") {
+    return cleanUrl.replace(/^\/+/, "");
+  }
+  return cleanUrl.startsWith("/") ? cleanUrl : "/" + cleanUrl;
+}
+
 /* ============================ DATA MATERI DUMMY =========================== */
 
 const DUMMY_MATERIALS = [
@@ -39,6 +52,7 @@ const DUMMY_MATERIALS = [
     id: 1,
     title: "Penjumlahan & Perkalian Seru",
     summary: "Belajar trik berhitung cepat, penjumlahan berulang, dan cara asyik menguasai perkalian dasar.",
+    image_url: "public/matematika.jpg",
     emoji: "🧮",
     color: "#FDE68A",
     subject: "Matematika",
@@ -90,6 +104,7 @@ const DUMMY_MATERIALS = [
     id: 2,
     title: "Mengenal Hewan & Habitat Alam",
     summary: "Kenali jenis makanan hewan, adaptasi unik di alam, dan cara kita merawat lingkungan hidup mereka.",
+    image_url: "public/ipa.jpg",
     emoji: "🐰",
     color: "#A7F3D0",
     subject: "IPA",
@@ -136,6 +151,7 @@ const DUMMY_MATERIALS = [
     id: 3,
     title: "Ragam Kata & Pantun Jenaka",
     summary: "Perkaya kosakata dengan sinonim, antonim, ungkapan seru, dan cara mudah merangkai pantun berima.",
+    image_url: "public/indo.jpg",
     emoji: "📚",
     color: "#FBCFE8",
     subject: "Bahasa Indonesia",
@@ -184,6 +200,7 @@ const DUMMY_MATERIALS = [
     id: 4,
     title: "Tata Surya & Sayang Bumi",
     summary: "Menjelajah luar angkasa, urutan planet dari Matahari, dan tips nyata menjaga kelestarian Bumi.",
+    image_url: "public/pe%20um.jpg",
     emoji: "🌍",
     color: "#BAE6FD",
     subject: "Pengetahuan Umum",
@@ -203,7 +220,7 @@ const DUMMY_MATERIALS = [
         <thead><tr><th>No</th><th>Nama Planet</th><th>Ciri Menarik</th></tr></thead>
         <tbody>
           <tr><td>1</td><td>🪨 <strong>Merkurius</strong></td><td>Planet terkecil dan paling dekat dengan Matahari</td></tr>
-          <tr><td>2</td><td>✨ <strong>Venus</strong></td><td>Planet terpanas dan tampak paling terang di langit fajar/senja</td></tr>
+          <tr><td>2</td><td>🟡 <strong>Venus</strong></td><td>Planet terpanas dan tampak paling terang di langit fajar/senja</td></tr>
           <tr><td>3</td><td>🌍 <strong>Bumi</strong></td><td>Satu-satunya planet yang memiliki oksigen dan kehidupan</td></tr>
           <tr><td>4</td><td>🔴 <strong>Mars</strong></td><td>Planet merah karena tanahnya kaya kandungan oksida besi</td></tr>
           <tr><td>5</td><td>🌀 <strong>Jupiter</strong></td><td>Planet terbesar di tata surya (planet gas raksasa)</td></tr>
@@ -228,6 +245,7 @@ const DUMMY_MATERIALS = [
     id: 5,
     title: "Dunia Komputer & Internet Pintar",
     summary: "Mengenal bagian perangkat keras komputer, cara kerja internet, dan etika berselancar aman di dunia digital.",
+    image_url: "public/if.jpg",
     emoji: "💻",
     color: "#C7D2FE",
     subject: "Informatika",
@@ -271,6 +289,7 @@ const DUMMY_MATERIALS = [
     id: 6,
     title: "Harmoni Warna & Musik Nusantara",
     summary: "Mengenal percampuran warna primer, ragam alat musik tradisional daerah, dan keindahan budaya bangsa.",
+    image_url: "public/sb.jpg",
     emoji: "🎨",
     color: "#FED7AA",
     subject: "Seni Budaya",
@@ -349,14 +368,121 @@ async function api(path, timeoutMs = 2000) {
   }
 }
 
-/** Notifikasi melayang sederhana. */
-function showToast(message) {
-  const box = $("#toast");
-  if (!box) return;
-  box.textContent = message;
-  box.classList.add("show");
-  clearTimeout(showToast.timer);
-  showToast.timer = setTimeout(() => box.classList.remove("show"), 4000);
+/** Notifikasi melayang modern (UI/UX Best Practice). */
+function showToast(message, type, title, duration) {
+  if (!message) return;
+
+  let detectedType = type;
+  let detectedTitle = title;
+  const rawText = String(message);
+  const emojiRegex = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu;
+  let cleanMsg = rawText.replace(emojiRegex, "").trim();
+
+  if (!detectedType) {
+    const lower = rawText.toLowerCase();
+    if (rawText.includes("✅") || lower.includes("berhasil") || lower.includes("sukses")) {
+      detectedType = "success";
+      detectedTitle = detectedTitle || "Berhasil";
+    } else if (rawText.includes("⚠️") || rawText.includes("gagal") || rawText.includes("error")) {
+      detectedType = "error";
+      detectedTitle = detectedTitle || "Terjadi Kesalahan";
+    } else {
+      detectedType = "info";
+      detectedTitle = detectedTitle || "Informasi";
+    }
+  }
+
+  const defaultTitles = {
+    copy: "Kode Kuis Disalin",
+    success: "Berhasil",
+    error: "Terjadi Kesalahan",
+    warning: "Perhatian",
+    info: "Informasi"
+  };
+  detectedTitle = detectedTitle || defaultTitles[detectedType] || "Informasi";
+
+  const iconMap = {
+    copy: "clipboard-check",
+    success: "check-circle-2",
+    error: "alert-circle",
+    warning: "alert-triangle",
+    info: "info"
+  };
+  const iconName = iconMap[detectedType] || "info";
+
+  let container = document.getElementById("toastContainer") || document.getElementById("toast");
+  if (!container) {
+    container = document.createElement("div");
+    container.id = "toastContainer";
+    document.body.appendChild(container);
+  }
+  container.className = "toast-container";
+  container.setAttribute("role", "region");
+  container.setAttribute("aria-label", "Pemberitahuan");
+  container.setAttribute("aria-live", "polite");
+
+  const toastCard = document.createElement("div");
+  toastCard.className = "toast-card toast-" + detectedType;
+  toastCard.setAttribute("role", "alert");
+  toastCard.innerHTML = `
+    <div class="toast-icon-wrap" aria-hidden="true">
+      <i data-lucide="${iconName}"></i>
+    </div>
+    <div class="toast-content">
+      <div class="toast-header">
+        <h4 class="toast-title">${detectedTitle}</h4>
+        <button type="button" class="toast-close" aria-label="Tutup notifikasi">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="toast-desc">${cleanMsg}</div>
+    </div>
+    <div class="toast-progress">
+      <div class="toast-progress-bar" style="animation-duration: ${duration || 3800}ms;"></div>
+    </div>
+  `;
+
+  while (container.children.length >= 3) {
+    container.removeChild(container.firstChild);
+  }
+
+  container.appendChild(toastCard);
+
+  if (window.lucide && typeof lucide.createIcons === "function") {
+    lucide.createIcons({ root: toastCard });
+  }
+
+  let dismissTimeout = null;
+  function dismiss() {
+    if (toastCard.classList.contains("toast-leaving")) return;
+    toastCard.classList.add("toast-leaving");
+    setTimeout(() => {
+      if (toastCard.parentNode) toastCard.parentNode.removeChild(toastCard);
+    }, 240);
+  }
+
+  dismissTimeout = setTimeout(dismiss, duration || 3800);
+
+  const closeBtn = toastCard.querySelector(".toast-close");
+  if (closeBtn) {
+    closeBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      clearTimeout(dismissTimeout);
+      dismiss();
+    });
+  }
+
+  toastCard.addEventListener("mouseenter", () => {
+    clearTimeout(dismissTimeout);
+    const pb = toastCard.querySelector(".toast-progress-bar");
+    if (pb) pb.style.animationPlayState = "paused";
+  });
+
+  toastCard.addEventListener("mouseleave", () => {
+    const pb = toastCard.querySelector(".toast-progress-bar");
+    if (pb) pb.style.animationPlayState = "running";
+    dismissTimeout = setTimeout(dismiss, 1600);
+  });
 }
 
 /** Sembunyikan semua status (loading / kosong) lalu tampilkan yang dipilih. */
@@ -406,7 +532,7 @@ function renderMaterialCards() {
     card.href = "materi-detail.html?id=" + material.id;
     card.style.animationDelay = index * 0.06 + "s";
 
-    const imgSource = material.image_url || svgThumb(material.emoji || "📘", material.color || "#EEF2FF");
+    const imgSource = resolveImageUrl(material.image_url) || svgThumb(material.emoji || "📘", material.color || "#EEF2FF");
 
     card.innerHTML =
       '<div class="materi-thumb">' +
@@ -490,7 +616,7 @@ function renderDetailContent(material) {
 
   const image = $("#dImage");
   if (image) {
-    image.src = material.image_url || svgThumb(material.emoji || "📘", material.color || "#EEF2FF");
+    image.src = resolveImageUrl(material.image_url) || svgThumb(material.emoji || "📘", material.color || "#EEF2FF");
     image.alt = "Ilustrasi " + material.title;
   }
 

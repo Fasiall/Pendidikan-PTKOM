@@ -103,7 +103,7 @@
         <div class="hero-content">
           <!-- Pill Badge di Atas -->
           <div class="badge-wrapper">
-            <span class="pill-badge"><i data-lucide="sparkles"></i> Belajar Seru &amp; Berprestasi</span>
+            <span class="pill-badge"><i data-lucide="award"></i> Belajar Seru &amp; Berprestasi</span>
           </div>
 
           <!-- Judul Utama -->
@@ -148,7 +148,7 @@
         <div class="hero-mascot-col">
           <div class="mascot-card">
             <div class="speech-bubble">
-              <span class="speech-sparkle">✨</span>
+              <span class="speech-sparkle">👋</span>
               <span>Halo! Sudah siap jadi juara kuis hari ini?</span>
             </div>
 
@@ -335,6 +335,9 @@
        HALAMAN 2: HALAMAN KUIS (SISWA)
   ========================================================== -->
   <section class="page" id="page-quiz">
+    <!-- Layer Animasi Interaktif Saat Menjawab (Benar / Salah) -->
+    <div class="quiz-anim-overlay" id="quizAnimOverlay" aria-hidden="true"></div>
+
     <div class="quiz-shell">
 
       <!-- Bar atas: tombol home, progress bar, dan skor -->
@@ -406,56 +409,82 @@
   </section>
 
   <!-- =========================================================
-       HALAMAN 4: LOGIN PENGAJAR (CLAUDE EDITORIAL DESIGN)
+       HALAMAN 4: LOGIN PENGAJAR (DESAIN SELARAS DENGAN BERANDA)
        Dibuka lewat tombol "Kreator Soal" di navigasi atas.
   ========================================================== -->
-  <section class="page claude-theme-login" id="page-login">
-    <div class="claude-login-container">
-      <button class="btn btn-claude-ghost back-home claude-back-btn" type="button" data-page="page-home">
-        <i data-lucide="arrow-left"></i> Kembali ke Beranda
-      </button>
+  <section class="page" id="page-login">
 
-      <div class="login-card claude-login-card">
-        <div class="claude-card-meta">
-          <svg class="claude-spike-glyph" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M12 2L13.8 9.2L21 11L13.8 12.8L12 20L10.2 12.8L3 11L10.2 9.2L12 2Z"/>
-          </svg>
-          <span class="claude-badge-coral">AREA PENGAJAR</span>
+    <!-- Header Navigasi Konsisten & Elegan -->
+    <header class="home-nav">
+      <a href="index.html" class="nav-brand" data-page="page-home">
+        <span class="nav-brand-icon"><i data-lucide="graduation-cap"></i></span>
+        <span class="nav-title">Kuis Ceria</span>
+      </a>
+      <nav class="nav-menu">
+        <a href="index.html" class="nav-link" data-page="page-home"><i data-lucide="home"></i> <span>Home</span></a>
+        <a href="materi.html" class="nav-link"><i data-lucide="book-open"></i> <span>Materi</span></a>
+        <a href="#page-login" class="nav-link active" data-page="page-login" title="Buat &amp; Kelola Kuis"><i data-lucide="file-pen"></i> <span>Kreator Soal</span></a>
+      </nav>
+      <div class="nav-spacer" aria-hidden="true"></div>
+    </header>
+
+    <div class="login-wrapper">
+      <div class="login-card-modern">
+        <!-- Badge Pill Header -->
+        <div class="login-badge-wrap">
+          <span class="pill-badge">
+            <i data-lucide="shield-check"></i> Area Pengajar &amp; Kreator
+          </span>
         </div>
 
-        <h2 class="claude-serif-title">Masuk Area Pengajar</h2>
-        <p class="claude-sub-desc">Masuk dengan akun Google Anda untuk membuat kuis, menyusun butir soal, dan mengevaluasi hasil belajar siswa secara instan.</p>
+        <!-- Avatar Icon -->
+        <div class="login-avatar-circle">
+          <i data-lucide="graduation-cap"></i>
+        </div>
+
+        <h2 class="login-title">Masuk Area Pengajar</h2>
+        <p class="login-desc">
+          Masuk dengan akun Google Anda untuk membuat kuis, menyusun butir soal, dan mengevaluasi hasil belajar siswa secara instan.
+        </p>
 
         <!-- Wadah Tombol Google Identity Services (GIS) -->
         <div class="google-auth-wrapper">
-          <div id="googleBtnContainer" class="google-btn-container"></div>
+          <div id="googleBtnContainer" class="google-btn-container">
+            <div class="google-loading" id="googleBtnPlaceholder">
+              <span class="auth-spinner"></span>
+              <span>Menyiapkan Google Sign-In...</span>
+            </div>
+          </div>
           <div id="googleAuthLoading" class="google-loading hidden">
-            <span class="auth-spinner"></span> Memverifikasi akun Google...
+            <span class="auth-spinner"></span>
+            <span>Memverifikasi akun Google...</span>
           </div>
         </div>
 
         <!-- Pesan status & error validasi -->
         <p class="form-error" id="loginError" role="alert"></p>
 
-        <div class="claude-security-badge">
+        <div class="auth-security-badge">
           <i data-lucide="shield-check"></i>
           <span>Login cepat &amp; aman didukung oleh Google Identity</span>
         </div>
 
-        <!-- Opsi masuk alternatif (Username & Password) -->
-        <div class="claude-login-divider">
-          <span>atau masuk manual</span>
+        <!-- Pembatas Opsi Masuk Alternatif -->
+        <div class="auth-divider">
+          <span>atau masuk dengan akun pengajar</span>
         </div>
 
-        <button type="button" class="btn-text-toggle claude-toggle-btn" id="btnToggleManualLogin">
-          <i data-lucide="key-round"></i> Masuk dengan Username &amp; Password
+        <button type="button" class="btn-toggle-manual" id="btnToggleManualLogin">
+          <i data-lucide="key-round"></i>
+          <span>Masuk dengan Username &amp; Password</span>
+          <i data-lucide="chevron-down" class="toggle-arrow"></i>
         </button>
 
         <!-- FORM LOGIN MANUAL (TERSEMBUNYI SECARA DEFAULT) -->
-        <form id="loginForm" novalidate style="display: none;" class="manual-login-form claude-manual-form">
+        <form id="loginForm" novalidate style="display: none;" class="manual-login-form">
           <!-- Input Username -->
-          <div class="field claude-field">
-            <label for="username">Username atau email</label>
+          <div class="field">
+            <label for="username"><i data-lucide="user"></i> Username atau email</label>
             <div class="input-wrap">
               <span class="input-icon"><i data-lucide="user"></i></span>
               <input type="text" id="username" name="username"
@@ -464,8 +493,8 @@
           </div>
 
           <!-- Input Password -->
-          <div class="field claude-field">
-            <label for="password">Password</label>
+          <div class="field">
+            <label for="password"><i data-lucide="lock"></i> Password</label>
             <div class="input-wrap">
               <span class="input-icon"><i data-lucide="lock"></i></span>
               <input type="password" id="password" name="password"
@@ -475,14 +504,31 @@
             </div>
           </div>
 
-          <button class="btn btn-claude-primary btn-login" type="submit">
-            <span>Masuk Manual</span> <i data-lucide="arrow-right"></i>
+          <button class="btn btn-3d btn-secondary btn-login-submit" type="submit">
+            <i data-lucide="log-in"></i>
+            <span>Masuk Sekarang</span>
           </button>
 
-          <p class="demo-hint claude-demo-hint">
-            <i data-lucide="lightbulb"></i> Akun bawaan: username <strong>guru</strong> • password <strong>guru123</strong>
-          </p>
+          <!-- Petunjuk akun demo -->
+          <div class="demo-account-hint">
+            <i data-lucide="info"></i>
+            <span>Akun demo: username <strong>guru</strong> &bull; password <strong>guru123</strong></span>
+          </div>
+
+          <!-- Link pendaftaran akun baru -->
+          <div class="auth-register-prompt">
+            <span>Belum memiliki akun pengajar?</span>
+            <a href="register.html" class="register-link">Daftar Akun Baru <i data-lucide="arrow-right"></i></a>
+          </div>
         </form>
+      </div>
+
+      <!-- Tombol Kembali ke Halaman Beranda -->
+      <div class="login-footer-action">
+        <button class="btn-back-home" type="button" data-page="page-home">
+          <i data-lucide="arrow-left"></i>
+          <span>Kembali ke Halaman Beranda</span>
+        </button>
       </div>
     </div>
   </section>
@@ -490,50 +536,68 @@
   <!-- =========================================================
        HALAMAN 5: DASHBOARD GURU (tampil setelah login berhasil)
   ========================================================== -->
-  <section class="page claude-theme-dashboard" id="page-dashboard">
+  <section class="page" id="page-dashboard">
+
+    <!-- Header Navigasi Konsisten dengan Beranda & Halaman Login -->
+    <header class="home-nav">
+      <a href="index.html" class="nav-brand" data-page="page-home">
+        <span class="nav-brand-icon"><i data-lucide="graduation-cap"></i></span>
+        <span class="nav-title">Kuis Ceria</span>
+      </a>
+      <nav class="nav-menu">
+        <a href="index.html" class="nav-link" data-page="page-home"><i data-lucide="home"></i> <span>Home</span></a>
+        <a href="materi.html" class="nav-link"><i data-lucide="book-open"></i> <span>Materi</span></a>
+        <a href="#page-dashboard" class="nav-link active" data-page="page-dashboard" title="Kreator Soal"><i data-lucide="layout-dashboard"></i> <span>Kreator Soal</span></a>
+      </nav>
+      <div class="nav-spacer" aria-hidden="true"></div>
+    </header>
+
     <div class="dash-shell">
 
-      <header class="dash-head claude-dash-head">
-        <div class="dash-user-profile claude-user-profile">
-          <img id="dashTeacherAvatar" class="dash-teacher-avatar hidden" src="" alt="Foto Pengajar" referrerpolicy="no-referrer" onerror="this.classList.add('hidden')">
-          <div>
-            <div class="claude-card-meta dash-kicker-cluster">
-              <svg class="claude-spike-glyph" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M12 0L13.8 8.5L22 7L15.5 12L22 17L13.8 15.5L12 24L10.2 15.5L2 17L8.5 12L2 7L10.2 8.5L12 0Z"/>
-              </svg>
-              <span class="claude-badge-coral">AREA PENGAJAR</span>
+      <!-- Header Profil Pengajar Modern -->
+      <header class="dash-head">
+        <div class="dash-user-profile">
+          <div class="dash-avatar-wrapper">
+            <img id="dashTeacherAvatar" class="dash-teacher-avatar hidden" src="" alt="Foto Pengajar" referrerpolicy="no-referrer">
+            <div class="dash-avatar-fallback" id="dashTeacherAvatarFallback">
+              <span id="dashTeacherInitials" class="dash-teacher-initials">G</span>
             </div>
-            <h2 class="claude-serif-title">Halo, <span id="dashTeacherName">Guru</span>!</h2>
+          </div>
+          <div class="dash-user-info">
+            <div class="dash-badge-row">
+              <span class="dash-badge-pill"><i data-lucide="shield-check"></i> Area Pengajar & Kreator</span>
+            </div>
+            <h2>Halo, <span id="dashTeacherName">Guru</span>! 👋</h2>
             <p id="dashTeacherEmail" class="dash-teacher-email">Kelola set soal kuis dan pantau hasil belajar siswa.</p>
           </div>
         </div>
-        <button class="btn btn-claude-ghost btn-small" id="btnLogout" type="button"><i data-lucide="log-out"></i> Keluar</button>
+        <button class="btn btn-3d btn-secondary btn-small" id="btnLogout" type="button"><i data-lucide="log-out"></i> <span>Keluar</span></button>
       </header>
 
-      <!-- Kartu statistik -->
-      <div class="stat-grid claude-stat-grid">
-        <div class="stat-card claude-stat-card">
+      <!-- Kartu statistik cerah & interaktif -->
+      <div class="stat-grid">
+        <div class="stat-card stat-card-indigo">
           <div class="stat-icon"><i data-lucide="book-open"></i></div>
           <div class="stat-meta">
             <strong id="statMaterials">0</strong>
             <small>Materi Tersedia</small>
           </div>
         </div>
-        <div class="stat-card claude-stat-card">
+        <div class="stat-card stat-card-violet">
           <div class="stat-icon"><i data-lucide="file-question"></i></div>
           <div class="stat-meta">
             <strong id="statTotal">0</strong>
             <small>Jumlah Soal</small>
           </div>
         </div>
-        <div class="stat-card claude-stat-card">
+        <div class="stat-card stat-card-amber">
           <div class="stat-icon"><i data-lucide="tags"></i></div>
           <div class="stat-meta">
             <strong id="statTopics">0</strong>
             <small>Topik Berbeda</small>
           </div>
         </div>
-        <div class="stat-card claude-stat-card">
+        <div class="stat-card stat-card-emerald">
           <div class="stat-icon"><i data-lucide="award"></i></div>
           <div class="stat-meta">
             <strong id="statLastScore">-</strong>
@@ -542,100 +606,80 @@
         </div>
       </div>
 
-      <!-- Tab navigasi dashboard -->
-      <nav class="dash-tabs claude-dash-tabs" role="tablist">
-        <button class="dash-tab active" type="button" data-tab="tabSetSoal"><i data-lucide="list-checks"></i> Set Soal</button>
-        <button class="dash-tab" type="button" data-tab="tabSoal"><i data-lucide="help-circle"></i> Soal</button>
-        <button class="dash-tab" type="button" data-tab="tabRiwayat"><i data-lucide="bar-chart-3"></i> Riwayat</button>
+      <!-- Tab navigasi dashboard modern -->
+      <nav class="dash-tabs" role="tablist">
+        <button class="dash-tab active" type="button" data-tab="tabSetSoal"><i data-lucide="list-checks"></i> <span>Set Soal</span></button>
+        <button class="dash-tab" type="button" data-tab="tabSoal"><i data-lucide="help-circle"></i> <span>Bank Soal</span></button>
+        <button class="dash-tab" type="button" data-tab="tabRiwayat"><i data-lucide="bar-chart-3"></i> <span>Riwayat Siswa</span></button>
       </nav>
 
       <!-- ================= TAB 1: KELOLA SET SOAL ================= -->
       <section class="tab-panel active" id="tabSetSoal">
-        <div class="claude-notice-banner">
-          <div class="claude-notice-top">
-            <div class="claude-brand-cluster">
-              <svg class="claude-spike-glyph" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M12 0L13.8 8.5L22 7L15.5 12L22 17L13.8 15.5L12 24L10.2 15.5L2 17L8.5 12L2 7L10.2 8.5L12 0Z"/>
-              </svg>
-              <span class="claude-badge-pill">INFO KURIKULUM</span>
-            </div>
-            <span class="claude-banner-meta">SISTEM KUIS INTERAKTIF</span>
-          </div>
-          <p class="claude-notice-text">Materi pelajaran telah disediakan oleh sistem. Silakan pilih <strong>Materi Induk</strong> di bawah untuk membuat dan mengelola set soal kuis.</p>
-        </div>
-        <div class="admin-grid claude-admin-grid">
+        <div class="admin-grid">
 
           <!-- Form tambah / ubah set soal -->
-          <form class="admin-card claude-card" id="setForm" novalidate>
-            <div class="claude-card-header">
-              <span class="claude-card-kicker">MANAJEMEN KUIS</span>
-              <h4 id="setFormTitle" class="claude-serif-title">Tambah Set Soal Baru</h4>
-              <p class="claude-sub-desc">Buat paket kuis untuk siswa dengan materi induk dan batasan waktu.</p>
+          <form class="admin-card" id="setForm" novalidate>
+            <div class="admin-card-header">
+              <span class="card-kicker">MANAJEMEN KUIS</span>
+              <h4 id="setFormTitle">Tambah Set Soal Baru</h4>
+              <p class="card-sub-desc">Buat paket kuis untuk siswa dengan judul dan batasan waktu.</p>
             </div>
 
-            <div class="field claude-field">
-              <label for="sSetMaterial">Materi Induk <span class="req-star">*</span></label>
-              <select id="sSetMaterial"></select>
-            </div>
-
-            <div class="field claude-field">
+            <div class="field">
               <label for="sSetTitle">Judul Set Soal <span class="req-star">*</span></label>
               <input type="text" id="sSetTitle" placeholder="Mis. Latihan Mudah" maxlength="160">
             </div>
 
-            <div class="field claude-field">
+            <div class="field">
               <label for="sSetDesc">Deskripsi (opsional)</label>
               <input type="text" id="sSetDesc" placeholder="Keterangan singkat" maxlength="300">
             </div>
 
-            <div class="field claude-field">
+            <div class="field">
               <label for="sSetTime">Waktu Pengerjaan (menit)</label>
               <input type="number" id="sSetTime" placeholder="0 untuk tanpa batas waktu" min="0">
             </div>
 
-            <label class="check-line claude-check-line">
+            <label class="check-line">
               <input type="checkbox" id="sSetPublish" checked>
               <span>Publikasikan untuk siswa</span>
             </label>
 
-            <div class="form-actions claude-form-actions">
-              <button class="btn btn-claude-primary" id="btnSaveSet" type="submit"><i data-lucide="save"></i> Simpan Set</button>
-              <button class="btn btn-claude-ghost" id="btnCancelSet" type="button" hidden>Batal Edit</button>
+            <div class="form-actions">
+              <button class="btn btn-3d btn-primary" id="btnSaveSet" type="submit"><i data-lucide="save"></i> <span>Simpan Set</span></button>
+              <button class="btn btn-ghost" id="btnCancelSet" type="button" hidden>Batal Edit</button>
             </div>
             <p class="form-error" id="setError" role="alert"></p>
           </form>
 
           <!-- Daftar set soal + aksi ubah/hapus -->
-          <div class="admin-card claude-card">
-            <div class="claude-card-header">
-              <span class="claude-card-kicker">INVENTARIS KUIS</span>
-              <h4 class="claude-serif-title">Daftar Set Soal <span class="claude-badge-pill" id="setCount">0</span></h4>
-              <p class="claude-sub-desc">Daftar paket kuis yang telah Anda buat beserta kode akses untuk siswa.</p>
+          <div class="admin-card">
+            <div class="admin-card-header">
+              <span class="card-kicker">INVENTARIS KUIS</span>
+              <h4>Daftar Set Soal <span class="badge-pill badge-primary" id="setCount">0</span></h4>
+              <p class="card-sub-desc">Daftar paket kuis yang telah Anda buat beserta kode akses untuk siswa.</p>
             </div>
-            <ul class="admin-list claude-admin-list" id="setAdminList"></ul>
+            <ul class="admin-list" id="setAdminList"></ul>
           </div>
 
         </div>
 
         <!-- Panel Interaktif Atur Soal & Kunci Jawaban Kuis -->
-        <div class="quiz-questions-panel hidden claude-card" id="quizQuestionsManager">
+        <div class="quiz-questions-panel hidden admin-card" id="quizQuestionsManager">
           <div class="quiz-panel-header">
             <div class="quiz-panel-title-area">
-              <div class="claude-card-meta">
-                <svg class="claude-spike-glyph" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M12 0L13.8 8.5L22 7L15.5 12L22 17L13.8 15.5L12 24L10.2 15.5L2 17L8.5 12L2 7L10.2 8.5L12 0Z"/>
-                </svg>
-                <span class="claude-badge-coral">PENGATURAN KUIS</span>
+              <div class="dash-badge-row">
+                <span class="dash-badge-pill"><i data-lucide="sliders"></i> Pengaturan Kuis</span>
               </div>
-              <h3 id="mgrSetTitle" class="claude-serif-title">Atur Soal & Jawaban Kuis</h3>
+              <h3 id="mgrSetTitle">Atur Soal & Jawaban Kuis</h3>
               <p id="mgrSetMeta" class="mgr-meta">Materi: - · Kode Kuis: - · Waktu: -</p>
             </div>
             <div class="panel-header-actions">
-              <button class="btn btn-claude-primary btn-small" type="button" id="btnMgrAddQuestion">
-                <i data-lucide="plus-circle"></i> Tambah Soal ke Kuis Ini
+              <button class="btn btn-3d btn-primary btn-small" type="button" id="btnMgrAddQuestion">
+                <i data-lucide="plus-circle"></i> <span>Tambah Soal ke Kuis Ini</span>
               </button>
-              <button class="btn btn-claude-ghost btn-small" type="button" id="btnMgrClose">
-                <i data-lucide="x"></i> Tutup Pengaturan
+              <button class="btn btn-ghost btn-small" type="button" id="btnMgrClose">
+                <i data-lucide="x"></i> <span>Tutup Pengaturan</span>
               </button>
             </div>
           </div>
@@ -646,42 +690,37 @@
         </div>
       </section>
 
-      <!-- ================= TAB 2: KELOLA SOAL (CLAUDE EDITORIAL DESIGN) ================= -->
-      <section class="tab-panel claude-theme-soal" id="tabSoal">
-        <!-- Claude Editorial Notice Banner -->
-        <div class="claude-notice-banner">
-          <div class="claude-notice-top">
-            <div class="claude-brand-cluster">
-              <!-- Anthropic 4-spoke radial spike glyph -->
-              <svg class="claude-spike-glyph" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M12 2L13.8 9.2L21 11L13.8 12.8L12 20L10.2 12.8L3 11L10.2 9.2L12 2Z"/>
-              </svg>
-              <span class="claude-badge-coral">STUDIO SOAL</span>
-              <span class="claude-badge-pill">ISOLASI AKUN</span>
+      <!-- ================= TAB 2: KELOLA SOAL ================= -->
+      <section class="tab-panel" id="tabSoal">
+        <div class="dash-notice-banner">
+          <div class="dash-notice-icon"><i data-lucide="pen-tool"></i></div>
+          <div class="dash-notice-content">
+            <div class="dash-notice-top">
+              <span class="badge-pill badge-primary">STUDIO SOAL</span>
+              <span class="dash-notice-meta">ISOLASI AKUN PENGAJAR</span>
             </div>
-            <span class="claude-banner-meta">Claude Warm-Canvas Editorial</span>
+            <p class="dash-notice-text">
+              Soal dirancang dan tersimpan eksklusif di akun pengajar Anda. Tentukan set kuis tujuan, susun butir pertanyaan, dan tandai radio untuk menetapkan <strong>kunci jawaban yang benar</strong>.
+            </p>
           </div>
-          <p class="claude-notice-text">
-            Soal dirancang dan tersimpan eksklusif di akun pengajar Anda. Tentukan set kuis tujuan, susun butir pertanyaan, dan tandai radio untuk menetapkan <strong>kunci jawaban yang benar</strong>.
-          </p>
         </div>
 
-        <div class="admin-grid claude-admin-grid">
+        <div class="admin-grid">
 
-          <!-- Form tambah / ubah soal modern (Claude Editorial Card) -->
-          <form class="admin-card claude-card claude-editor-card" id="soalForm" novalidate>
-            <div class="claude-card-header">
-              <span class="claude-card-kicker">PENYUSUN SOAL</span>
-              <h3 class="claude-serif-title" id="soalFormTitle">Tambah Soal Baru</h3>
-              <p class="claude-sub-desc">Rancang butir pertanyaan dengan opsi jawaban terstruktur untuk set kuis Anda.</p>
+          <!-- Form tambah / ubah soal modern -->
+          <form class="admin-card editor-card" id="soalForm" novalidate>
+            <div class="admin-card-header">
+              <span class="card-kicker">PENYUSUN SOAL</span>
+              <h4 id="soalFormTitle">Tambah Soal Baru</h4>
+              <p class="card-sub-desc">Rancang butir pertanyaan dengan opsi jawaban terstruktur untuk set kuis Anda.</p>
             </div>
 
-            <div class="field claude-field">
+            <div class="field">
               <label for="qSet">Set Kuis / Soal Tujuan <span class="req-star">*</span></label>
               <select id="qSet" required></select>
             </div>
 
-            <div class="field claude-field">
+            <div class="field">
               <label for="qQuestion">Pertanyaan <span class="req-star">*</span></label>
               <textarea id="qQuestion" rows="3" placeholder="Mis. Berapa hasil dari 12 + 7 ?"></textarea>
             </div>
@@ -735,69 +774,69 @@
             </div>
 
             <div class="admin-row">
-              <div class="field claude-field">
+              <div class="field">
                 <label for="adSubject">Topik / Mapel</label>
                 <input type="text" id="adSubject" placeholder="Mis. Matematika" list="subjectList">
               </div>
-              <div class="field claude-field">
+              <div class="field">
                 <label for="qMaterial">Materi Terkait (opsional)</label>
                 <select id="qMaterial"></select>
               </div>
-              <div class="field claude-field field-narrow">
+              <div class="field field-narrow">
                 <label for="adEmoji">Emoji</label>
                 <input type="text" id="adEmoji" value="❓" maxlength="4">
               </div>
             </div>
 
-            <div class="field claude-field">
+            <div class="field">
               <label for="qFact">Penjelasan Singkat (tampil setelah siswa menjawab)</label>
               <input type="text" id="qFact" placeholder="Mis. 12 + 7 = 19">
             </div>
 
-            <div class="form-actions claude-form-actions">
-              <button class="btn btn-claude-primary" id="btnSaveSoal" type="submit"><i data-lucide="save"></i> Simpan Soal</button>
-              <button class="btn btn-claude-ghost" id="btnCancelSoal" type="button" hidden>Batal Edit</button>
+            <div class="form-actions">
+              <button class="btn btn-3d btn-primary" id="btnSaveSoal" type="submit"><i data-lucide="save"></i> <span>Simpan Soal</span></button>
+              <button class="btn btn-ghost" id="btnCancelSoal" type="button" hidden>Batal Edit</button>
             </div>
             <p class="form-error" id="soalError" role="alert"></p>
           </form>
 
-          <!-- Daftar soal + aksi ubah/hapus (Claude Bank Card) -->
-          <div class="admin-card claude-card claude-bank-card">
-            <div class="claude-card-header">
-              <span class="claude-card-kicker">INVENTARIS</span>
-              <h3 class="claude-serif-title">Bank Soal Saya <span class="claude-badge-pill" id="soalCount">0</span></h3>
-              <p class="claude-sub-desc">Daftar inventaris pertanyaan yang tersimpan pada akun pengajar Anda.</p>
+          <!-- Daftar soal + aksi ubah/hapus -->
+          <div class="admin-card">
+            <div class="admin-card-header">
+              <span class="card-kicker">INVENTARIS</span>
+              <h4>Bank Soal Saya <span class="badge-pill badge-primary" id="soalCount">0</span></h4>
+              <p class="card-sub-desc">Daftar inventaris pertanyaan yang tersimpan pada akun pengajar Anda.</p>
             </div>
-            <ul class="admin-list claude-admin-list" id="soalAdminList"></ul>
+            <ul class="admin-list" id="soalAdminList"></ul>
           </div>
 
         </div>
       </section>
 
       <!-- ================= TAB 3: RIWAYAT & STATISTIK ================= -->
-      <section class="tab-panel claude-theme-riwayat" id="tabRiwayat">
-        <div class="claude-admin-grid admin-grid">
-          <div class="admin-card claude-card">
-            <div class="claude-card-header">
-              <span class="claude-card-kicker">DATABASE SOAL</span>
-              <h3 class="claude-serif-title"><i data-lucide="list"></i> Daftar Seluruh Soal</h3>
-              <p class="claude-sub-desc">Daftar lengkap butir soal dari seluruh materi dan topik yang tersimpan dalam sistem.</p>
+      <section class="tab-panel" id="tabRiwayat">
+        <div class="admin-grid">
+          <div class="admin-card">
+            <div class="admin-card-header">
+              <span class="card-kicker">DATABASE SOAL</span>
+              <h4><i data-lucide="list"></i> Daftar Seluruh Soal</h4>
+              <p class="card-sub-desc">Daftar lengkap butir soal dari seluruh materi dan topik yang tersimpan dalam sistem.</p>
             </div>
             <!-- Daftar soal (diisi oleh JavaScript) -->
-            <ol class="question-list claude-question-list" id="questionList"></ol>
+            <ol class="question-list" id="questionList"></ol>
           </div>
 
-          <div class="admin-card claude-card">
-            <div class="claude-card-header">
-              <span class="claude-card-kicker">AKTIVITAS SISWA</span>
-              <h3 class="claude-serif-title"><i data-lucide="history"></i> Riwayat Skor Siswa</h3>
-              <p class="claude-sub-desc">Catatan hasil evaluasi dan pengerjaan kuis terbaru oleh siswa.</p>
+          <div class="admin-card">
+            <div class="admin-card-header">
+              <span class="card-kicker">AKTIVITAS SISWA</span>
+              <h4><i data-lucide="history"></i> Riwayat Skor Siswa</h4>
+              <p class="card-sub-desc">Catatan hasil evaluasi dan pengerjaan kuis terbaru oleh siswa.</p>
             </div>
             <!-- Riwayat skor dari database (diisi oleh JavaScript) -->
-            <ul class="results-list claude-results-list" id="resultsList"></ul>
+            <ul class="results-list" id="resultsList"></ul>
 
             <div class="dash-actions" style="margin-top: 24px;">
-              <button class="btn btn-claude-primary btn-start" id="btnGuruMulai" type="button">
+              <button class="btn btn-3d btn-primary btn-start" id="btnGuruMulai" type="button">
                 <i data-lucide="play"></i> <span>Mulai Kuis Siswa</span>
               </button>
             </div>
@@ -815,8 +854,8 @@
     </div>
   </section>
 
-  <!-- Notifikasi melayang (error/info dari server) -->
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <!-- Container Notifikasi Melayang (Toast System) -->
+  <div class="toast-container" id="toastContainer" role="region" aria-label="Notifikasi" aria-live="polite"></div>
 
   <!-- File logika utama kuis -->
   <script src="script.js?v=5"></script>

@@ -160,6 +160,19 @@ const API_BASE =
     ? "http://127.0.0.1:3000"
     : "";
 
+/** Menyesuaikan path gambar agar valid baik saat dibuka via HTTP server maupun file:// */
+function resolveImageUrl(url) {
+  if (!url) return "";
+  if (url.startsWith("data:") || url.startsWith("http://") || url.startsWith("https://")) {
+    return url;
+  }
+  const cleanUrl = url.replace(/ /g, "%20");
+  if (location.protocol === "file:") {
+    return cleanUrl.replace(/^\/+/, "");
+  }
+  return cleanUrl.startsWith("/") ? cleanUrl : "/" + cleanUrl;
+}
+
 const getToken = () => localStorage.getItem(TOKEN_KEY);
 const saveToken = (token) => localStorage.setItem(TOKEN_KEY, token);
 const clearToken = () => localStorage.removeItem(TOKEN_KEY);
@@ -194,14 +207,6 @@ async function api(path, options = {}) {
   return data;
 }
 
-/** Notifikasi melayang di bawah layar (untuk pesan error/Info). */
-function showToast(message) {
-  toastBox.textContent = message;
-  toastBox.classList.add("show");
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toastBox.classList.remove("show"), 4000);
-}
-
 /** Sanitasi string HTML untuk keamanan tampilan XSS. */
 function escapeHtml(text) {
   if (text === null || text === undefined) return "";
@@ -211,6 +216,159 @@ function escapeHtml(text) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+/**
+ * Sistem Notifikasi Toast Modern & Profesional (UI/UX Best Practice).
+ * Menampilkan kartu notifikasi mengambang di pojok kanan atas layar (desktop)
+ * atau tengah atas layar (mobile) dengan ikon vektor Lucide, auto-dismiss,
+ * dan animasi transisi halus tanpa emotikon kasar.
+ *
+ * @param {string} message - Pesan notifikasi
+ * @param {"success"|"error"|"warning"|"info"|"copy"} [type] - Jenis status
+ * @param {string} [title] - Judul singkat notifikasi
+ * @param {number} [duration=3800] - Durasi tampil (ms)
+ */
+function showToast(message, type, title, duration) {
+  if (!message) return;
+
+  let detectedType = type;
+  let detectedTitle = title;
+  const rawText = String(message);
+
+  // Bersihkan karakter emoji
+  const emojiRegex = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu;
+  let cleanMsg = rawText.replace(emojiRegex, "").trim();
+
+  // Deteksi otomatis jika dipanggil dengan string sederhana
+  if (!detectedType) {
+    const lower = rawText.toLowerCase();
+    if (rawText.includes("📋") || lower.includes("disalin") || lower.includes("kode kuis")) {
+      detectedType = "copy";
+      detectedTitle = detectedTitle || "Kode Kuis Disalin";
+    } else if (rawText.includes("✅") || lower.includes("berhasil") || lower.includes("sukses")) {
+      detectedType = "success";
+      detectedTitle = detectedTitle || "Berhasil";
+    } else if (rawText.includes("🗑️") || lower.includes("dihapus")) {
+      detectedType = "info";
+      detectedTitle = detectedTitle || "Dihapus";
+    } else if (rawText.includes("⏳") || lower.includes("sedang") || lower.includes("memverifikasi")) {
+      detectedType = "info";
+      detectedTitle = detectedTitle || "Memproses";
+    } else if (rawText.includes("⚠️") || lower.includes("gagal") || lower.includes("error") || lower.includes("tidak valid") || lower.includes("waktu habis")) {
+      detectedType = lower.includes("waktu habis") ? "warning" : "error";
+      detectedTitle = detectedTitle || (detectedType === "warning" ? "Waktu Habis" : "Perhatian");
+    } else if (rawText.includes("ℹ️") || lower.includes("informasi")) {
+      detectedType = "info";
+      detectedTitle = detectedTitle || "Informasi";
+    } else {
+      detectedType = "info";
+      detectedTitle = detectedTitle || "Pemberitahuan";
+    }
+  }
+
+  if (!detectedTitle) {
+    const defaultTitles = {
+      copy: "Kode Kuis Disalin",
+      success: "Berhasil",
+      error: "Terjadi Kesalahan",
+      warning: "Perhatian",
+      info: "Informasi"
+    };
+    detectedTitle = defaultTitles[detectedType] || "Pemberitahuan";
+  }
+
+  const iconMap = {
+    copy: "clipboard-check",
+    success: "check-circle-2",
+    error: "alert-circle",
+    warning: "alert-triangle",
+    info: "info"
+  };
+  const iconName = iconMap[detectedType] || "info";
+
+  let container = document.getElementById("toastContainer") || document.getElementById("toast");
+  if (!container) {
+    container = document.createElement("div");
+    container.id = "toastContainer";
+    document.body.appendChild(container);
+  }
+  container.className = "toast-container";
+  container.setAttribute("role", "region");
+  container.setAttribute("aria-label", "Pemberitahuan");
+  container.setAttribute("aria-live", "polite");
+
+  let htmlMsg = cleanMsg;
+  if (!htmlMsg.includes("toast-code-hl") && detectedType === "copy") {
+    htmlMsg = htmlMsg.replace(/([A-Z0-9]{6})/g, '<strong class="toast-code-hl">$1</strong>');
+  }
+
+  const toastCard = document.createElement("div");
+  toastCard.className = `toast-card toast-${detectedType}`;
+  toastCard.setAttribute("role", "alert");
+  toastCard.innerHTML = `
+    <div class="toast-icon-wrap" aria-hidden="true">
+      <i data-lucide="${iconName}"></i>
+    </div>
+    <div class="toast-content">
+      <div class="toast-header">
+        <h4 class="toast-title">${escapeHtml(detectedTitle)}</h4>
+        <button type="button" class="toast-close" aria-label="Tutup notifikasi">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="toast-desc">${htmlMsg}</div>
+    </div>
+    <div class="toast-progress">
+      <div class="toast-progress-bar" style="animation-duration: ${duration || 3800}ms;"></div>
+    </div>
+  `;
+
+  while (container.children.length >= 3) {
+    container.removeChild(container.firstChild);
+  }
+
+  container.appendChild(toastCard);
+
+  if (window.lucide && typeof lucide.createIcons === "function") {
+    lucide.createIcons({ root: toastCard });
+  }
+
+  let dismissTimeout = null;
+  const animDuration = duration || 3800;
+
+  function dismissToast() {
+    if (toastCard.classList.contains("toast-leaving")) return;
+    toastCard.classList.add("toast-leaving");
+    setTimeout(() => {
+      if (toastCard.parentNode) {
+        toastCard.parentNode.removeChild(toastCard);
+      }
+    }, 240);
+  }
+
+  dismissTimeout = setTimeout(dismissToast, animDuration);
+
+  const closeBtn = toastCard.querySelector(".toast-close");
+  if (closeBtn) {
+    closeBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      clearTimeout(dismissTimeout);
+      dismissToast();
+    });
+  }
+
+  toastCard.addEventListener("mouseenter", () => {
+    clearTimeout(dismissTimeout);
+    const pb = toastCard.querySelector(".toast-progress-bar");
+    if (pb) pb.style.animationPlayState = "paused";
+  });
+
+  toastCard.addEventListener("mouseleave", () => {
+    const pb = toastCard.querySelector(".toast-progress-bar");
+    if (pb) pb.style.animationPlayState = "running";
+    dismissTimeout = setTimeout(dismissToast, 1600);
+  });
 }
 
 /** Mengatur radio pilihan jawaban benar pada form pembuat soal. */
@@ -305,11 +463,11 @@ function splitTitle() {
   });
 }
 
-/** Membuat ornamen edukasi melayang di latar belakang (buku, bintang, pensil, rumus) */
+/** Membuat ornamen edukasi melayang di latar belakang (buku, topi toga, pensil, rumus) */
 function createDecorations() {
   const decorItems = [
     { type: "icon", name: "book-open" },
-    { type: "icon", name: "sparkles" },
+    { type: "icon", name: "graduation-cap" },
     { type: "icon", name: "pencil" },
     { type: "icon", name: "compass" },
     { type: "icon", name: "shapes" },
@@ -392,7 +550,7 @@ function showSetModal() {
     setTimeout(() => input.focus(), 100);
   }
   if (error) {
-    error.textContent = "";
+    error.innerHTML = "";
     error.classList.remove("show");
   }
 }
@@ -418,8 +576,11 @@ async function handleJoinCodeSubmit() {
 
   if (code.length !== 6) {
     if (error) {
-      error.textContent = "Kode kuis harus terdiri dari 6 karakter.";
+      error.innerHTML = '<i data-lucide="alert-circle"></i><span>Kode kuis harus terdiri dari 6 karakter.</span>';
       error.classList.add("show");
+      if (window.lucide && typeof lucide.createIcons === "function") {
+        lucide.createIcons({ root: error });
+      }
     }
     input.focus();
     return;
@@ -430,6 +591,7 @@ async function handleJoinCodeSubmit() {
     btn.innerHTML = '<span>Mencari kuis...</span>';
   }
   if (error) {
+    error.innerHTML = "";
     error.classList.remove("show");
   }
 
@@ -443,8 +605,11 @@ async function handleJoinCodeSubmit() {
     startQuiz(data.set.id);
   } catch (err) {
     if (error) {
-      error.textContent = err.message || "Kode kuis tidak valid atau belum dipublikasikan oleh guru.";
+      error.innerHTML = '<i data-lucide="alert-circle"></i><span>' + escapeHtml(err.message || "Kode kuis tidak valid atau belum dipublikasikan oleh guru.") + '</span>';
       error.classList.add("show");
+      if (window.lucide && typeof lucide.createIcons === "function") {
+        lucide.createIcons({ root: error });
+      }
     }
     input.focus();
     input.select();
@@ -518,7 +683,7 @@ async function startQuiz(forceSetId = null) {
         updateTimerDisplay();
         if (timeRemaining <= 0) {
           clearInterval(timerInterval);
-          showToast("⏳ Waktu habis!");
+          showToast("Waktu pengerjaan kuis telah habis.", "warning", "Waktu Habis");
           showResult();
         }
       }, 1000);
@@ -529,8 +694,10 @@ async function startQuiz(forceSetId = null) {
   } catch (err) {
     showToast(
       err.message && err.message !== "Belum ada soal pada set kuis ini."
-        ? "⚠️ " + err.message
-        : "⚠️ Gagal memuat kuis. Pastikan server aktif dan soal sudah dibuat oleh guru."
+        ? err.message
+        : "Gagal memuat kuis. Pastikan server aktif dan soal sudah dibuat oleh guru.",
+      "error",
+      "Gagal Memuat Kuis"
     );
   } finally {
     if (btnStart) {
@@ -549,7 +716,10 @@ function updateTimerDisplay() {
   if (!quizTimer) return;
   const m = Math.floor(timeRemaining / 60).toString().padStart(2, "0");
   const s = (timeRemaining % 60).toString().padStart(2, "0");
-  quizTimer.textContent = "⏱️ " + m + ":" + s;
+  quizTimer.innerHTML = '<i data-lucide="clock" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i><span>' + m + ":" + s + '</span>';
+  if (window.lucide && typeof lucide.createIcons === "function") {
+    lucide.createIcons({ root: quizTimer });
+  }
 }
 
 /** Menampilkan soal sesuai currentIndex ke dalam kartu pertanyaan. */
@@ -571,7 +741,8 @@ function renderQuestion() {
   btnNext.classList.add("hidden");
 
   /* Hancurkan & bangun ulang animasi masuknya kartu */
-  questionCard.classList.remove("card-in");
+  questionCard.classList.remove("card-in", "card-shake");
+  scoreChip.classList.remove("score-bump");
   void questionCard.offsetWidth; // paksa reflow agar animasi berjalan lagi
   questionCard.classList.add("card-in");
 
@@ -592,8 +763,8 @@ function renderQuestion() {
 
 /**
  * Mengirim jawaban ke server untuk divalidasi.
- * Benar  -> hijau + konfeti + kilatan layar.
- * Salah  -> getar (shake) merah muda + kunci jawaban ditampilkan.
+ * Benar  -> efek suara ceria, animasi popup selebrasi, partikel kilau tombol, getar chip skor, konfeti.
+ * Salah  -> efek suara lembut, animasi kartu bergetar (shake), partikel tombol, kunci jawaban ditampilkan.
  */
 async function chooseAnswer(selectedIndex) {
   if (isAnswered) return; // cegah jawaban ganda
@@ -613,26 +784,41 @@ async function chooseAnswer(selectedIndex) {
     /* Gagal terhubung: buka kembali tombol agar bisa dicoba lagi */
     isAnswered = false;
     buttons.forEach((btn) => (btn.disabled = false));
-    showToast(err.status === 400 ? err.message : "Gagal mengirim jawaban, coba lagi.");
+    showToast(err.status === 400 ? err.message : "Gagal mengirim jawaban, silakan coba lagi.", "error", "Koneksi Bermasalah");
     return;
   }
 
   score = result.score;
 
+  // Efek audio & visual animasi interaktif
+  playQuizSound(result.correct ? "correct" : "wrong");
+  showAnswerAnimation(result.correct);
+  if (buttons[selectedIndex]) {
+    spawnButtonParticles(buttons[selectedIndex], result.correct);
+  }
+
   if (result.correct) {
     buttons[selectedIndex].classList.add("correct");
     feedbackBox.className = "feedback ok";
-    feedbackBox.innerHTML = "<b>🎉 Hebat! Jawabanmu benar!</b>" + result.fact;
-    flashFx("ok");
+    feedbackBox.innerHTML = "<b>🎉 Hebat! Jawabanmu benar!</b>" + (result.fact ? "<br>" + result.fact : "");
     burstConfetti(45);
+    scoreChip.classList.remove("score-bump");
+    void scoreChip.offsetWidth;
+    scoreChip.classList.add("score-bump");
   } else {
     buttons[selectedIndex].classList.add("wrong");
-    buttons[result.correctIndex].classList.add("correct"); // tampilkan jawaban benar
+    if (buttons[result.correctIndex]) {
+      buttons[result.correctIndex].classList.add("correct"); // tampilkan jawaban benar
+    }
     feedbackBox.className = "feedback no";
     feedbackBox.innerHTML =
       "<b>😅 Belum tepat, ayo coba lagi!</b>Jawaban yang benar: <b>" +
-      q.options[result.correctIndex] + "</b>. " + result.fact;
-    flashFx("no");
+      q.options[result.correctIndex] + "</b>. " + (result.fact ? "<br>" + result.fact : "");
+    if (questionCard) {
+      questionCard.classList.remove("card-shake");
+      void questionCard.offsetWidth;
+      questionCard.classList.add("card-shake");
+    }
   }
 
   scoreChip.textContent = "⭐ " + score;
@@ -660,7 +846,141 @@ function nextQuestion() {
   }
 }
 
-/* =============== (7) ANIMASI: KONFETI, FLASH, ANGKA ==================== */
+/* =============== (7) ANIMASI & AUDIO INTERAKTIF ========================= */
+
+let audioCtx = null;
+function getAudioContext() {
+  if (!audioCtx) {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (AudioContextClass) {
+      audioCtx = new AudioContextClass();
+    }
+  }
+  if (audioCtx && audioCtx.state === "suspended") {
+    audioCtx.resume().catch(() => {});
+  }
+  return audioCtx;
+}
+
+/** Memainkan efek audio sintetis Web Audio API saat menjawab benar/salah */
+function playQuizSound(type) {
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+
+    if (type === "correct") {
+      // Arpeggio nada riang ceria: C5 -> E5 -> G5 -> C6
+      const notes = [523.25, 659.25, 783.99, 1046.50];
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, now + i * 0.07);
+
+        gain.gain.setValueAtTime(0, now + i * 0.07);
+        gain.gain.linearRampToValueAtTime(0.2, now + i * 0.07 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.07 + 0.32);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now + i * 0.07);
+        osc.stop(now + i * 0.07 + 0.33);
+      });
+    } else {
+      // Nada lembut tanda belum tepat
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(320, now);
+      osc.frequency.exponentialRampToValueAtTime(180, now + 0.28);
+
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.31);
+    }
+  } catch (_) {
+    /* Abaikan jika browser membatasi autoplay audio */
+  }
+}
+
+/** Memunculkan ledakan partikel berkilau pada tombol jawaban */
+function spawnButtonParticles(buttonElement, isCorrect) {
+  if (!buttonElement) return;
+  const count = 12;
+  const colors = isCorrect
+    ? ["#22c55e", "#10b981", "#3b82f6", "#eab308", "#f59e0b"]
+    : ["#ef4444", "#f43f5e", "#fb7185", "#cbd5e1"];
+
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement("span");
+    p.className = "btn-sparkle-particle";
+    const angle = (Math.PI * 2 * i) / count + (Math.random() * 0.4 - 0.2);
+    const dist = 32 + Math.random() * 40;
+    const dx = Math.cos(angle) * dist + "px";
+    const dy = Math.sin(angle) * dist + "px";
+    const size = 6 + Math.random() * 6;
+
+    p.style.width = size + "px";
+    p.style.height = size + "px";
+    p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+    p.style.left = "50%";
+    p.style.top = "50%";
+    p.style.setProperty("--dx", dx);
+    p.style.setProperty("--dy", dy);
+
+    buttonElement.appendChild(p);
+    setTimeout(() => p.remove(), 700);
+  }
+}
+
+/** Menampilkan overlay animasi pop-up tengah layar dengan sunburst */
+let animOverlayTimer = null;
+function showAnswerAnimation(isCorrect) {
+  const overlay = document.getElementById("quizAnimOverlay");
+  if (!overlay) return;
+
+  if (animOverlayTimer) {
+    clearTimeout(animOverlayTimer);
+    animOverlayTimer = null;
+  }
+
+  const badgeClass = isCorrect ? "correct" : "wrong";
+  const iconEmoji = isCorrect ? "🎉" : "💪";
+  const titleText = isCorrect ? "Luar Biasa!" : "Hampir Benar!";
+  const subText = isCorrect ? "+1 Bintang Ditambahkan!" : "Ayo pelajari kembali materi ini!";
+
+  const animFloatingHtml = isCorrect
+    ? `<span class="anim-sparkle" style="top:10%;left:15%;animation-delay:0.1s">🎉</span>
+       <span class="anim-sparkle" style="top:15%;right:15%;animation-delay:0.2s">⭐</span>
+       <span class="anim-sparkle" style="bottom:15%;left:20%;animation-delay:0.15s">🎯</span>
+       <span class="anim-sparkle" style="bottom:12%;right:20%;animation-delay:0.25s">👏</span>`
+    : `<span class="anim-sparkle" style="top:12%;left:18%;animation-delay:0.1s">💭</span>
+       <span class="anim-sparkle" style="top:15%;right:18%;animation-delay:0.2s">💡</span>`;
+
+  overlay.innerHTML = `
+    <div class="answer-anim-popup ${badgeClass}">
+      <div class="anim-sunburst"></div>
+      <div class="anim-icon-ring">${iconEmoji}</div>
+      <div class="anim-text-title">${titleText}</div>
+      <div class="anim-text-sub">${subText}</div>
+      ${animFloatingHtml}
+    </div>
+  `;
+
+  overlay.classList.add("active");
+
+  animOverlayTimer = setTimeout(() => {
+    overlay.classList.remove("active");
+    overlay.innerHTML = "";
+  }, 1100);
+}
 
 /** Menaburkan konfeti berwarna-warni dari atas layar. */
 function burstConfetti(amount = 45) {
@@ -726,7 +1046,7 @@ async function showResult() {
   } catch (err) {
     /* Server bermasalah: hasil tetap tampil, hanya tidak tersimpan */
     lastScore = finalScore;
-    showToast("ℹ️ Skor tampil, tetapi gagal tersimpan di server.");
+    showToast("Skor akhir tetap tampil, namun belum tersimpan di server.", "info", "Koneksi Tersendat");
   }
 
   score = finalScore;
@@ -803,10 +1123,21 @@ function initGoogleSignIn() {
       if (typeof google !== "undefined" && google.accounts && google.accounts.id) {
         clearInterval(interval);
         setupGoogleButton();
-      } else if (attempts >= 25) {
+      } else if (attempts >= 30) {
         clearInterval(interval);
+        if (container && (!googleClientId || !container.querySelector("iframe"))) {
+          container.innerHTML = `
+            <div class="google-offline-note">
+              <i data-lucide="wifi-off"></i>
+              <span>Layanan Google Identity belum dapat dimuat. Silakan gunakan login manual.</span>
+            </div>
+          `;
+          if (window.lucide && typeof window.lucide.createIcons === "function") {
+            window.lucide.createIcons();
+          }
+        }
       }
-    }, 200);
+    }, 150);
     return;
   }
 
@@ -821,15 +1152,28 @@ async function setupGoogleButton() {
     if (!googleClientId) {
       try {
         const res = await api("/api/auth/google/client-id");
-        if (res && res.data && res.data.clientId) {
-          googleClientId = res.data.clientId;
+        if (res && (res.clientId || (res.data && res.data.clientId))) {
+          googleClientId = res.clientId || (res.data && res.data.clientId);
         }
-      } catch (_) {}
+      } catch (fetchErr) {
+        console.warn("[Google Auth] Gagal mengambil Client ID:", fetchErr);
+      }
     }
 
-    if (!googleClientId) return;
+    if (!googleClientId) {
+      container.innerHTML = `
+        <div class="google-offline-note">
+          <i data-lucide="info"></i>
+          <span>Google Client ID belum dikonfigurasi di server. Silakan masuk manual.</span>
+        </div>
+      `;
+      if (window.lucide && typeof window.lucide.createIcons === "function") {
+        window.lucide.createIcons();
+      }
+      return;
+    }
 
-    if (!googleClientInitialized) {
+    if (!googleClientInitialized && typeof google !== "undefined" && google.accounts?.id) {
       google.accounts.id.initialize({
         client_id: googleClientId,
         callback: handleGoogleCredentialResponse,
@@ -839,16 +1183,18 @@ async function setupGoogleButton() {
       googleClientInitialized = true;
     }
 
-    container.innerHTML = "";
-    google.accounts.id.renderButton(container, {
-      type: "standard",
-      theme: "outline",
-      size: "large",
-      text: "continue_with",
-      shape: "pill",
-      logo_alignment: "left",
-      width: 280
-    });
+    if (typeof google !== "undefined" && google.accounts?.id) {
+      container.innerHTML = "";
+      google.accounts.id.renderButton(container, {
+        type: "standard",
+        theme: "outline",
+        size: "large",
+        text: "continue_with",
+        shape: "pill",
+        logo_alignment: "left",
+        width: 320
+      });
+    }
   } catch (err) {
     console.error("[Google Auth Error]", err);
   }
@@ -866,7 +1212,7 @@ async function handleGoogleCredentialResponse(response) {
   if (loginError) loginError.classList.remove("show");
 
   try {
-    showToast("⏳ Sedang memverifikasi akun Google...");
+    showToast("Sedang memverifikasi kredensial Google...", "info", "Menghubungkan Akun");
 
     const data = await api("/api/auth/google", {
       method: "POST",
@@ -876,13 +1222,13 @@ async function handleGoogleCredentialResponse(response) {
     saveToken(data.token);
 
     const teacherName = data.teacher?.fullName || data.teacher?.username || "Pengajar";
-    showToast("🎉 Berhasil masuk! Selamat datang, " + teacherName + "!");
+    showToast("Selamat datang kembali, " + escapeHtml(teacherName) + "!", "success", "Berhasil Masuk");
 
     await renderDashboard();
     showPage("page-dashboard");
   } catch (err) {
     showLoginError(err.message || "Login Google gagal, silakan coba lagi.");
-    showToast("⚠️ " + (err.message || "Gagal masuk dengan Google"));
+    showToast(err.message || "Gagal masuk dengan Google", "error", "Login Gagal");
   } finally {
     if (loadingEl) loadingEl.classList.add("hidden");
   }
@@ -912,7 +1258,7 @@ async function handleLogin(event) {
     saveToken(data.token);
 
     loginError.classList.remove("show");
-    loginError.textContent = "";
+    loginError.innerHTML = "";
     loginForm.reset();
     await renderDashboard();
     showPage("page-dashboard");
@@ -924,8 +1270,12 @@ async function handleLogin(event) {
 
 /** Menampilkan pesan error validasi login. */
 function showLoginError(message) {
-  loginError.textContent = message;
+  if (!loginError) return;
+  loginError.innerHTML = '<i data-lucide="alert-circle"></i><span>' + escapeHtml(message) + '</span>';
   loginError.classList.add("show");
+  if (window.lucide && typeof lucide.createIcons === "function") {
+    lucide.createIcons({ root: loginError });
+  }
 }
 
 /** Validasi registrasi ke server: benar -> login, salah -> efek getar. */
@@ -972,9 +1322,10 @@ async function handleRegister(event) {
     saveToken(data.token);
     
     const namaGuru = data.teacher?.fullName || data.teacher?.username || username;
-    showToast("🎉 Registrasi berhasil! Selamat datang, " + namaGuru + "!");
+    showToast("Selamat datang, " + escapeHtml(namaGuru) + "! Akun Anda berhasil dibuat.", "success", "Registrasi Berhasil");
     registerForm.reset();
     registerError.classList.remove("show");
+    registerError.innerHTML = "";
 
     const pageDashboard = document.getElementById("page-dashboard");
     if (pageDashboard) {
@@ -1035,8 +1386,12 @@ function switchAuthTab(mode) {
 
 /** Menampilkan pesan error validasi registrasi. */
 function showRegisterError(message) {
-  registerError.textContent = message;
+  if (!registerError) return;
+  registerError.innerHTML = '<i data-lucide="alert-circle"></i><span>' + escapeHtml(message) + '</span>';
   registerError.classList.add("show");
+  if (window.lucide && typeof lucide.createIcons === "function") {
+    lucide.createIcons({ root: registerError });
+  }
 }
 
 /** Mengguncang form saat validasi gagal (efek shake). */
@@ -1055,24 +1410,39 @@ async function renderDashboard() {
       const teacherNameEl = $("#dashTeacherName");
       const teacherEmailEl = $("#dashTeacherEmail");
       const teacherAvatarEl = $("#dashTeacherAvatar");
+      const teacherAvatarFallbackEl = $("#dashTeacherAvatarFallback");
+      const teacherInitialsEl = $("#dashTeacherInitials");
 
       if (meData && meData.teacher) {
+        const fullName = meData.teacher.fullName || meData.teacher.username || "Guru";
         if (teacherNameEl) {
-          teacherNameEl.textContent = meData.teacher.fullName || meData.teacher.username || "Guru";
+          teacherNameEl.textContent = fullName;
         }
         if (teacherEmailEl && meData.teacher.email) {
           teacherEmailEl.textContent = meData.teacher.email + " • Pengajar";
         }
+        if (teacherInitialsEl) {
+          const parts = fullName.trim().split(/\s+/).filter(Boolean);
+          const initials = parts.length >= 2
+            ? (parts[0][0] + parts[1][0]).toUpperCase()
+            : fullName.slice(0, 2).toUpperCase();
+          teacherInitialsEl.textContent = initials || "G";
+        }
         if (teacherAvatarEl) {
           if (meData.teacher.avatarUrl) {
             teacherAvatarEl.referrerPolicy = "no-referrer";
-            teacherAvatarEl.src = meData.teacher.avatarUrl;
-            teacherAvatarEl.classList.remove("hidden");
+            teacherAvatarEl.onload = () => {
+              teacherAvatarEl.classList.remove("hidden");
+              if (teacherAvatarFallbackEl) teacherAvatarFallbackEl.classList.add("hidden");
+            };
             teacherAvatarEl.onerror = () => {
               teacherAvatarEl.classList.add("hidden");
+              if (teacherAvatarFallbackEl) teacherAvatarFallbackEl.classList.remove("hidden");
             };
+            teacherAvatarEl.src = meData.teacher.avatarUrl;
           } else {
             teacherAvatarEl.classList.add("hidden");
+            if (teacherAvatarFallbackEl) teacherAvatarFallbackEl.classList.remove("hidden");
           }
         }
       }
@@ -1121,13 +1491,16 @@ async function renderDashboard() {
 
     /* Muat data form admin (materi & soal) */
     await loadAdminData();
+    if (window.lucide && typeof window.lucide.createIcons === "function") {
+      window.lucide.createIcons();
+    }
   } catch (err) {
     if (err.status === 401) {
       clearToken();
       showPage("page-login");
       showLoginError("Sesi berakhir, silakan login lagi.");
     } else {
-      showToast("Gagal memuat data guru. Coba muat ulang halaman.");
+      showToast("Gagal memuat profil pengajar. Silakan muat ulang halaman.", "error", "Gagal Memuat Data");
     }
   }
 }
@@ -1142,12 +1515,24 @@ function switchTab(tabId) {
   document.querySelectorAll(".tab-panel").forEach((panel) => {
     panel.classList.toggle("active", panel.id === tabId);
   });
+  if (window.lucide && typeof window.lucide.createIcons === "function") {
+    window.lucide.createIcons();
+  }
 }
 
 /** Pesan error kecil di dalam form admin. */
 function showFormError(box, message) {
-  box.textContent = message || "";
-  box.classList.toggle("show", Boolean(message));
+  if (!box) return;
+  if (message) {
+    box.innerHTML = '<i data-lucide="alert-circle"></i><span>' + escapeHtml(message) + '</span>';
+    box.classList.add("show");
+    if (window.lucide && typeof lucide.createIcons === "function") {
+      lucide.createIcons({ root: box });
+    }
+  } else {
+    box.innerHTML = "";
+    box.classList.remove("show");
+  }
 }
 
 /** Ambil semua materi + soal (endpoint khusus pengajar, butuh token). */
@@ -1172,7 +1557,7 @@ async function loadAdminData() {
     }
   } catch (err) {
     if (err.status === 401) return; // biarkan renderDashboard yang menangani
-    showToast("Gagal memuat data admin.");
+    showToast("Gagal memuat data dashboard pengajar.", "error", "Gagal Memuat Data");
   }
 }
 
@@ -1195,7 +1580,7 @@ function renderMateriAdmin() {
     li.innerHTML =
       '<span class="admin-thumb">' +
         (material.image_url
-          ? '<img src="' + material.image_url + '" alt="">'
+          ? '<img src="' + resolveImageUrl(material.image_url) + '" alt="">'
           : material.emoji || "📘") +
       "</span>" +
       '<div class="admin-info">' +
@@ -1344,35 +1729,86 @@ function renderSetAdmin() {
 
   if (!setList.length) {
     setAdminList.innerHTML =
-      '<li class="admin-empty">Belum ada set soal. Buat set soal pertama lewat form di samping 👉</li>';
+      '<li class="set-empty-card">' +
+        '<div class="set-empty-icon"><i data-lucide="layers"></i></div>' +
+        '<h5 class="set-empty-title">Belum Ada Paket Kuis</h5>' +
+        '<p class="set-empty-desc">Mulai buat paket kuis pertama Anda melalui formulir di samping untuk membagikan kode akses kepada siswa.</p>' +
+      '</li>';
+    if (window.lucide && typeof lucide.createIcons === "function") {
+      lucide.createIcons();
+    }
     return;
   }
 
   setList.forEach(function (set, index) {
     var li = document.createElement("li");
-    li.style.animationDelay = index * 0.05 + "s";
+    li.className = "set-card-item";
+    li.style.animationDelay = index * 0.04 + "s";
+
+    var codeHtml = set.access_code
+      ? '<div class="set-code-badge">' +
+          '<i data-lucide="key-round" class="set-code-icon"></i>' +
+          '<span class="set-code-lbl">Kode:</span>' +
+          '<strong class="set-code-val">' + escapeHtml(set.access_code) + '</strong>' +
+          '<button class="btn-copy-code" type="button" data-action="copy-code" data-id="' + set.id + '" data-code="' + escapeHtml(set.access_code) + '" title="Salin kode kuis ke papan klip">' +
+            '<i data-lucide="copy"></i><span>Salin</span>' +
+          '</button>' +
+        '</div>'
+      : '';
+
+    var statusHtml = set.is_published
+      ? '<span class="set-status-pill published"><i data-lucide="globe"></i><span>Publik</span></span>'
+      : '<span class="set-status-pill draft"><i data-lucide="lock"></i><span>Draf</span></span>';
+
+    var timeHtml = set.time_limit > 0
+      ? '<span class="set-meta-pill"><i data-lucide="clock-3"></i><span>' + set.time_limit + ' Menit</span></span>'
+      : '';
+
+    var questionsHtml = '<span class="set-meta-pill"><i data-lucide="help-circle"></i><span>' + set.question_count + ' Soal</span></span>';
+
+    var descHtml = set.description
+      ? '<p class="set-card-desc" title="' + escapeHtml(set.description) + '">' + escapeHtml(set.description) + '</p>'
+      : '';
+
+    var toggleTitle = set.is_published ? "Sembunyikan (Ubah ke Draf)" : "Publikasikan untuk Siswa";
+    var toggleIcon = set.is_published ? "eye-off" : "eye";
+
     li.innerHTML =
-      '<span class="admin-thumb">📋</span>' +
-      '<div class="admin-info">' +
-        "<strong>" + escapeHtml(set.title) + "</strong>" +
-        "<small>" +
-          '<span class="tag' + (set.is_published ? "" : " warn") + '">' +
-            (set.is_published ? "Publish" : "Draf") +
-          "</span>" +
-          "📚 " + escapeHtml(set.material_title || "?") + " · " + set.question_count + " soal" +
-          (set.time_limit > 0 ? " · ⏱️ " + set.time_limit + " mnt" : "") +
-          " · 🔑 Kode: <strong>" + escapeHtml(set.access_code || "-") + "</strong>" +
-        "</small>" +
-      "</div>" +
-      '<div class="admin-actions">' +
-        '<button class="btn-manage-q" type="button" title="Atur Soal & Kunci Jawaban Kuis Ini" data-action="manage-questions" data-id="' + set.id + '">' +
-          '🎯 Atur Soal (' + set.question_count + ')' +
+      '<div class="set-card-main">' +
+        '<div class="set-card-thumb" aria-hidden="true">' +
+          '<i data-lucide="layers"></i>' +
+        '</div>' +
+        '<div class="set-card-body">' +
+          '<div class="set-card-headline">' +
+            '<h5 class="set-card-title">' + escapeHtml(set.title) + '</h5>' +
+            statusHtml +
+          '</div>' +
+          descHtml +
+          '<div class="set-card-meta">' +
+            questionsHtml +
+            timeHtml +
+            codeHtml +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="set-card-actions">' +
+        '<button class="btn-manage-q" type="button" title="Kelola butir soal dan kunci jawaban kuis ini" data-action="manage-questions" data-id="' + set.id + '">' +
+          '<i data-lucide="sliders-horizontal"></i>' +
+          '<span>Atur Soal</span>' +
+          '<span class="set-q-count-badge">' + set.question_count + '</span>' +
         '</button>' +
-        '<button class="icon-mini edit" type="button" title="Ubah set" data-action="edit-set" data-id="' + set.id + '">✏️</button>' +
-        '<button class="icon-mini" type="button" title="Publish / draf" data-action="toggle-set" data-id="' + set.id + '">' +
-          (set.is_published ? "🙈" : "✅") + "</button>" +
-        '<button class="icon-mini danger" type="button" title="Hapus set" data-action="delete-set" data-id="' + set.id + '">🗑️</button>' +
-      "</div>";
+        '<div class="set-action-buttons">' +
+          '<button class="action-btn-ui edit" type="button" title="Ubah nama & pengaturan set kuis" data-action="edit-set" data-id="' + set.id + '">' +
+            '<i data-lucide="pen-line"></i>' +
+          '</button>' +
+          '<button class="action-btn-ui" type="button" title="' + toggleTitle + '" data-action="toggle-set" data-id="' + set.id + '">' +
+            '<i data-lucide="' + toggleIcon + '"></i>' +
+          '</button>' +
+          '<button class="action-btn-ui danger" type="button" title="Hapus set kuis" data-action="delete-set" data-id="' + set.id + '">' +
+            '<i data-lucide="trash-2"></i>' +
+          '</button>' +
+        '</div>' +
+      '</div>';
 
     setAdminList.appendChild(li);
   });
@@ -1397,9 +1833,8 @@ async function openQuizQuestionsManager(setId) {
   }
   if (mgrSetMeta) {
     mgrSetMeta.textContent =
-      "📚 " + (set.material_title || "Umum") +
-      (set.time_limit > 0 ? " · ⏱️ " + set.time_limit + " menit" : " · ⏱️ Tanpa batas waktu") +
-      " · 🔑 Kode Akses Siswa: " + (set.access_code || "-");
+      (set.time_limit > 0 ? "Batas Waktu: " + set.time_limit + " Menit" : "Tanpa Batas Waktu") +
+      " · Kode Akses: " + (set.access_code || "-");
   }
 
   await loadQuizQuestions(setId);
@@ -1421,11 +1856,14 @@ async function loadQuizQuestions(setId) {
       mgrQuestionsList.innerHTML =
         '<div class="mgr-empty-state">' +
           '<strong>Belum ada soal pada kuis ini</strong>' +
-          '<p>Tambahkan soal pertama untuk kuis ini agar siswa dapat mengerjakan kuis ini.</p>' +
+          '<p>Tambahkan butir soal pertama untuk kuis ini agar siswa dapat mulai mengerjakan.</p>' +
           '<button type="button" class="btn btn-small btn-primary" data-action="mgr-add-q" data-setid="' + setId + '">' +
-            '➕ Tambah Soal Pertama' +
+            '<i data-lucide="plus-circle"></i><span>Tambah Soal Pertama</span>' +
           '</button>' +
         '</div>';
+      if (window.lucide && typeof lucide.createIcons === "function") {
+        lucide.createIcons();
+      }
       return;
     }
 
@@ -1440,7 +1878,7 @@ async function loadQuizQuestions(setId) {
               '<span class="mgr-option-text" title="' + escapeHtml(opt) + '">' + escapeHtml(opt) + '</span>' +
             '</div>' +
             (isCorrect
-              ? '<span class="mgr-correct-tag">✓ Kunci Jawaban</span>'
+              ? '<span class="mgr-correct-tag"><i data-lucide="check"></i> Kunci Jawaban</span>'
               : '<button type="button" class="btn-set-correct" data-action="set-answer" data-qid="' + q.id + '" data-idx="' + optIndex + '" title="Tandai sebagai kunci jawaban yang benar">Jadikan Kunci</button>') +
           '</div>'
         );
@@ -1449,17 +1887,17 @@ async function loadQuizQuestions(setId) {
       return (
         '<div class="mgr-question-card" id="mgrCard-' + q.id + '">' +
           '<div class="mgr-q-header">' +
-            '<span class="mgr-q-badge">' + (q.image || "❓") + ' Soal #' + (qIndex + 1) + (q.subject ? " · " + escapeHtml(q.subject) : "") + '</span>' +
+            '<span class="mgr-q-badge"><i data-lucide="help-circle"></i> Soal #' + (qIndex + 1) + (q.subject ? " · " + escapeHtml(q.subject) : "") + '</span>' +
             '<div class="mgr-q-actions">' +
-              '<button type="button" class="btn-xs" data-action="edit-mgr-q" data-qid="' + q.id + '" title="Ubah soal ini">✏️ Edit</button>' +
-              '<button type="button" class="btn-xs btn-danger" data-action="delete-mgr-q" data-qid="' + q.id + '" title="Hapus soal ini">🗑️ Hapus</button>' +
+              '<button type="button" class="btn-xs" data-action="edit-mgr-q" data-qid="' + q.id + '" title="Ubah soal ini"><i data-lucide="pen-line"></i><span>Edit</span></button>' +
+              '<button type="button" class="btn-xs btn-danger" data-action="delete-mgr-q" data-qid="' + q.id + '" title="Hapus soal ini"><i data-lucide="trash-2"></i><span>Hapus</span></button>' +
             '</div>' +
           '</div>' +
           '<p class="mgr-q-text">' + escapeHtml(q.question) + '</p>' +
           '<div class="mgr-options-grid">' +
             optionsHtml +
           '</div>' +
-          (q.fact ? '<span class="mgr-q-fact">💡 <strong>Penjelasan:</strong> ' + escapeHtml(q.fact) + '</span>' : '') +
+          (q.fact ? '<span class="mgr-q-fact"><i data-lucide="info"></i> <strong>Penjelasan:</strong> ' + escapeHtml(q.fact) + '</span>' : '') +
         '</div>'
       );
     }).join("");
@@ -1492,7 +1930,7 @@ function handleAddQuestionToSet(setId) {
 function editSet(set) {
   editingSetId = set.id;
   setFormTitle.textContent = "✏️ Ubah Set Soal: " + set.title;
-  sSetMaterial.value = set.material_id || "";
+  if (sSetMaterial) sSetMaterial.value = set.material_id || "";
   sSetTitle.value = set.title;
   sSetDesc.value = set.description || "";
   sSetTime.value = set.time_limit || "";
@@ -1583,13 +2021,13 @@ function bindAdminEvents() {
             method: "PUT",
             body: JSON.stringify(payload)
           });
-          showToast("✅ Materi berhasil diperbarui.");
+          showToast("Materi pembelajaran berhasil diperbarui.", "success", "Perubahan Tersimpan");
         } else {
           await api("/api/materials", {
             method: "POST",
             body: JSON.stringify(payload)
           });
-          showToast("✅ Materi baru berhasil ditambahkan.");
+          showToast("Materi baru berhasil ditambahkan ke dashboard Anda.", "success", "Materi Ditambahkan");
         }
 
         resetMateriForm();
@@ -1613,12 +2051,17 @@ function bindAdminEvents() {
         title: sSetTitle.value.trim(),
         description: sSetDesc.value.trim(),
         timeLimit: sSetTime.value ? Number(sSetTime.value) : 0,
-        materialId: sSetMaterial.value ? Number(sSetMaterial.value) : null,
         is_published: sSetPublish.checked
       };
 
-      if (!payload.title || !payload.materialId) {
-        showFormError(setError, "Judul dan Materi Induk wajib diisi.");
+      if (sSetMaterial && sSetMaterial.value) {
+        payload.materialId = Number(sSetMaterial.value);
+      } else if (materiList && materiList.length) {
+        payload.materialId = materiList[0].id;
+      }
+
+      if (!payload.title) {
+        showFormError(setError, "Judul set soal wajib diisi.");
         return;
       }
 
@@ -1628,13 +2071,13 @@ function bindAdminEvents() {
             method: "PUT",
             body: JSON.stringify(payload)
           });
-          showToast("✅ Set soal berhasil diperbarui.");
+          showToast("Set soal berhasil diperbarui.", "success", "Perubahan Tersimpan");
         } else {
           await api("/api/sets", {
             method: "POST",
             body: JSON.stringify(payload)
           });
-          showToast("✅ Set soal baru berhasil ditambahkan.");
+          showToast("Set kuis baru berhasil dibuat dan siap digunakan.", "success", "Set Kuis Dibuat");
         }
 
         resetSetForm();
@@ -1649,7 +2092,7 @@ function bindAdminEvents() {
     btnCancelSet.addEventListener("click", resetSetForm);
   }
 
-  /* Aksi pada daftar set soal (ubah / publish / hapus / atur soal) */
+  /* Aksi pada daftar set soal (ubah / publish / hapus / atur soal / salin kode) */
   if (setAdminList) {
     setAdminList.addEventListener("click", async (event) => {
       const button = event.target.closest("button[data-action]");
@@ -1657,6 +2100,45 @@ function bindAdminEvents() {
 
       const id = Number(button.dataset.id);
       const set = setList.find((item) => item.id === id);
+
+      /* Fitur Salin Kode Kuis */
+      if (button.dataset.action === "copy-code") {
+        event.stopPropagation();
+        const code = button.dataset.code || (set ? set.access_code : "");
+        if (!code) return;
+
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(code);
+          } else {
+            const temp = document.createElement("input");
+            temp.value = code;
+            document.body.appendChild(temp);
+            temp.select();
+            document.execCommand("copy");
+            document.body.removeChild(temp);
+          }
+
+          const origContent = button.innerHTML;
+          button.innerHTML = '<i data-lucide="check"></i><span>Tersalin!</span>';
+          button.classList.add("copied");
+          if (window.lucide && typeof lucide.createIcons === "function") {
+            lucide.createIcons();
+          }
+          showToast('Kode kuis <strong class="toast-code-hl">' + escapeHtml(code) + '</strong> berhasil disalin ke papan klip!', "copy", "Kode Kuis Disalin");
+          setTimeout(() => {
+            button.innerHTML = origContent;
+            button.classList.remove("copied");
+            if (window.lucide && typeof lucide.createIcons === "function") {
+              lucide.createIcons();
+            }
+          }, 2000);
+        } catch (_) {
+          showToast('Kode kuis: <strong class="toast-code-hl">' + escapeHtml(code) + '</strong>', "info", "Kode Kuis");
+        }
+        return;
+      }
+
       if (!set) return;
 
       try {
@@ -1670,13 +2152,15 @@ function bindAdminEvents() {
             body: JSON.stringify({ is_published: !set.is_published })
           });
           showToast(set.is_published
-            ? "📄 Set soal dipindahkan ke draf."
-            : "✅ Set soal dipublikasikan untuk siswa.");
+            ? "Set soal dipindahkan ke draf."
+            : "Set soal berhasil dipublikasikan untuk siswa.",
+            "success",
+            set.is_published ? "Set Masuk Draf" : "Set Dipublikasikan");
           await loadAdminData();
         } else if (button.dataset.action === "delete-set") {
           if (!confirm('Hapus set soal "' + set.title + '"? Soal di dalamnya tidak akan terhapus, hanya kehilangan referensi set.')) return;
           await api("/api/sets/" + id, { method: "DELETE" });
-          showToast("🗑️ Set soal dihapus.");
+          showToast("Set soal berhasil dihapus.", "success", "Set Dihapus");
           if (editingSetId === id) resetSetForm();
           if (activeManagerSetId === id) {
             if (quizQuestionsManager) {
@@ -1688,7 +2172,7 @@ function bindAdminEvents() {
           await loadAdminData();
         }
       } catch (err) {
-        showToast(err.message);
+        showToast(err.message, "error", "Gagal Memproses");
       }
     });
   }
@@ -1728,12 +2212,12 @@ function bindAdminEvents() {
             method: "PATCH",
             body: JSON.stringify({ answer: idx })
           });
-          showToast("✅ Kunci jawaban diubah menjadi Opsi " + (letters[idx] || (idx + 1)) + "!");
+          showToast("Kunci jawaban berhasil diubah ke Opsi " + (letters[idx] || (idx + 1)) + ".", "success", "Kunci Jawaban Diperbarui");
           if (activeManagerSetId) {
             await loadQuizQuestions(activeManagerSetId);
           }
         } catch (err) {
-          showToast(err.message);
+          showToast(err.message, "error", "Gagal Memperbarui");
         }
       } else if (action === "edit-mgr-q") {
         const qid = Number(button.dataset.qid);
@@ -1742,14 +2226,14 @@ function bindAdminEvents() {
           const question = (data.questions || []).find((item) => item.id === qid);
           if (question) editSoal(question);
         } catch (err) {
-          showToast(err.message);
+          showToast(err.message, "error", "Gagal Memuat Soal");
         }
       } else if (action === "delete-mgr-q") {
         const qid = Number(button.dataset.qid);
         if (!confirm("Hapus soal ini dari kuis?")) return;
         try {
           await api("/api/questions/" + qid, { method: "DELETE" });
-          showToast("🗑️ Soal dihapus.");
+          showToast("Soal berhasil dihapus dari kuis.", "success", "Soal Dihapus");
           if (editingSoalId === qid) resetSoalForm();
           if (activeManagerSetId) {
             await loadQuizQuestions(activeManagerSetId);
@@ -1757,7 +2241,7 @@ function bindAdminEvents() {
           await loadAdminData();
           await renderDashboard();
         } catch (err) {
-          showToast(err.message);
+          showToast(err.message, "error", "Gagal Menghapus");
         }
       } else if (action === "mgr-add-q") {
         const setId = Number(button.dataset.setid);
@@ -1805,19 +2289,21 @@ function bindAdminEvents() {
             body: JSON.stringify({ is_published: !material.is_published })
           });
           showToast(material.is_published
-            ? "📄 Materi dipindahkan ke draf."
-            : "✅ Materi dipublikasikan untuk siswa.");
+            ? "Materi pembelajaran dipindahkan ke draf."
+            : "Materi pembelajaran berhasil dipublikasikan untuk siswa.",
+            "success",
+            material.is_published ? "Materi Masuk Draf" : "Materi Dipublikasikan");
           await loadAdminData();
         } else if (button.dataset.action === "delete") {
           if (!confirm('Hapus materi "' + material.title + '" beserta datanya?')) return;
           await api("/api/materials/" + id, { method: "DELETE" });
-          showToast("🗑️ Materi dihapus.");
+          showToast("Materi pembelajaran berhasil dihapus.", "success", "Materi Dihapus");
           if (editingMateriId === id) resetMateriForm();
           await loadAdminData();
           await renderDashboard();
         }
       } catch (err) {
-        showToast(err.message);
+        showToast(err.message, "error", "Gagal Memproses");
       }
     });
   }
@@ -1872,13 +2358,13 @@ function bindAdminEvents() {
             method: "PUT",
             body: JSON.stringify(payload)
           });
-          showToast("✅ Soal berhasil diperbarui.");
+          showToast("Soal berhasil diperbarui.", "success", "Perubahan Tersimpan");
         } else {
           await api("/api/questions", {
             method: "POST",
             body: JSON.stringify(payload)
           });
-          showToast("✅ Soal baru berhasil disimpan ke akun Anda.");
+          showToast("Soal baru berhasil disimpan ke akun Anda.", "success", "Soal Ditambahkan");
         }
 
         resetSoalForm();
@@ -1914,13 +2400,13 @@ function bindAdminEvents() {
         } else if (action === "delete-q") {
           if (!confirm("Hapus soal ini?")) return;
           await api("/api/questions/" + id, { method: "DELETE" });
-          showToast("🗑️ Soal dihapus.");
+          showToast("Soal berhasil dihapus.", "success", "Soal Dihapus");
           if (editingSoalId === id) resetSoalForm();
           await loadAdminData();
           await renderDashboard();
         }
       } catch (err) {
-        showToast(err.message);
+        showToast(err.message, "error", "Gagal Memproses");
       }
     });
   }
@@ -2059,6 +2545,9 @@ function init() {
       const isHidden = loginForm.style.display === "none";
       loginForm.style.display = isHidden ? "block" : "none";
       btnToggleManual.classList.toggle("active", isHidden);
+      if (isHidden && window.lucide && typeof window.lucide.createIcons === "function") {
+        window.lucide.createIcons();
+      }
     });
   }
 

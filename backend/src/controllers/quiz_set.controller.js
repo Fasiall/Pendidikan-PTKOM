@@ -124,23 +124,31 @@ const getQuestions = asyncHandler(async (req, res) => {
 
 /** Buat set soal baru (tersimpan ke akun pengajar yang login). */
 const create = asyncHandler(async (req, res) => {
-  requireFields(req.body, ["title", "materialId"]);
+  requireFields(req.body, ["title"]);
 
   const body = req.body;
   const title = String(body.title).trim();
   if (title.length < 2) throw ApiError.badRequest("Judul set soal minimal 2 karakter.");
 
-  const materialId = toInt(body.materialId, "materialId", { min: 1 });
   const teacherId = req.teacher.id;
-
   const pool = getPool();
 
-  /* Pastikan materi ada */
-  const { rows: matRows } = await pool.query(
-    "SELECT id FROM materials WHERE id = $1",
-    [materialId]
-  );
-  if (!matRows.length) throw ApiError.badRequest("materialId tidak ditemukan.");
+  let materialId = body.materialId !== undefined && body.materialId !== null && body.materialId !== ""
+    ? toInt(body.materialId, "materialId", { min: 1 })
+    : null;
+
+  if (materialId) {
+    /* Pastikan materi ada jika diberikan */
+    const { rows: matRows } = await pool.query(
+      "SELECT id FROM materials WHERE id = $1",
+      [materialId]
+    );
+    if (!matRows.length) throw ApiError.badRequest("materialId tidak ditemukan.");
+  } else {
+    /* Gunakan materi pertama sebagai default jika materi induk tidak dipilih */
+    const { rows: matRows } = await pool.query("SELECT id FROM materials ORDER BY id LIMIT 1");
+    materialId = matRows.length ? matRows[0].id : null;
+  }
 
   /* Generate kode akses 6 karakter */
   const accessCode = Math.random().toString(36).substring(2, 8).toUpperCase();

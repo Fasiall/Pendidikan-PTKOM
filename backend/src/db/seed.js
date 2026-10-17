@@ -65,7 +65,7 @@ async function seed() {
             material.title,
             material.summary,
             material.content.trim(),
-            svgThumb(material.emoji, material.color),
+            material.image_url || svgThumb(material.emoji, material.color),
             material.emoji,
             material.subject,
             material.position,
