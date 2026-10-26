@@ -235,33 +235,38 @@ function splitTitle() {
   if (!titleEl) return;
 
   const text = titleEl.textContent.trim();
-  const colors = ["#FF6B6B", "#FFD93D", "#4ECDC4", "#A78BFA", "#5B8DEF", "#FF6B9D"];
+  /* Warna per kata agar judul terasa ceria tanpa terlalu ramai. */
+  const wordColors = ["#5636e0", "#2b2a4a", "#ff5d8f"];
   titleEl.textContent = "";
 
-  [...text].forEach((char, index) => {
-    const span = document.createElement("span");
-    span.className = "t-letter";
-    span.textContent = char === " " ? " " : char;
-    span.style.color = colors[index % colors.length];
-    span.style.animationDelay = (index * 0.08) + "s";
-    titleEl.appendChild(span);
+  /* Setiap kata dibungkus agar judul tidak pernah terpotong di tengah kata. */
+  const words = text.split(" ");
+  let charIndex = 0;
+  words.forEach((word, wordIndex) => {
+    const wordEl = document.createElement("span");
+    wordEl.className = "t-word";
+    wordEl.style.color = wordColors[Math.min(wordIndex, wordColors.length - 1)];
+
+    [...word].forEach((char) => {
+      const span = document.createElement("span");
+      span.className = "t-letter";
+      span.textContent = char;
+      span.style.animationDelay = (charIndex * 0.03) + "s";
+      charIndex++;
+      wordEl.appendChild(span);
+    });
+
+    titleEl.appendChild(wordEl);
+    if (wordIndex < words.length - 1) {
+      titleEl.appendChild(document.createTextNode(" "));
+    }
   });
 }
 
 /** Membuat emoji melayang di latar belakang (posisi acak tapi seragam). */
 function createDecorations() {
-  const emojis = ["🎈", "⭐", "🌈", "🌸", "☁️", "🦋", "🍭", "🐟", "🍋", "🐝", "🌺", "🐚"];
-  for (let i = 0; i < 12; i++) {
-    const el = document.createElement("span");
-    el.className = "decor";
-    el.textContent = emojis[i % emojis.length];
-    el.style.left = (Math.random() * 94) + "%";
-    el.style.top = (Math.random() * 88) + "%";
-    el.style.fontSize = (24 + Math.random() * 30) + "px";
-    el.style.animationDuration = (4 + Math.random() * 5) + "s";
-    el.style.animationDelay = (Math.random() * 4) + "s";
-    decorLayer.appendChild(el);
-  }
+  /* Dekorasi emoji lama tidak dipakai lagi. */
+  if (!decorLayer) return;
 }
 
 /* =============== (6) LOGIKA KUIS ======================================= */
@@ -286,14 +291,8 @@ async function startQuiz(forceSetId = null) {
   let setId = forceSetId ? Number(forceSetId) : (Number(params.get("set")) || null);
   const materialId = setId ? null : (Number(params.get("materi")) || null);
 
-  /* Jika diakses dari halaman utama tanpa parameter, tampilkan modal pilihan set soal */
-  if (!setId && !materialId) {
-    showSetModal();
-    return;
-  }
-
   btnStart.disabled = true;
-  btnStart.textContent = "⏳ Memuat soal...";
+  btnStart.textContent = "Memuat soal...";
 
   /* Bangun URL dan body berdasarkan filter */
   let questionUrl = "/api/questions";
@@ -338,7 +337,7 @@ async function startQuiz(forceSetId = null) {
         updateTimerDisplay();
         if (timeRemaining <= 0) {
           clearInterval(timerInterval);
-          showToast("⏳ Waktu habis!");
+          showToast("Waktu habis.");
           showResult();
         }
       }, 1000);
@@ -349,8 +348,8 @@ async function startQuiz(forceSetId = null) {
   } catch (err) {
     showToast(
       err.message && err.message !== "Soal masih kosong."
-        ? "⚠️ " + err.message
-        : "⚠️ Server belum terhubung. Jalankan \"npm start\" lalu muat ulang halaman."
+        ? err.message
+        : "Server belum terhubung. Jalankan \"npm start\" lalu muat ulang halaman."
     );
   } finally {
     btnStart.disabled = false;
@@ -364,59 +363,7 @@ function updateTimerDisplay() {
   if (!quizTimer) return;
   const m = Math.floor(timeRemaining / 60).toString().padStart(2, "0");
   const s = (timeRemaining % 60).toString().padStart(2, "0");
-  quizTimer.textContent = "⏱️ " + m + ":" + s;
-}
-
-/** Menampilkan modal masukkan kode kuis jika tidak ada parameter di URL */
-async function showSetModal() {
-  const modal = $("#modalJoinQuiz");
-  const input = $("#joinCodeInput");
-  const error = $("#joinError");
-  
-  modal.classList.add("show");
-  input.value = "";
-  error.textContent = "";
-  error.classList.remove("show");
-  input.focus();
-}
-
-/** Menutup modal join */
-if ($("#btnCloseModalJoin")) {
-  $("#btnCloseModalJoin").addEventListener("click", () => {
-    $("#modalJoinQuiz").classList.remove("show");
-  });
-}
-
-/** Submit kode kuis */
-if ($("#btnSubmitJoin")) {
-  $("#btnSubmitJoin").addEventListener("click", async () => {
-    const input = $("#joinCodeInput");
-    const error = $("#joinError");
-    const btn = $("#btnSubmitJoin");
-    const code = input.value.trim().toUpperCase();
-
-    if (code.length !== 6) {
-      error.textContent = "Kode kuis harus 6 karakter.";
-      error.classList.add("show");
-      return;
-    }
-
-    btn.disabled = true;
-    btn.textContent = "Mencari...";
-    error.classList.remove("show");
-
-    try {
-      const data = await api("/api/sets/code/" + code);
-      $("#modalJoinQuiz").classList.remove("show");
-      startQuiz(data.set.id);
-    } catch (err) {
-      error.textContent = err.message;
-      error.classList.add("show");
-    } finally {
-      btn.disabled = false;
-      btn.textContent = "Mulai Kuis";
-    }
-  });
+  quizTimer.textContent = m + ":" + s;
 }
 
 /** Menampilkan soal sesuai currentIndex ke dalam kartu pertanyaan. */
@@ -427,7 +374,7 @@ function renderQuestion() {
   /* Perbarui progress bar & chip skor */
   progressFill.style.width = ((currentIndex + 1) / questions.length * 100) + "%";
   progressText.textContent = (currentIndex + 1) + "/" + questions.length;
-  scoreChip.textContent = "⭐ " + score;
+  scoreChip.textContent = score + " poin";
 
   /* Isi konten kartu */
   qSubject.textContent = q.subject;
@@ -489,7 +436,7 @@ async function chooseAnswer(selectedIndex) {
   if (result.correct) {
     buttons[selectedIndex].classList.add("correct");
     feedbackBox.className = "feedback ok";
-    feedbackBox.innerHTML = "<b>🎉 Hebat! Jawabanmu benar!</b>" + result.fact;
+    feedbackBox.innerHTML = "<b>Tepat.</b> " + result.fact;
     flashFx("ok");
     burstConfetti(45);
   } else {
@@ -497,16 +444,16 @@ async function chooseAnswer(selectedIndex) {
     buttons[result.correctIndex].classList.add("correct"); // tampilkan jawaban benar
     feedbackBox.className = "feedback no";
     feedbackBox.innerHTML =
-      "<b>😅 Belum tepat, ayo coba lagi!</b>Jawaban yang benar: <b>" +
+      "<b>Belum tepat.</b> Jawaban yang benar: <b>" +
       q.options[result.correctIndex] + "</b>. " + result.fact;
     flashFx("no");
   }
 
-  scoreChip.textContent = "⭐ " + score;
+  scoreChip.textContent = score + " poin";
 
   /* Tampilkan tombol lanjut */
   btnNext.textContent =
-    currentIndex === questions.length - 1 ? "Lihat Hasil 🎉" : "Lanjut ➡️";
+    currentIndex === questions.length - 1 ? "Lihat hasil" : "Lanjut";
   btnNext.classList.remove("hidden");
 
   /* Di HP, bila umpan balik terpotong layar, gulirkan ke situ */
@@ -531,7 +478,7 @@ function nextQuestion() {
 
 /** Menaburkan konfeti berwarna-warni dari atas layar. */
 function burstConfetti(amount = 45) {
-  const colors = ["#FF6B6B", "#FFD93D", "#4ECDC4", "#A78BFA", "#5B8DEF", "#FF6B9D", "#3BCE7B"];
+  const colors = ["#ff6b6b", "#ffc93c", "#35c97a", "#57a8ff", "#7b5cff", "#ff7ab6", "#2ec8b0"];
   for (let i = 0; i < amount; i++) {
     const piece = document.createElement("i");
     piece.className = "confetti";
@@ -550,7 +497,7 @@ function burstConfetti(amount = 45) {
 
 /** Kilatan layar: hijau (benar) / merah muda (salah) dengan emoji besar. */
 function flashFx(type) {
-  fxEmoji.textContent = type === "ok" ? "🎉" : "🙈";
+  fxEmoji.textContent = type === "ok" ? "✓" : "!";
   fxFlash.className = "fx-flash show " + (type === "ok" ? "ok" : "no");
   clearTimeout(fxTimer);
   fxTimer = setTimeout(() => {
@@ -593,7 +540,7 @@ async function showResult() {
   } catch (err) {
     /* Server bermasalah: hasil tetap tampil, hanya tidak tersimpan */
     lastScore = finalScore;
-    showToast("ℹ️ Skor tampil, tetapi gagal tersimpan di server.");
+    showToast("Skor tampil, tetapi gagal tersimpan di server.");
   }
 
   score = finalScore;
@@ -609,17 +556,17 @@ function renderResult(finalScore, total) {
   /* Emoji, judul, dan pesan motivasi berdasarkan rasio keberhasilan */
   let emoji, title, message;
   if (ratio === 1) {
-    emoji = "🏆"; title = "Sempurna!";
-    message = "WOW! Semua jawaban benar. Kamu juara! 🎉";
+    emoji = ""; title = "Sempurna!";
+    message = "Semua jawaban benar. Kamu juara!";
   } else if (ratio >= 0.75) {
-    emoji = "🌟"; title = "Hebat Sekali!";
-    message = "Hebat! Terus Belajar ya! ⭐";
+    emoji = ""; title = "Hebat sekali!";
+    message = "Hebat! Terus belajar ya.";
   } else if (ratio >= 0.5) {
-    emoji = "😃"; title = "Kerja Bagus!";
-    message = "Bagus! Sedikit lagi sempurna. Semangat! 💪";
+    emoji = ""; title = "Kerja bagus!";
+    message = "Bagus! Sedikit lagi sempurna. Semangat!";
   } else {
-    emoji = "💪"; title = "Jangan Menyerah!";
-    message = "Terus Belajar ya, pasti bisa! Ayo coba lagi! 🌈";
+    emoji = ""; title = "Jangan menyerah!";
+    message = "Terus belajar ya, pasti bisa! Ayo coba lagi!";
   }
   resultEmoji.textContent = emoji;
   resultTitle.textContent = title;
@@ -631,7 +578,7 @@ function renderResult(finalScore, total) {
   for (let i = 0; i < 3; i++) {
     const star = document.createElement("span");
     star.className = "star" + (i < earned ? " earned" : "");
-    star.textContent = "⭐";
+    star.textContent = "★";
     if (i < earned) star.style.animationDelay = (0.25 + i * 0.35) + "s";
     starRow.appendChild(star);
   }
@@ -641,12 +588,8 @@ function renderResult(finalScore, total) {
   scoreNumber.textContent = "0";
   animateNumber(scoreNumber, finalScore, 1400);
 
-  const degrees = Math.round(ratio * 360);
   const circle = document.querySelector(".score-circle");
-  if (circle) {
-    circle.style.background =
-      "conic-gradient(#FFD93D " + degrees + "deg, #FFF3C4 " + degrees + "deg)";
-  }
+  if (circle) circle.style.background = "";
 
   /* Rayakan dengan konfeti */
   setTimeout(() => burstConfetti(ratio >= 0.75 ? 70 : 35), 350);
@@ -736,7 +679,7 @@ async function handleRegister(event) {
     saveToken(data.token);
     
     const namaGuru = data.teacher?.fullName || data.teacher?.username || username;
-    showToast("🎉 Registrasi berhasil! Selamat datang, " + namaGuru + "!");
+    showToast("Registrasi berhasil. Selamat datang, " + namaGuru + "!");
     registerForm.reset();
     registerError.classList.remove("show");
 
@@ -775,7 +718,7 @@ function switchAuthTab(mode) {
     tabRegister.setAttribute("aria-selected", "true");
     formLogin.style.display = "none";
     formRegister.style.display = "block";
-    if (avatar) avatar.textContent = "📝";
+    if (avatar) avatar.textContent = "";
   } else {
     tabRegister.classList.remove("active");
     tabRegister.setAttribute("aria-selected", "false");
@@ -783,7 +726,7 @@ function switchAuthTab(mode) {
     tabLogin.setAttribute("aria-selected", "true");
     formRegister.style.display = "none";
     formLogin.style.display = "block";
-    if (avatar) avatar.textContent = "🏫";
+    if (avatar) avatar.textContent = "";
   }
 }
 
@@ -835,7 +778,7 @@ async function renderDashboard() {
     resultsList.innerHTML = "";
     if (!data.results.length) {
       resultsList.innerHTML =
-        '<li class="empty-note">Belum ada skor yang tersimpan. Ajak siswa bermain! 🎈</li>';
+        '<li class="empty-note">Belum ada skor yang tersimpan. Ajak siswa bermain.</li>';
     } else {
       data.results.forEach((r, index) => {
         const li = document.createElement("li");
@@ -846,7 +789,7 @@ async function renderDashboard() {
           hour: "2-digit", minute: "2-digit", second: "2-digit"
         }) + " WIB";
         li.innerHTML =
-          '<span class="ql-num">🏅</span>' +
+          '<span class="ql-num">' + (index + 1) + '</span>' +
           "<div><strong>" + (r.student_name || "Siswa") + " — " + r.score + "/" + r.total + " benar</strong>" +
           '<p class="ql-text">' + (r.material_title || "Semua materi") + " • " + waktu + "</p></div>";
         resultsList.appendChild(li);
@@ -915,7 +858,7 @@ function renderMateriAdmin() {
 
   if (!materiList.length) {
     materiAdminList.innerHTML =
-      '<li class="admin-empty">Belum ada materi. Buat materi pertama lewat form di samping 👉</li>';
+      '<li class="admin-empty">Belum ada materi. Buat materi pertama lewat form di samping.</li>';
     return;
   }
 
@@ -926,7 +869,9 @@ function renderMateriAdmin() {
       '<span class="admin-thumb">' +
         (material.image_url
           ? '<img src="' + material.image_url + '" alt="">'
-          : material.emoji || "📘") +
+          : '<span class="thumb-letter">' +
+            String(material.title || "M").trim().charAt(0).toUpperCase() +
+            "</span>") +
       "</span>" +
       '<div class="admin-info">' +
         "<strong>" + material.title + "</strong>" +
@@ -938,10 +883,10 @@ function renderMateriAdmin() {
         "</small>" +
       "</div>" +
       '<div class="admin-actions">' +
-        '<button class="icon-mini edit" type="button" title="Ubah materi" data-action="edit" data-id="' + material.id + '">✏️</button>' +
+        '<button class="icon-mini edit" type="button" title="Ubah materi" data-action="edit" data-id="' + material.id + '">Ubah</button>' +
         '<button class="icon-mini" type="button" title="Publish / draf" data-action="toggle" data-id="' + material.id + '">' +
-          (material.is_published ? "🙈" : "✅") + "</button>" +
-        '<button class="icon-mini danger" type="button" title="Hapus materi" data-action="delete" data-id="' + material.id + '">🗑️</button>' +
+          (material.is_published ? "Draf" : "Publish") + "</button>" +
+        '<button class="icon-mini danger" type="button" title="Hapus materi" data-action="delete" data-id="' + material.id + '">Hapus</button>' +
       "</div>";
 
     materiAdminList.appendChild(li);
@@ -951,7 +896,7 @@ function renderMateriAdmin() {
 /** Isi form materi dari data yang dipilih (mode ubah). */
 function editMateri(material) {
   editingMateriId = material.id;
-  materiFormTitle.textContent = "✏️ Ubah Materi: " + material.title;
+  materiFormTitle.textContent = "Ubah materi: " + material.title;
   mTitle.value = material.title;
   mSummary.value = material.summary || "";
   mSubject.value = material.subject || "";
@@ -969,7 +914,7 @@ function editMateri(material) {
 /** Kembali ke mode tambah materi. */
 function resetMateriForm() {
   editingMateriId = null;
-  materiFormTitle.textContent = "➕ Tambah Materi Baru";
+  materiFormTitle.textContent = "Tambah materi baru";
   materiForm.reset();
   mEmoji.value = "📘";
   mPublish.checked = true;
@@ -985,7 +930,7 @@ function renderSoalAdmin(questions) {
 
   if (!questions.length) {
     soalAdminList.innerHTML =
-      '<li class="admin-empty">Belum ada soal. Buat soal pertama lewat form di samping 👉</li>';
+      '<li class="admin-empty">Belum ada soal. Buat soal pertama lewat form di samping.</li>';
     return;
   }
 
@@ -999,13 +944,13 @@ function renderSoalAdmin(questions) {
         "<small>" +
           '<span class="tag">' + (question.subject || "Umum") + "</span>" +
           (question.material_title
-            ? "📚 " + question.material_title
+            ? "Materi: " + question.material_title
             : "Tanpa materi") +
         "</small>" +
       "</div>" +
       '<div class="admin-actions">' +
-        '<button class="icon-mini edit" type="button" title="Ubah soal" data-action="edit-q" data-id="' + question.id + '">✏️</button>' +
-        '<button class="icon-mini danger" type="button" title="Hapus soal" data-action="delete-q" data-id="' + question.id + '">🗑️</button>' +
+        '<button class="icon-mini edit" type="button" title="Ubah soal" data-action="edit-q" data-id="' + question.id + '">Ubah</button>' +
+        '<button class="icon-mini danger" type="button" title="Hapus soal" data-action="delete-q" data-id="' + question.id + '">Hapus</button>' +
       "</div>";
 
     soalAdminList.appendChild(li);
@@ -1015,7 +960,7 @@ function renderSoalAdmin(questions) {
 /** Isi form soal dari data yang dipilih (mode ubah). */
 function editSoal(question) {
   editingSoalId = question.id;
-  soalFormTitle.textContent = "✏️ Ubah Soal";
+  soalFormTitle.textContent = "Ubah soal";
   qQuestion.value = question.question;
   qOptions.value = (question.options || []).join("\n");
   qAnswer.value = (question.answer ?? 0) + 1; // UI memakai nomor mulai dari 1
@@ -1034,7 +979,7 @@ function editSoal(question) {
 /** Kembali ke mode tambah soal. */
 function resetSoalForm() {
   editingSoalId = null;
-  soalFormTitle.textContent = "➕ Tambah Soal Baru";
+  soalFormTitle.textContent = "Tambah soal baru";
   soalForm.reset();
   adEmoji.value = "❓";
   qAnswer.value = "1";
@@ -1051,7 +996,7 @@ function renderSetAdmin() {
 
   if (!setList.length) {
     setAdminList.innerHTML =
-      '<li class="admin-empty">Belum ada set soal. Buat set soal pertama lewat form di samping 👉</li>';
+      '<li class="admin-empty">Belum ada set soal. Buat set soal pertama lewat form di samping.</li>';
     return;
   }
 
@@ -1059,23 +1004,22 @@ function renderSetAdmin() {
     var li = document.createElement("li");
     li.style.animationDelay = index * 0.05 + "s";
     li.innerHTML =
-      '<span class="admin-thumb">📋</span>' +
+      '<span class="admin-thumb">≡</span>' +
       '<div class="admin-info">' +
         "<strong>" + set.title + "</strong>" +
         "<small>" +
           '<span class="tag' + (set.is_published ? "" : " warn") + '">' +
             (set.is_published ? "Publish" : "Draf") +
           "</span>" +
-          "📚 " + (set.material_title || "?") + " · " + set.question_count + " soal" +
-          (set.time_limit > 0 ? " · ⏱️ " + set.time_limit + " mnt" : "") +
-          " · 🔑 Kode: <strong>" + (set.access_code || "-") + "</strong>" +
+          "Materi: " + (set.material_title || "?") + " · " + set.question_count + " soal" +
+          (set.time_limit > 0 ? " · " + set.time_limit + " menit" : "") +
         "</small>" +
       "</div>" +
       '<div class="admin-actions">' +
-        '<button class="icon-mini edit" type="button" title="Ubah set" data-action="edit-set" data-id="' + set.id + '">✏️</button>' +
+        '<button class="icon-mini edit" type="button" title="Ubah set" data-action="edit-set" data-id="' + set.id + '">Ubah</button>' +
         '<button class="icon-mini" type="button" title="Publish / draf" data-action="toggle-set" data-id="' + set.id + '">' +
-          (set.is_published ? "🙈" : "✅") + "</button>" +
-        '<button class="icon-mini danger" type="button" title="Hapus set" data-action="delete-set" data-id="' + set.id + '">🗑️</button>' +
+          (set.is_published ? "Draf" : "Publish") + "</button>" +
+        '<button class="icon-mini danger" type="button" title="Hapus set" data-action="delete-set" data-id="' + set.id + '">Hapus</button>' +
       "</div>";
 
     setAdminList.appendChild(li);
@@ -1084,7 +1028,7 @@ function renderSetAdmin() {
 
 function editSet(set) {
   editingSetId = set.id;
-  setFormTitle.textContent = "✏️ Ubah Set Soal: " + set.title;
+  setFormTitle.textContent = "Ubah set soal: " + set.title;
   sSetMaterial.value = set.material_id || "";
   sSetTitle.value = set.title;
   sSetDesc.value = set.description || "";
@@ -1099,7 +1043,7 @@ function editSet(set) {
 
 function resetSetForm() {
   editingSetId = null;
-  setFormTitle.textContent = "➕ Tambah Set Soal Baru";
+  setFormTitle.textContent = "Tambah set soal baru";
   setForm.reset();
   sSetTime.value = "";
   sSetPublish.checked = true;
@@ -1175,13 +1119,13 @@ function bindAdminEvents() {
           method: "PUT",
           body: JSON.stringify(payload)
         });
-        showToast("✅ Materi berhasil diperbarui.");
+        showToast("Materi berhasil diperbarui.");
       } else {
         await api("/api/materials", {
           method: "POST",
           body: JSON.stringify(payload)
         });
-        showToast("✅ Materi baru berhasil ditambahkan.");
+        showToast("Materi baru berhasil ditambahkan.");
       }
 
       resetMateriForm();
@@ -1217,13 +1161,13 @@ function bindAdminEvents() {
             method: "PUT",
             body: JSON.stringify(payload)
           });
-          showToast("✅ Set soal berhasil diperbarui.");
+          showToast("Set soal berhasil diperbarui.");
         } else {
           await api("/api/sets", {
             method: "POST",
             body: JSON.stringify(payload)
           });
-          showToast("✅ Set soal baru berhasil ditambahkan.");
+          showToast("Set soal baru berhasil ditambahkan.");
         }
 
         resetSetForm();
@@ -1257,13 +1201,13 @@ function bindAdminEvents() {
             body: JSON.stringify({ is_published: !set.is_published })
           });
           showToast(set.is_published
-            ? "📄 Set soal dipindahkan ke draf."
-            : "✅ Set soal dipublikasikan untuk siswa.");
+            ? "Set soal dipindahkan ke draf."
+            : "Set soal dipublikasikan untuk siswa.");
           await loadAdminData();
         } else if (button.dataset.action === "delete-set") {
           if (!confirm('Hapus set soal "' + set.title + '"? Soal di dalamnya tidak akan terhapus, hanya kehilangan referensi set.')) return;
           await api("/api/sets/" + id, { method: "DELETE" });
-          showToast("🗑️ Set soal dihapus.");
+          showToast("Set soal dihapus.");
           if (editingSetId === id) resetSetForm();
           await loadAdminData();
         }
@@ -1291,13 +1235,13 @@ function bindAdminEvents() {
           body: JSON.stringify({ is_published: !material.is_published })
         });
         showToast(material.is_published
-          ? "📄 Materi dipindahkan ke draf."
-          : "✅ Materi dipublikasikan untuk siswa.");
+          ? "Materi dipindahkan ke draf."
+          : "Materi dipublikasikan untuk siswa.");
         await loadAdminData();
       } else if (button.dataset.action === "delete") {
         if (!confirm('Hapus materi "' + material.title + '" beserta datanya?')) return;
         await api("/api/materials/" + id, { method: "DELETE" });
-        showToast("🗑️ Materi dihapus.");
+        showToast("Materi dihapus.");
         if (editingMateriId === id) resetMateriForm();
         await loadAdminData();
         await renderDashboard();
@@ -1347,13 +1291,13 @@ function bindAdminEvents() {
           method: "PUT",
           body: JSON.stringify(payload)
         });
-        showToast("✅ Soal berhasil diperbarui.");
+        showToast("Soal berhasil diperbarui.");
       } else {
         await api("/api/questions", {
           method: "POST",
           body: JSON.stringify(payload)
         });
-        showToast("✅ Soal baru berhasil ditambahkan.");
+        showToast("Soal baru berhasil ditambahkan.");
       }
 
       resetSoalForm();
@@ -1381,7 +1325,7 @@ function bindAdminEvents() {
       } else if (action === "delete-q") {
         if (!confirm("Hapus soal ini?")) return;
         await api("/api/questions/" + id, { method: "DELETE" });
-        showToast("🗑️ Soal dihapus.");
+        showToast("Soal dihapus.");
         if (editingSoalId === id) resetSoalForm();
         await loadAdminData();
         await renderDashboard();
@@ -1399,7 +1343,7 @@ if (togglePass) {
   togglePass.addEventListener("click", () => {
     const isPassword = passwordInput.type === "password";
     passwordInput.type = isPassword ? "text" : "password";
-    togglePass.textContent = isPassword ? "🙈" : "👁️";
+    togglePass.textContent = isPassword ? "Sembunyi" : "Lihat";
   });
 }
 
@@ -1409,7 +1353,7 @@ if (regTogglePass) {
     const isPassword = regPasswordInput.type === "password";
     regPasswordInput.type = isPassword ? "text" : "password";
     regConfirmPasswordInput.type = isPassword ? "text" : "password";
-    regTogglePass.textContent = isPassword ? "🙈" : "👁️";
+    regTogglePass.textContent = isPassword ? "Sembunyi" : "Lihat";
   });
 }
 
@@ -1424,8 +1368,6 @@ function init() {
   const btnStart = $("#btnStart");
   if (btnStart) btnStart.addEventListener("click", startQuiz);
 
-  const navBtnJoin = $("#navBtnJoin");
-  if (navBtnJoin) navBtnJoin.addEventListener("click", showSetModal);
   
   const btnReplay = $("#btnReplay");
   if (btnReplay) btnReplay.addEventListener("click", startQuiz);

@@ -33,7 +33,17 @@ async function fetchSessionQuestions(pool, { setId, materialId }) {
     );
     return rows;
   }
-  const { rows } = await pool.query("SELECT id FROM questions ORDER BY position, id");
+  /* Tanpa filter: ambil soal dari set/materi yang sudah dipublish saja. */
+  const { rows } = await pool.query(
+    `SELECT q.id FROM questions q
+      WHERE (q.quiz_set_id IS NOT NULL AND EXISTS (
+        SELECT 1 FROM quiz_sets qs WHERE qs.id = q.quiz_set_id AND qs.is_published = TRUE
+      ))
+      OR (q.quiz_set_id IS NULL AND q.material_id IS NOT NULL AND EXISTS (
+        SELECT 1 FROM materials m WHERE m.id = q.material_id AND m.is_published = TRUE
+      ))
+      ORDER BY q.position, q.id`
+  );
   return rows;
 }
 

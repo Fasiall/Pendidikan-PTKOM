@@ -47,7 +47,15 @@ async function assertMaterialExists(pool, materialId) {
 const listPublic = asyncHandler(async (req, res) => {
   const pool = getPool();
   const values = [];
-  let where = "WHERE TRUE";
+  /* Hanya soal dari set/materi yang sudah dipublish yang boleh tampil ke siswa. */
+  let where = `WHERE (
+    (q.quiz_set_id IS NOT NULL AND EXISTS (
+      SELECT 1 FROM quiz_sets qs WHERE qs.id = q.quiz_set_id AND qs.is_published = TRUE
+    ))
+    OR (q.quiz_set_id IS NULL AND q.material_id IS NOT NULL AND EXISTS (
+      SELECT 1 FROM materials m WHERE m.id = q.material_id AND m.is_published = TRUE
+    ))
+  )`;
 
   if (req.query.setId !== undefined) {
     values.push(toInt(req.query.setId, "setId", { min: 1 }));

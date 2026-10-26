@@ -4,20 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Kuis Petualangan Ceria - Website kuis interaktif yang seru untuk seluruh siswa">
-  <meta name="theme-color" content="#6C63FF">
-  <title>🌟 Kuis Petualangan Ceria | Kuis Interaktif Siswa</title>
+  <meta name="theme-color" content="#6a4cff">
+  <title>Kuis Petualangan Ceria | Kuis Interaktif Siswa</title>
 
   <!-- Ikon tab browser (emoji burung hantu) -->
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%A6%89%3C/text%3E%3C/svg%3E">
 
-  <!-- Font Poppins + Material Symbols -->
+  <!-- Tipografi -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&amp;family=Nunito:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
 
   <!-- File styling utama -->
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="theme.css?v=3">
 </head>
 <body>
 
@@ -39,24 +39,8 @@
 
   <!-- Notifikasi bila JavaScript tidak aktif -->
   <noscript>
-    <div class="noscript-note">⚠️ Halaman ini membutuhkan JavaScript agar kuis dapat berjalan.</div>
+    <div class="noscript-note">Halaman ini membutuhkan JavaScript agar kuis dapat berjalan.</div>
   </noscript>
-
-  <!-- =====================================================
-       MODAL MASUKKAN KODE KUIS
-  ====================================================== -->
-  <div class="modal-overlay" id="modalJoinQuiz">
-    <div class="modal-card" style="max-width: 400px;">
-      <button class="modal-close" id="btnCloseModalJoin" aria-label="Tutup">&times;</button>
-      <h3>Masukkan Kode Kuis</h3>
-      <p style="text-align:center; color:var(--muted); margin-bottom: 20px;">Minta kode 6 digit dari gurumu.</p>
-      <div class="input-wrap" style="margin-bottom: 20px;">
-        <input type="text" id="joinCodeInput" placeholder="Contoh: A1B2C3" maxlength="6" style="text-align:center; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 4px;">
-      </div>
-      <button class="btn btn-start" id="btnSubmitJoin" style="width: 100%;">Mulai Kuis</button>
-      <p class="form-error" id="joinError" style="text-align:center; margin-top:10px;"></p>
-    </div>
-  </div>
 
   <!-- =========================================================
        HALAMAN 1: HALAMAN UTAMA (SISWA)
@@ -66,17 +50,16 @@
     <!-- Header Navigasi Atas yang Modern -->
     <header class="home-nav">
       <div class="nav-brand">
-        <span class="nav-logo">🦉</span>
+        <span class="nav-logo" aria-hidden="true">KC</span>
         <span class="nav-title">Kuis Ceria</span>
       </div>
       <nav class="nav-menu">
-        <a href="#page-home" class="nav-link active" data-page="page-home">🏠 Home</a>
-        <a href="materi.html" class="nav-link">📚 Materi</a>
-        <button type="button" class="nav-link nav-btn-join" id="navBtnJoin">🎯 Kode Kuis</button>
-        <a href="#homeFeatures" class="nav-link">✨ Fitur</a>
+        <a href="#page-home" class="nav-link active" data-page="page-home">Beranda</a>
+        <a href="materi.html" class="nav-link">Materi</a>
+        <a href="#homeFeatures" class="nav-link">Fitur</a>
       </nav>
       <!-- Tombol Area Guru -->
-      <button class="area-guru" type="button" data-page="page-login">🔐 Area Guru</button>
+      <button class="area-guru" type="button" data-page="page-login">Area guru</button>
     </header>
 
     <!-- Animated background blobs & scenery -->
@@ -117,7 +100,7 @@
 
       <!-- Pill Badge di Atas -->
       <div class="badge-wrapper">
-        <span class="pill-badge">🎓 Belajar Seru untuk Semua Siswa</span>
+        <span class="pill-badge">Belajar seru untuk semua siswa</span>
       </div>
 
       <!-- Judul dengan animasi meloncat (huruf dipisah oleh JS) -->
@@ -131,7 +114,7 @@
 
       <!-- Maskot burung hantu pintar & keren (SVG Modern) -->
       <div class="mascot-wrap">
-        <div class="speech">Halo! Ayo main kuis 👋</div>
+        <div class="speech">Halo! Ayo main kuis.</div>
 
         <svg class="mascot" viewBox="0 0 240 230" xmlns="http://www.w3.org/2000/svg"
              role="img" aria-label="Maskot burung hantu pintar dan keren">
@@ -286,7 +269,7 @@
 
       <!-- Card Input Nama Siswa (Centered) -->
       <div class="student-card-center">
-        <label for="studentName" class="student-label">✏️ Nama Kamu</label>
+        <label for="studentName" class="student-label">Nama kamu</label>
         <div class="input-with-icon">
           <input type="text" id="studentName" maxlength="60" placeholder="Tulis namamu di sini...">
         </div>
@@ -295,10 +278,10 @@
       <!-- Tombol Utama Memulai Kuis & Belajar (Centered) -->
       <div class="hero-actions-center">
         <button class="btn btn-start" id="btnStart" type="button">
-          <span class="btn-icon">🚀</span> Mulai Bermain
+          Mulai bermain
         </button>
         <a class="btn btn-materi" href="materi.html">
-          <span class="btn-icon">📚</span> Baca Materi Belajar
+          Baca materi belajar
         </a>
       </div>
 
@@ -323,27 +306,21 @@
       <!-- 3 kartu fitur -->
       <div class="home-cards" id="homeFeatures">
         <div class="mini-card">
-          <div class="mini-card-glow"></div>
-          <span class="mini-emoji">🧠</span>
           <h3>Soal Seru</h3>
           <p>Matematika, IPA, Bahasa &amp; Pengetahuan Umum</p>
         </div>
         <div class="mini-card">
-          <div class="mini-card-glow"></div>
-          <span class="mini-emoji">⭐</span>
           <h3>Skor Bintang</h3>
           <p>Kumpulkan bintang sebagai tanda keberhasilanmu</p>
         </div>
         <div class="mini-card">
-          <div class="mini-card-glow"></div>
-          <span class="mini-emoji">🎨</span>
           <h3>Animasi Ceria</h3>
           <p>Konfeti, efek pop-up, dan transisi yang mulus</p>
         </div>
       </div>
 
       <footer class="home-footer">
-        <span>Dibuat dengan ❤️ untuk seluruh siswa Indonesia</span>
+        <span>Dibuat untuk seluruh siswa Indonesia</span>
       </footer>
     </div>
   </section>
@@ -356,15 +333,15 @@
 
       <!-- Bar atas: tombol home, progress bar, dan skor -->
       <div class="quiz-top">
-        <button class="icon-btn" type="button" data-page="page-home" title="Kembali ke halaman awal">🏠</button>
+        <button class="icon-btn" type="button" data-page="page-home" title="Kembali ke halaman awal">←</button>
 
         <div class="progress-track" role="progressbar" aria-label="Progres kuis">
           <div class="progress-fill" id="progressFill"></div>
         </div>
 
         <span class="progress-text" id="progressText">1/8</span>
-        <span class="score-chip" id="scoreChip">⭐ 0</span>
-        <span class="quiz-timer hidden" id="quizTimer">⏱️ 00:00</span>
+        <span class="score-chip" id="scoreChip">0 poin</span>
+        <span class="quiz-timer hidden" id="quizTimer">00:00</span>
       </div>
 
       <!-- Kartu pertanyaan -->
@@ -372,7 +349,7 @@
         <span class="subject-badge" id="qSubject">Matematika</span>
 
         <!-- Tempat gambar / ilustrasi soal (emoji besar) -->
-        <div class="q-image" id="qImage" aria-hidden="true">🧮</div>
+        <div class="q-image" id="qImage" aria-hidden="true"></div>
 
         <h2 class="q-text" id="qText">Berapa hasil dari 7 + 8?</h2>
 
@@ -384,7 +361,7 @@
       </div>
 
       <!-- Tombol lanjut (muncul setelah menjawab) -->
-      <button class="btn btn-next hidden" id="btnNext" type="button">Lanjut ➡️</button>
+      <button class="btn btn-next hidden" id="btnNext" type="button">Lanjut</button>
     </div>
   </section>
 
@@ -393,7 +370,7 @@
   ========================================================== -->
   <section class="page" id="page-result">
     <div class="result-card">
-      <div class="result-emoji" id="resultEmoji">🏆</div>
+      <div class="result-emoji" id="resultEmoji"></div>
       <h2 class="result-title" id="resultTitle">Luar Biasa!</h2>
 
       <!-- Rating bintang (dibuat oleh JavaScript, muncul satu per satu) -->
@@ -406,11 +383,11 @@
       </div>
 
       <!-- Pesan motivasi -->
-      <p class="motivation" id="motivation">Hebat! Terus Belajar ya! ⭐</p>
+      <p class="motivation" id="motivation">Hebat! Terus belajar ya.</p>
 
       <div class="result-btns">
-        <button class="btn btn-start" id="btnReplay" type="button">🔁 Main Lagi</button>
-        <button class="btn btn-ghost" type="button" data-page="page-home">🏠 Halaman Awal</button>
+        <button class="btn btn-start" id="btnReplay" type="button">Main lagi</button>
+        <button class="btn btn-ghost" type="button" data-page="page-home">Halaman awal</button>
       </div>
     </div>
   </section>
@@ -423,12 +400,12 @@
     <button class="icon-btn back-home" type="button" data-page="page-home">← Kembali</button>
 
     <div class="login-card">
-      <div class="login-avatar" id="authAvatar">🏫</div>
+      <div class="login-avatar" id="authAvatar"></div>
 
       <!-- Tab Switcher: Masuk atau Daftar Akun Baru -->
       <div class="auth-tabs" role="tablist">
-        <button type="button" class="auth-tab-btn active" id="tabBtnLogin" role="tab" aria-selected="true">🔑 Masuk</button>
-        <button type="button" class="auth-tab-btn" id="tabBtnRegister" role="tab" aria-selected="false">📝 Daftar Akun Baru</button>
+        <button type="button" class="auth-tab-btn active" id="tabBtnLogin" role="tab" aria-selected="true">Masuk</button>
+        <button type="button" class="auth-tab-btn" id="tabBtnRegister" role="tab" aria-selected="false">Daftar akun</button>
       </div>
 
       <!-- FORM LOGIN -->
@@ -440,7 +417,6 @@
         <div class="field">
           <label for="username">Username atau email</label>
           <div class="input-wrap">
-            <span class="input-icon">👤</span>
             <input type="text" id="username" name="username"
                    placeholder="Masukkan username atau email" autocomplete="username">
           </div>
@@ -450,22 +426,21 @@
         <div class="field">
           <label for="password">Password</label>
           <div class="input-wrap">
-            <span class="input-icon">🔒</span>
             <input type="password" id="password" name="password"
                    placeholder="Masukkan password" autocomplete="current-password">
             <button type="button" class="toggle-pass" id="togglePass"
-                    aria-label="Tampilkan password">👁️</button>
+                    aria-label="Tampilkan password">Lihat</button>
           </div>
         </div>
 
         <!-- Pesan error validasi -->
         <p class="form-error" id="loginError" role="alert"></p>
 
-        <button class="btn btn-login" type="submit">Masuk ➜</button>
+        <button class="btn btn-login" type="submit">Masuk</button>
 
         <p class="register-link">Belum punya akun? <button type="button" class="link-btn" id="linkToRegister">Daftar akun baru gratis</button></p>
 
-        <p class="demo-hint">💡 Demo: username <b>guru</b> • password <b>guru123</b> (atau buat akun barumu sendiri di tab atas)</p>
+        <p class="demo-hint">Demo: username <b>guru</b> • password <b>guru123</b> (atau buat akun barumu sendiri di tab atas)</p>
       </form>
 
       <!-- FORM REGISTRASI (DAFTAR AKUN BARU) -->
@@ -477,7 +452,6 @@
         <div class="field">
           <label for="regUsername">Username</label>
           <div class="input-wrap">
-            <span class="input-icon">👤</span>
             <input type="text" id="regUsername" name="username"
                    placeholder="Pilih username unik" autocomplete="username">
           </div>
@@ -487,7 +461,6 @@
         <div class="field">
           <label for="regEmail">Email</label>
           <div class="input-wrap">
-            <span class="input-icon">📧</span>
             <input type="email" id="regEmail" name="email"
                    placeholder="nama@email.com" autocomplete="email">
           </div>
@@ -497,11 +470,10 @@
         <div class="field">
           <label for="regPassword">Password</label>
           <div class="input-wrap">
-            <span class="input-icon">🔒</span>
             <input type="password" id="regPassword" name="password"
                    placeholder="Minimal 6 karakter" autocomplete="new-password">
             <button type="button" class="toggle-pass" id="toggleRegPass"
-                    aria-label="Tampilkan password">👁️</button>
+                    aria-label="Tampilkan password">Lihat</button>
           </div>
         </div>
 
@@ -509,7 +481,6 @@
         <div class="field">
           <label for="regConfirmPassword">Konfirmasi Password</label>
           <div class="input-wrap">
-            <span class="input-icon">🔁</span>
             <input type="password" id="regConfirmPassword" name="confirmPassword"
                    placeholder="Ulangi password" autocomplete="new-password">
           </div>
@@ -518,7 +489,7 @@
         <!-- Pesan error validasi -->
         <p class="form-error" id="registerError" role="alert"></p>
 
-        <button class="btn btn-login" type="submit">Daftar & Masuk Sekarang 🚀</button>
+        <button class="btn btn-login" type="submit">Daftar & masuk</button>
 
         <p class="register-link">Sudah punya akun? <button type="button" class="link-btn" id="linkToLogin">Masuk di sini</button></p>
       </form>
@@ -533,31 +504,27 @@
 
       <header class="dash-head">
         <div>
-          <h2>👋 Halo, <span id="dashTeacherName">Guru</span>!</h2>
+          <h2>Halo, <span id="dashTeacherName">Guru</span>.</h2>
           <p>Berikut ringkasan kuis yang sedang aktif.</p>
         </div>
-        <button class="btn btn-ghost btn-small" id="btnLogout" type="button">Keluar 🚪</button>
+        <button class="btn btn-ghost btn-small" id="btnLogout" type="button">Keluar</button>
       </header>
 
       <!-- Kartu statistik -->
       <div class="stat-grid">
         <div class="stat-card">
-          <span>📚</span>
           <strong id="statMaterials">0</strong>
           <small>Materi Belajar</small>
         </div>
         <div class="stat-card">
-          <span>📝</span>
           <strong id="statTotal">0</strong>
           <small>Jumlah Soal</small>
         </div>
         <div class="stat-card">
-          <span>🏷️</span>
           <strong id="statTopics">0</strong>
           <small>Topik Berbeda</small>
         </div>
         <div class="stat-card">
-          <span>🏆</span>
           <strong id="statLastScore">-</strong>
           <small>Skor Terakhir Siswa</small>
         </div>
@@ -565,10 +532,10 @@
 
       <!-- Tab navigasi dashboard -->
       <nav class="dash-tabs" role="tablist">
-        <button class="dash-tab active" type="button" data-tab="tabMateri">📚 Materi</button>
-        <button class="dash-tab" type="button" data-tab="tabSetSoal">📋 Set Soal</button>
-        <button class="dash-tab" type="button" data-tab="tabSoal">📝 Soal</button>
-        <button class="dash-tab" type="button" data-tab="tabRiwayat">📊 Riwayat</button>
+        <button class="dash-tab active" type="button" data-tab="tabMateri">Materi</button>
+        <button class="dash-tab" type="button" data-tab="tabSetSoal">Set soal</button>
+        <button class="dash-tab" type="button" data-tab="tabSoal">Soal</button>
+        <button class="dash-tab" type="button" data-tab="tabRiwayat">Riwayat</button>
       </nav>
 
       <!-- ================= TAB 1: KELOLA MATERI ================= -->
@@ -577,7 +544,7 @@
 
           <!-- Form tambah / ubah materi -->
           <form class="admin-card" id="materiForm" novalidate>
-            <h4 id="materiFormTitle">➕ Tambah Materi Baru</h4>
+            <h4 id="materiFormTitle">Tambah materi baru</h4>
 
             <div class="field">
               <label for="mTitle">Judul Materi</label>
@@ -617,7 +584,7 @@
             </label>
 
             <div class="form-actions">
-              <button class="btn btn-small" id="btnSaveMateri" type="submit">💾 Simpan Materi</button>
+              <button class="btn btn-small" id="btnSaveMateri" type="submit">Simpan materi</button>
               <button class="btn btn-ghost btn-small" id="btnCancelMateri" type="button" hidden>Batal Edit</button>
             </div>
             <p class="form-error" id="materiError" role="alert"></p>
@@ -625,7 +592,7 @@
 
           <!-- Daftar materi + aksi ubah/hapus -->
           <div class="admin-card">
-            <h4>📖 Daftar Materi <span class="count-chip" id="materiCount">0</span></h4>
+            <h4>Daftar materi <span class="count-chip" id="materiCount">0</span></h4>
             <ul class="admin-list" id="materiAdminList"></ul>
           </div>
 
@@ -638,7 +605,7 @@
 
           <!-- Form tambah / ubah set soal -->
           <form class="admin-card" id="setForm" novalidate>
-            <h4 id="setFormTitle">➕ Tambah Set Soal Baru</h4>
+            <h4 id="setFormTitle">Tambah set soal baru</h4>
 
             <div class="field">
               <label for="sSetMaterial">Materi Induk</label>
@@ -666,7 +633,7 @@
             </label>
 
             <div class="form-actions">
-              <button class="btn btn-small" id="btnSaveSet" type="submit">💾 Simpan Set</button>
+              <button class="btn btn-small" id="btnSaveSet" type="submit">Simpan set</button>
               <button class="btn btn-ghost btn-small" id="btnCancelSet" type="button" hidden>Batal Edit</button>
             </div>
             <p class="form-error" id="setError" role="alert"></p>
@@ -674,7 +641,7 @@
 
           <!-- Daftar set soal + aksi ubah/hapus -->
           <div class="admin-card">
-            <h4>📋 Daftar Set Soal <span class="count-chip" id="setCount">0</span></h4>
+            <h4>Daftar set soal <span class="count-chip" id="setCount">0</span></h4>
             <ul class="admin-list" id="setAdminList"></ul>
           </div>
 
@@ -687,7 +654,7 @@
 
           <!-- Form tambah / ubah soal -->
           <form class="admin-card" id="soalForm" novalidate>
-            <h4 id="soalFormTitle">➕ Tambah Soal Baru</h4>
+            <h4 id="soalFormTitle">Tambah soal baru</h4>
 
             <div class="field">
               <label for="qQuestion">Pertanyaan</label>
@@ -732,7 +699,7 @@
             </div>
 
             <div class="form-actions">
-              <button class="btn btn-small" id="btnSaveSoal" type="submit">💾 Simpan Soal</button>
+              <button class="btn btn-small" id="btnSaveSoal" type="submit">Simpan soal</button>
               <button class="btn btn-ghost btn-small" id="btnCancelSoal" type="button" hidden>Batal Edit</button>
             </div>
             <p class="form-error" id="soalError" role="alert"></p>
@@ -740,7 +707,7 @@
 
           <!-- Daftar soal + aksi ubah/hapus -->
           <div class="admin-card">
-            <h4>📝 Daftar Soal <span class="count-chip" id="soalCount">0</span></h4>
+            <h4>Daftar soal <span class="count-chip" id="soalCount">0</span></h4>
             <ul class="admin-list" id="soalAdminList"></ul>
           </div>
 
@@ -749,18 +716,18 @@
 
       <!-- ================= TAB 3: RIWAYAT & STATISTIK ================= -->
       <section class="tab-panel" id="tabRiwayat">
-        <h3 class="dash-title">📖 Daftar Soal</h3>
+        <h3 class="dash-title">Daftar soal</h3>
 
         <!-- Daftar soal (diisi oleh JavaScript) -->
         <ol class="question-list" id="questionList"></ol>
 
-        <h3 class="dash-title">📊 Riwayat Skor Siswa</h3>
+        <h3 class="dash-title">Riwayat skor siswa</h3>
 
         <!-- Riwayat skor dari database (diisi oleh JavaScript) -->
         <ul class="results-list" id="resultsList"></ul>
 
         <div class="dash-actions">
-          <button class="btn btn-start" id="btnGuruMulai" type="button">🚀 Mulai Kuis Siswa</button>
+          <button class="btn btn-start" id="btnGuruMulai" type="button">Mulai kuis siswa</button>
         </div>
       </section>
 
@@ -778,6 +745,6 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <!-- File logika utama kuis -->
-  <script src="script.js?v=5"></script>
+  <script src="script.js?v=8"></script>
 </body>
 </html>

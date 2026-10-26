@@ -92,8 +92,8 @@ async function loadMaterials() {
           "<h2>" + material.title + "</h2>" +
           "<p>" + (material.summary || "") + "</p>" +
           '<div class="materi-meta">' +
-            "<span>📚 " + material.question_count + " soal</span>" +
-            "<span class=\"materi-go\">Baca ➜</span>" +
+            "<span>" + material.question_count + " soal</span>" +
+            "<span class=\"materi-go\">Baca</span>" +
           "</div>" +
         "</div>";
 
@@ -107,7 +107,7 @@ async function loadMaterials() {
     showToast(
       err.status === 404
         ? "Endpoint materi tidak ditemukan."
-        : "⚠️ Server belum terhubung. Jalankan backend dulu, ya."
+        : "Server belum terhubung. Jalankan backend dulu, ya."
     );
   }
 }
@@ -133,7 +133,7 @@ async function loadMaterialDetail() {
     const material = data.material;
 
     $("#dTitle").textContent = material.title;
-    $("#dSubject").textContent = material.subject || "📖 Materi";
+    $("#dSubject").textContent = material.subject || "Materi";
     $("#dSummary").textContent = material.summary || "";
     $("#dCount").textContent = material.question_count + " soal";
     $("#dBadge").textContent = material.emoji || "📘";
@@ -148,14 +148,14 @@ async function loadMaterialDetail() {
     /* Tombol kuis: muat daftar set soal dari API */
     await loadQuizSets(material.id);
 
-    document.title = "📖 " + material.title + " | Kuis Petualangan Ceria";
+    document.title = material.title + " | Kuis Petualangan Ceria";
     showState("#materiDetail");
   } catch (err) {
     showState("#dEmpty");
     $("#dEmptyText").textContent =
       err.status === 404
         ? "Materi tidak ditemukan atau belum dipublikasikan."
-        : "⚠️ Server belum terhubung. Jalankan backend dulu, ya.";
+        : "Server belum terhubung. Jalankan backend dulu, ya.";
     showToast($("#dEmptyText").textContent);
   }
 }
@@ -187,13 +187,12 @@ async function loadQuizSets(materialId) {
       card.style.animationDelay = index * 0.08 + "s";
 
       card.innerHTML =
-        '<div class="quiz-set-icon">📝</div>' +
-        '<div class="quiz-set-info">' +
+                '<div class="quiz-set-info">' +
           "<strong>" + set.title + "</strong>" +
           (set.description ? "<p>" + set.description + "</p>" : "") +
           '<span class="quiz-set-count">' + set.question_count + " soal</span>" +
         "</div>" +
-        '<span class="quiz-set-go">Mulai ➜</span>';
+        '<span class="quiz-set-go">Mulai</span>';
 
       list.appendChild(card);
     });

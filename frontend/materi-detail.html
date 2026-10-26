@@ -4,21 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Detail Materi Belajar - Kuis Petualangan Ceria">
-  <meta name="theme-color" content="#FFD93D">
-  <title>📖 Materi | Kuis Petualangan Ceria</title>
+  <meta name="theme-color" content="#6a4cff">
+  <title>Materi | Kuis Petualangan Ceria</title>
 
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%93%9A%3C/text%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&amp;family=Nunito:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="theme.css?v=3">
 </head>
 <body>
 
   <header class="materi-top">
     <a class="icon-btn" href="materi.html" title="Kembali ke daftar materi">←</a>
     <div class="materi-top-text">
-      <span class="pill-badge" id="dSubject">📖</span>
+      <span class="pill-badge" id="dSubject">Materi</span>
       <h1 class="materi-title" id="dTitle">Memuat materi...</h1>
     </div>
     <span class="materi-count" id="dCount"></span>
@@ -29,7 +30,7 @@
       <!-- Ilustrasi pendukung -->
       <div class="materi-hero">
         <img id="dImage" alt="" src="">
-        <span class="materi-hero-badge" id="dBadge">📘</span>
+        <span class="materi-hero-badge" id="dBadge"></span>
       </div>
 
       <p class="materi-summary" id="dSummary"></p>
@@ -40,14 +41,14 @@
       <div class="materi-cta">
         <!-- Daftar set soal (diisi oleh materi.js) -->
         <div class="quiz-sets-wrap" id="quizSetsWrap">
-          <h3 class="quiz-sets-title">📝 Pilih Set Soal</h3>
+          <h3 class="quiz-sets-title">Pilih set soal</h3>
           <div class="quiz-sets-list" id="quizSetsList"></div>
           <p class="quiz-sets-empty hidden" id="quizSetsEmpty">Belum ada set soal untuk materi ini.</p>
         </div>
-        <a class="btn btn-ghost" href="materi.html">📖 Semua Materi</a>
+        <a class="btn btn-ghost" href="materi.html">Semua materi</a>
       </div>
 
-      <footer class="home-footer">Dibuat dengan ❤️ untuk seluruh siswa Indonesia</footer>
+      <footer class="home-footer">Dibuat untuk seluruh siswa Indonesia</footer>
     </article>
 
     <div class="materi-loading" id="dLoading">
@@ -56,14 +57,13 @@
     </div>
 
     <div class="materi-empty hidden" id="dEmpty">
-      <span class="materi-empty-emoji">🔍</span>
       <p id="dEmptyText">Materi tidak ditemukan.</p>
-      <a class="btn btn-ghost btn-small" href="materi.html">📖 Kembali ke Daftar Materi</a>
+      <a class="btn btn-ghost btn-small" href="materi.html">Kembali ke daftar materi</a>
     </div>
   </main>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="materi.js"></script>
+  <script src="materi.js?v=4"></script>
 </body>
 </html>
