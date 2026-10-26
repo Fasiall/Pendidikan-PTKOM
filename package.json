@@ -1,10 +1,24 @@
 {
   "name": "pendidikan-ptkom",
   "version": "1.0.0",
-  "description": "Website kuis interaktif anak SD — backend/ (Express + SQLite) dan frontend/ (HTML/CSS/JS)",
+  "description": "Website kuis interaktif anak SD - backend/ (Express + PostgreSQL) dan frontend/ (HTML/CSS/JS)",
   "scripts": {
     "install-app": "npm --prefix backend install",
-    "start": "npm --prefix backend start"
+    "start": "npm --prefix backend start",
+    "db:init": "npm --prefix backend run db:init"
+  },
+  "engines": {
+    "node": "22.x"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "connect-pg-simple": "^10.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.5",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.23.1"
   },
   "repository": {
     "type": "git",

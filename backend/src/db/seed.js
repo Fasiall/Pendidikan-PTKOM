@@ -7,7 +7,6 @@
 
 const bcrypt = require("bcryptjs");
 
-const { getPool } = require("./embedded");
 const { TEACHER, MATERIALS } = require("../../data/seed");
 
 /** Membuat thumbnail SVG sederhana (emoji + warna) sebagai data URI. */
@@ -21,8 +20,10 @@ function svgThumb(emoji, color) {
   return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
 }
 
-async function seed() {
-  const pool = getPool();
+async function seed(poolArg) {
+  /* Pool bisa dikirim pemanggil (skrip db:init) atau diambil dari koneksi
+     yang sudah berjalan saat server menyala. */
+  const pool = poolArg || require("./embedded").getPool();
 
   /* --------------------------- 1. Akun guru ---------------------------- */
   const { rows: teacherRows } = await pool.query(

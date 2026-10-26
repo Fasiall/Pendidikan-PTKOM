@@ -1,0 +1,9 @@
+# Jangan unggah data lokal ke Vercel
+backend/.pgdata
+backend/node_modules
+backend/test
+backend/src/routes/index.js.bak
+.git
+.vercel
+*.log
+.env

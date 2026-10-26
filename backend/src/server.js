@@ -26,7 +26,7 @@ async function main() {
   await migrate(pool);
   await seed();
 
-  const app = createApp();
+  const app = createApp({ pool });
   const server = app.listen(config.port, () => {
     console.log("🚀 API Kuis Petualangan Ceria berjalan di http://localhost:" + config.port);
     console.log("   Contoh: GET  http://localhost:" + config.port + "/api/health");

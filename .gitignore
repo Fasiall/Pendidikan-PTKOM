@@ -1,6 +1,9 @@
 # Dependensi
 node_modules/
 
+# Konfigurasi & output Vercel
+.vercel/
+
 # Database PostgreSQL embedded (dibuat otomatis saat pertama kali server dijalankan)
 backend/.pgdata/
 
