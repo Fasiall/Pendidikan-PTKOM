@@ -70,7 +70,6 @@ const questionList  = $("#questionList");
 const resultsList   = $("#resultsList");
 const statMaterials = $("#statMaterials");
 const statTotal     = $("#statTotal");
-const statTopics    = $("#statTopics");
 const statLastScore = $("#statLastScore");
 
 /* Elemen form admin (kelola materi & soal) */
@@ -759,7 +758,6 @@ async function renderDashboard() {
 
     statMaterials.textContent = data.totalMaterials ?? 0;
     statTotal.textContent = data.totalQuestions;
-    statTopics.textContent = data.topics;
     statLastScore.textContent = data.lastScore || "-";
 
     /* Daftar soal */
