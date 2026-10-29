@@ -17,7 +17,7 @@
 
   <!-- File styling utama -->
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="theme.css?v=4">
+  <link rel="stylesheet" href="theme.css?v=9">
 </head>
 <body>
 
@@ -275,10 +275,20 @@
         </div>
       </div>
 
+      <!-- Kode kuis dari guru (wajib sebelum mulai) -->
+      <div class="student-card-center code-card-center">
+        <label for="quizCode" class="student-label">Kode kuis dari gurumu</label>
+        <div class="input-with-icon code-input-wrap">
+          <input type="text" id="quizCode" maxlength="6" autocomplete="off" spellcheck="false"
+                 placeholder="Contoh: A7K2M9">
+        </div>
+        <p class="code-hint">Minta kode 6 huruf/angka kepada gurumu, ya!</p>
+      </div>
+
       <!-- Tombol Utama Memulai Kuis & Belajar (Centered) -->
       <div class="hero-actions-center">
         <button class="btn btn-start" id="btnStart" type="button">
-          Mulai bermain
+          Mulai kuis
         </button>
         <a class="btn btn-materi" href="materi.html">
           Baca materi belajar
@@ -288,17 +298,17 @@
       <!-- Stats counter row -->
       <div class="home-stats">
         <div class="home-stat-item">
-          <span class="home-stat-num" data-count="100">100+</span>
+          <span class="home-stat-num" id="homeStatQuestions" data-count="0">0</span>
           <span class="home-stat-label">Soal Tersedia</span>
         </div>
         <div class="home-stat-divider"></div>
         <div class="home-stat-item">
-          <span class="home-stat-num" data-count="4">4</span>
+          <span class="home-stat-num" id="homeStatMaterials" data-count="0">0</span>
           <span class="home-stat-label">Mata Pelajaran</span>
         </div>
         <div class="home-stat-divider"></div>
         <div class="home-stat-item">
-          <span class="home-stat-num" data-count="500">500+</span>
+          <span class="home-stat-num" id="homeStatStudents" data-count="0">0</span>
           <span class="home-stat-label">Siswa Aktif</span>
         </div>
       </div>
@@ -521,8 +531,8 @@
           <small>Jumlah Soal</small>
         </div>
         <div class="stat-card">
-          <strong id="statLastScore">-</strong>
-          <small>Skor Terakhir Siswa</small>
+          <strong id="statAvgScore">-</strong>
+          <small>Skor Rata-rata</small>
         </div>
       </div>
 
@@ -579,6 +589,11 @@
               <span>Publikasikan untuk siswa</span>
             </label>
 
+            <label class="check-line">
+              <input type="checkbox" id="mVisibility">
+              <span>Bagikan ke semua guru (publik)</span>
+            </label>
+
             <div class="form-actions">
               <button class="btn btn-small" id="btnSaveMateri" type="submit">Simpan materi</button>
               <button class="btn btn-ghost btn-small" id="btnCancelMateri" type="button" hidden>Batal Edit</button>
@@ -628,6 +643,11 @@
               <span>Publikasikan untuk siswa</span>
             </label>
 
+            <label class="check-line">
+              <input type="checkbox" id="sSetVisibility">
+              <span>Bagikan ke semua guru (publik)</span>
+            </label>
+
             <div class="form-actions">
               <button class="btn btn-small" id="btnSaveSet" type="submit">Simpan set</button>
               <button class="btn btn-ghost btn-small" id="btnCancelSet" type="button" hidden>Batal Edit</button>
@@ -638,6 +658,7 @@
           <!-- Daftar set soal + aksi ubah/hapus -->
           <div class="admin-card">
             <h4>Daftar set soal <span class="count-chip" id="setCount">0</span></h4>
+            <p class="admin-note">Kode kuis dibuat lewat tombol <b>Buat Kode</b> pada tiap set. Bagikan kode itu ke siswa.</p>
             <ul class="admin-list" id="setAdminList"></ul>
           </div>
 
@@ -741,6 +762,6 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <!-- File logika utama kuis -->
-  <script src="script.js?v=9"></script>
+  <script src="script.js?v=13"></script>
 </body>
 </html>

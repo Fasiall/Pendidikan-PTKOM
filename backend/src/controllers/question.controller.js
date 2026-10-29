@@ -1,15 +1,14 @@
 /* ==========================================================================
-   src/controllers/question.controller.js — Manajemen Soal Kuis
+   src/controllers/question.controller.js -- Manajemen Soal Kuis
 
-   Publik (siswa):
-     GET /api/questions               daftar soal TANPA kunci jawaban
-                                      ?materialId=3 memfilter soal satu materi
+   Publik (siswa, hanya saat sesi kuis lewat kode aktif):
+     GET /api/questions               soal TANPA kunci jawaban
 
    Pengajar (JWT wajib):
-     GET    /api/questions/manage     daftar soal lengkap (ada kunci + fact)
-     POST   /api/questions            tambah soal baru (terhubung ke materi)
-     PUT    /api/questions/:id        ubah soal
-     DELETE /api/questions/:id        hapus soal
+     GET    /api/questions/manage     soal milik guru + soal publik
+     POST   /api/questions            tambah soal (pemilik = guru login)
+     PUT    /api/questions/:id        ubah soal (hanya pemilik)
+     DELETE /api/questions/:id        hapus soal (hanya pemilik)
    ========================================================================== */
 
 const { getPool } = require("../db/embedded");
@@ -35,76 +34,98 @@ function validateOptions(options, answer) {
   return { options: cleaned, answer: answerIndex };
 }
 
-/** Pastikan materi rujukan benar-benar ada. */
-async function assertMaterialExists(pool, materialId) {
-  const { rows } = await pool.query("SELECT id FROM materials WHERE id = $1", [materialId]);
-  if (!rows.length) throw ApiError.badRequest("materialId tidak ditemukan.");
+/** Pastikan materi milik guru yang login. */
+async function assertOwnedMaterial(pool, materialId, teacherId) {
+  const { rows } = await pool.query(
+    "SELECT id FROM materials WHERE id = $1 AND author_id = $2",
+    [materialId, teacherId]
+  );
+  if (!rows.length) throw ApiError.badRequest("Materi tidak ditemukan atau bukan milik Anda.");
+}
+
+/** Pastikan set soal milik guru yang login. */
+async function assertOwnedSet(pool, quizSetId, teacherId) {
+  const { rows } = await pool.query(
+    "SELECT id FROM quiz_sets WHERE id = $1 AND teacher_id = $2",
+    [quizSetId, teacherId]
+  );
+  if (!rows.length) throw ApiError.badRequest("Set soal tidak ditemukan atau bukan milik Anda.");
 }
 
 /* ============================== PUBLIK =================================== */
 
-/** Soal untuk siswa — kunci jawaban & fakta TIDAK ikut dikirim. */
+/**
+ * Soal untuk siswa. Hanya boleh diakses setelah siswa masuk lewat kode,
+ * sehingga tidak ada endpoint publik yang membuka seluruh bank soal.
+ */
 const listPublic = asyncHandler(async (req, res) => {
-  const pool = getPool();
-  const values = [];
-  /* Hanya soal dari set/materi yang sudah dipublish yang boleh tampil ke siswa. */
-  let where = `WHERE (
-    (q.quiz_set_id IS NOT NULL AND EXISTS (
-      SELECT 1 FROM quiz_sets qs WHERE qs.id = q.quiz_set_id AND qs.is_published = TRUE
-    ))
-    OR (q.quiz_set_id IS NULL AND q.material_id IS NOT NULL AND EXISTS (
-      SELECT 1 FROM materials m WHERE m.id = q.material_id AND m.is_published = TRUE
-    ))
-  )`;
-
-  if (req.query.setId !== undefined) {
-    values.push(toInt(req.query.setId, "setId", { min: 1 }));
-    where += ` AND q.quiz_set_id = $${values.length}`;
-  } else if (req.query.materialId !== undefined) {
-    values.push(toInt(req.query.materialId, "materialId", { min: 1 }));
-    where += ` AND q.material_id = $${values.length}`;
+  const quiz = req.session.quiz;
+  if (!quiz || !quiz.setId) {
+    throw ApiError.forbidden("Masuk ke kuis lewat kode terlebih dahulu.");
   }
 
+  const pool = getPool();
   const { rows } = await pool.query(
     `SELECT q.id, q.material_id, q.subject, q.image, q.question, q.options, q.position
        FROM questions q
-       ${where}
+      WHERE q.quiz_set_id = $1
       ORDER BY q.position, q.id`,
-    values
-  );
-
-  res.json({
-    total: rows.length,
-    questions: rows.map((row) => ({ ...row, options: row.options }))
-  });
-});
-
-/* ============================= PENGAJAR ================================== */
-
-/** Semua soal beserta kunci jawaban (butuh login). */
-const manage = asyncHandler(async (req, res) => {
-  const pool = getPool();
-  const { rows } = await pool.query(
-    `SELECT q.*, m.title AS material_title
-       FROM questions q
-       LEFT JOIN materials m ON m.id = q.material_id
-      ORDER BY q.material_id NULLS FIRST, q.position, q.id`
+    [quiz.setId]
   );
 
   res.json({ total: rows.length, questions: rows });
 });
 
-/** Tambah soal baru (dapat dihubungkan ke materi lewat material_id). */
+/* ============================= PENGAJAR ================================== */
+
+/** Soal milik guru + soal dari set/materi publik (read-only). */
+const manage = asyncHandler(async (req, res) => {
+  const pool = getPool();
+  const teacherId = req.teacher.id;
+
+  const { rows } = await pool.query(
+    `SELECT q.*, m.title AS material_title, qs.title AS set_title,
+            t.username AS owner_name
+       FROM questions q
+       LEFT JOIN materials m ON m.id = q.material_id
+       LEFT JOIN quiz_sets qs ON qs.id = q.quiz_set_id
+       LEFT JOIN teachers t ON t.id = q.teacher_id
+      WHERE q.teacher_id = $1
+         OR qs.visibility = 'public'
+         OR (q.quiz_set_id IS NULL AND m.visibility = 'public')
+      ORDER BY q.material_id NULLS FIRST, q.position, q.id`,
+    [teacherId]
+  );
+
+  res.json({
+    total: rows.length,
+    questions: rows.map((row) => ({ ...row, is_owner: row.teacher_id === teacherId }))
+  });
+});
+
+/** Tambah soal baru; pemilik otomatis guru yang login. */
 const create = asyncHandler(async (req, res) => {
   requireFields(req.body, ["question", "options", "answer"]);
 
   const body = req.body;
   const { options, answer } = validateOptions(body.options, body.answer);
 
+  const materialId = body.materialId === undefined || body.materialId === null
+    ? null
+    : toInt(body.materialId, "materialId", { min: 1 });
+
+  const quizSetId = body.quizSetId === undefined || body.quizSetId === null
+    ? null
+    : toInt(body.quizSetId, "quizSetId", { min: 1 });
+
+  const pool = getPool();
+  const teacherId = req.teacher.id;
+
+  if (materialId !== null) await assertOwnedMaterial(pool, materialId, teacherId);
+  if (quizSetId !== null) await assertOwnedSet(pool, quizSetId, teacherId);
+
   const values = [
-    body.materialId === undefined || body.materialId === null
-      ? null
-      : toInt(body.materialId, "materialId", { min: 1 }),
+    materialId,
     String(body.subject || "").trim(),
     String(body.image || "").trim(),
     String(body.question).trim(),
@@ -112,22 +133,14 @@ const create = asyncHandler(async (req, res) => {
     answer,
     String(body.fact || "").trim(),
     body.position === undefined ? 0 : toInt(body.position, "position"),
-    body.quizSetId === undefined || body.quizSetId === null
-      ? null
-      : toInt(body.quizSetId, "quizSetId", { min: 1 })
+    quizSetId,
+    teacherId
   ];
-
-  const pool = getPool();
-  if (values[0] !== null) await assertMaterialExists(pool, values[0]);
-  if (values[8] !== null) {
-    const { rows: setRows } = await pool.query("SELECT id FROM quiz_sets WHERE id = $1", [values[8]]);
-    if (!setRows.length) throw ApiError.badRequest("quizSetId tidak ditemukan.");
-  }
 
   const { rows } = await pool.query(
     `INSERT INTO questions
-       (material_id, subject, image, question, options, answer, fact, position, quiz_set_id)
-     VALUES ($1,$2,$3,$4,$5::jsonb,$6,$7,$8,$9)
+       (material_id, subject, image, question, options, answer, fact, position, quiz_set_id, teacher_id)
+     VALUES ($1,$2,$3,$4,$5::jsonb,$6,$7,$8,$9,$10)
      RETURNING *`,
     values
   );
@@ -135,13 +148,17 @@ const create = asyncHandler(async (req, res) => {
   res.status(201).json({ ok: true, question: rows[0] });
 });
 
-/** Ubah soal. */
+/** Ubah soal -- hanya pemiliknya. */
 const update = asyncHandler(async (req, res) => {
   const id = toInt(req.params.id, "id", { min: 1 });
   const body = req.body || {};
-
   const pool = getPool();
-  const { rows: existing } = await pool.query("SELECT * FROM questions WHERE id = $1", [id]);
+  const teacherId = req.teacher.id;
+
+  const { rows: existing } = await pool.query(
+    "SELECT * FROM questions WHERE id = $1 AND teacher_id = $2",
+    [id, teacherId]
+  );
   if (!existing.length) throw ApiError.notFound("Soal tidak ditemukan.");
 
   const current = existing[0];
@@ -157,7 +174,7 @@ const update = asyncHandler(async (req, res) => {
         ? null
         : toInt(body.materialId, "materialId", { min: 1 });
 
-  if (materialId !== null) await assertMaterialExists(pool, materialId);
+  if (materialId !== null) await assertOwnedMaterial(pool, materialId, teacherId);
 
   const quizSetId =
     body.quizSetId === undefined
@@ -166,10 +183,7 @@ const update = asyncHandler(async (req, res) => {
         ? null
         : toInt(body.quizSetId, "quizSetId", { min: 1 });
 
-  if (quizSetId !== null) {
-    const { rows: setRows } = await pool.query("SELECT id FROM quiz_sets WHERE id = $1", [quizSetId]);
-    if (!setRows.length) throw ApiError.badRequest("quizSetId tidak ditemukan.");
-  }
+  if (quizSetId !== null) await assertOwnedSet(pool, quizSetId, teacherId);
 
   const values = [
     materialId,
@@ -181,7 +195,8 @@ const update = asyncHandler(async (req, res) => {
     body.fact === undefined ? current.fact : String(body.fact).trim(),
     body.position === undefined ? current.position : toInt(body.position, "position"),
     quizSetId,
-    id
+    id,
+    teacherId
   ];
 
   const { rows } = await pool.query(
@@ -189,20 +204,24 @@ const update = asyncHandler(async (req, res) => {
         SET material_id = $1, subject = $2, image = $3, question = $4,
             options = $5::jsonb, answer = $6, fact = $7, position = $8,
             quiz_set_id = $9
-      WHERE id = $10
+      WHERE id = $10 AND teacher_id = $11
       RETURNING *`,
     values
   );
 
+  if (!rows.length) throw ApiError.notFound("Soal tidak ditemukan.");
   res.json({ ok: true, question: rows[0] });
 });
 
-/** Hapus soal. */
+/** Hapus soal -- hanya pemiliknya. */
 const remove = asyncHandler(async (req, res) => {
   const id = toInt(req.params.id, "id", { min: 1 });
   const pool = getPool();
 
-  const { rows } = await pool.query("DELETE FROM questions WHERE id = $1 RETURNING id", [id]);
+  const { rows } = await pool.query(
+    "DELETE FROM questions WHERE id = $1 AND teacher_id = $2 RETURNING id",
+    [id, req.teacher.id]
+  );
   if (!rows.length) throw ApiError.notFound("Soal tidak ditemukan.");
 
   res.json({ ok: true, deletedId: id });

@@ -9,6 +9,7 @@
     "dev": "node --watch src/server.js",
     "reset-db": "node src/db/reset.js",
     "db:init": "node scripts/db-init.js",
+    "db:assign-owner": "node scripts/assign-owner.js",
     "test": "node --test"
   },
   "repository": {

@@ -8,6 +8,7 @@
 const bcrypt = require("bcryptjs");
 
 const { TEACHER, MATERIALS } = require("../../data/seed");
+const { generateUniqueCode } = require("../utils/quizCode");
 
 /** Membuat thumbnail SVG sederhana (emoji + warna) sebagai data URI. */
 function svgThumb(emoji, color) {
@@ -79,12 +80,14 @@ async function seed(poolArg) {
         const quizSets = material.quizSets || [{ title: "Kuis Utama", description: "Set soal bawaan" }];
         const setIds = [];
         for (let s = 0; s < quizSets.length; s++) {
-          const accessCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+          const accessCode = await generateUniqueCode(client);
           const { rows: setRows } = await client.query(
-            `INSERT INTO quiz_sets (material_id, title, description, is_published, position, access_code)
-             VALUES ($1, $2, $3, TRUE, $4, $5)
+            `INSERT INTO quiz_sets
+               (material_id, title, description, is_published, position,
+                access_code, access_code_active, teacher_id, visibility)
+             VALUES ($1, $2, $3, TRUE, $4, $5, TRUE, $6, 'private')
              RETURNING id`,
-            [materialId, quizSets[s].title, quizSets[s].description || "", s, accessCode]
+            [materialId, quizSets[s].title, quizSets[s].description || "", s, accessCode, authorId]
           );
           setIds.push(setRows[0].id);
         }
@@ -96,8 +99,8 @@ async function seed(poolArg) {
         for (const question of material.questions || []) {
           await client.query(
             `INSERT INTO questions
-               (material_id, quiz_set_id, subject, image, question, options, answer, fact, position)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+               (material_id, quiz_set_id, subject, image, question, options, answer, fact, position, teacher_id)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
             [
               materialId,
               defaultSetId,
@@ -107,7 +110,8 @@ async function seed(poolArg) {
               JSON.stringify(question.options),
               question.answer,
               question.fact || "",
-              position++
+              position++,
+              authorId
             ]
           );
         }

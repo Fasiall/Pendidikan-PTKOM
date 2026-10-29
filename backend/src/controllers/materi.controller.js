@@ -1,21 +1,27 @@
 /* ==========================================================================
-   src/controllers/materi.controller.js — Manajemen Materi Belajar
+   src/controllers/materi.controller.js -- Manajemen Materi Belajar
 
    Publik (siswa, tanpa login):
      GET    /api/materials        daftar materi (judul + thumbnail)
      GET    /api/materials/:id    detail materi (isi lengkap)
 
    Pengajar (JWT wajib):
-     GET    /api/materials/manage daftar semua materi (termasuk draf)
-     POST   /api/materials        buat materi baru
-     PUT    /api/materials/:id    ubah materi
-     DELETE /api/materials/:id    hapus materi
-     PATCH  /api/materials/:id/publish  publish / unpublished
+     GET    /api/materials/manage daftar materi milik guru + materi publik
+     POST   /api/materials        buat materi baru (pemilik = guru login)
+     PUT    /api/materials/:id    ubah materi (hanya pemilik)
+     DELETE /api/materials/:id    hapus materi (hanya pemilik)
+     PATCH  /api/materials/:id/publish  publish / unpublished (hanya pemilik)
+
+   Isolasi data:
+     - author_id diisi otomatis dari req.teacher.id
+     - visibility "private" (default) = hanya pemilik yang melihat di dashboard
+     - visibility "public" = semua guru boleh melihat (read-only), hanya
+       pemilik yang boleh mengubah / menghapus.
    ========================================================================== */
 
 const { getPool } = require("../db/embedded");
 const { ApiError, asyncHandler } = require("../utils/errors");
-const { requireFields, toInt, toBool } = require("../utils/validate");
+const { requireFields, toInt, toBool, toVisibility } = require("../utils/validate");
 
 /** Kolom yang diterima saat create/update. */
 const ALLOWED_FIELDS = [
@@ -26,13 +32,19 @@ const ALLOWED_FIELDS = [
   "emoji",
   "subject",
   "position",
-  "is_published"
+  "is_published",
+  "visibility"
 ];
 
 /** Bangun klausa WHERE dinamis dari query string. */
-function buildFilters(query, { includeUnpublished = false } = {}) {
+function buildFilters(query, { includeUnpublished = false, teacherId = null } = {}) {
   const values = [];
   const where = [];
+
+  if (teacherId !== null) {
+    values.push(teacherId);
+    where.push(`(m.author_id = $${values.length} OR m.visibility = 'public')`);
+  }
 
   const search = String(query.search || "").trim();
   if (search) {
@@ -53,7 +65,7 @@ function buildFilters(query, { includeUnpublished = false } = {}) {
 
 /* ============================== PUBLIK =================================== */
 
-/** Daftar materi untuk siswa (baru judul, ringkasan, thumbnail, jumlah soal). */
+/** Daftar materi untuk siswa (judul, ringkasan, thumbnail, jumlah soal). */
 const list = asyncHandler(async (req, res) => {
   const pool = getPool();
   const { where, values } = buildFilters(req.query, { includeUnpublished: false });
@@ -73,7 +85,7 @@ const list = asyncHandler(async (req, res) => {
   res.json({ total: rows.length, materials: rows });
 });
 
-/** Detail materi berdasarkan ID — dipakai halaman baca siswa. */
+/** Detail materi berdasarkan ID -- dipakai halaman baca siswa. */
 const detail = asyncHandler(async (req, res) => {
   const pool = getPool();
   const id = toInt(req.params.id, "id", { min: 1 });
@@ -92,25 +104,33 @@ const detail = asyncHandler(async (req, res) => {
 
 /* ============================= PENGAJAR ================================== */
 
-/** Semua materi (termasuk draf) untuk dashboard pengajar. */
+/** Materi milik guru yang login + materi publik milik guru lain. */
 const manage = asyncHandler(async (req, res) => {
   const pool = getPool();
-  const { where, values } = buildFilters(req.query, { includeUnpublished: true });
+  const teacherId = req.teacher.id;
+  const { where, values } = buildFilters(req.query, {
+    includeUnpublished: true,
+    teacherId
+  });
 
   const { rows } = await pool.query(
-    `SELECT m.*, COUNT(q.id)::int AS question_count
+    `SELECT m.*, COUNT(q.id)::int AS question_count, t.username AS owner_name
        FROM materials m
+       LEFT JOIN teachers t ON t.id = m.author_id
        LEFT JOIN questions q ON q.material_id = m.id
       ${where.length ? "WHERE " + where.join(" AND ") : ""}
-      GROUP BY m.id
+      GROUP BY m.id, t.username
       ORDER BY m.position, m.id`,
     values
   );
 
-  res.json({ total: rows.length, materials: rows });
+  res.json({
+    total: rows.length,
+    materials: rows.map((row) => ({ ...row, is_owner: row.author_id === teacherId }))
+  });
 });
 
-/** Buat materi baru. */
+/** Buat materi baru; pemilik otomatis guru yang login. */
 const create = asyncHandler(async (req, res) => {
   requireFields(req.body, ["title", "content"]);
 
@@ -130,14 +150,15 @@ const create = asyncHandler(async (req, res) => {
     String(body.subject || "").trim(),
     body.position === undefined ? 0 : toInt(body.position, "position"),
     toBool(body.is_published, true),
-    req.teacher.id
+    req.teacher.id,
+    toVisibility(body.visibility, "private")
   ];
 
   const pool = getPool();
   const { rows } = await pool.query(
     `INSERT INTO materials
-       (title, summary, content, image_url, emoji, subject, position, is_published, author_id)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+       (title, summary, content, image_url, emoji, subject, position, is_published, author_id, visibility)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
      RETURNING *`,
     values
   );
@@ -145,7 +166,7 @@ const create = asyncHandler(async (req, res) => {
   res.status(201).json({ ok: true, material: rows[0] });
 });
 
-/** Ubah materi (hanya field yang dikirim yang diubah). */
+/** Ubah materi -- hanya pemiliknya. */
 const update = asyncHandler(async (req, res) => {
   const id = toInt(req.params.id, "id", { min: 1 });
   const body = req.body || {};
@@ -168,6 +189,8 @@ const update = asyncHandler(async (req, res) => {
       value = toInt(value, "position");
     } else if (field === "is_published") {
       value = toBool(value);
+    } else if (field === "visibility") {
+      value = toVisibility(value);
     }
 
     values.push(value);
@@ -177,10 +200,12 @@ const update = asyncHandler(async (req, res) => {
   if (!sets.length) throw ApiError.badRequest("Tidak ada field yang dikirim untuk diubah.");
 
   values.push(id);
+  values.push(req.teacher.id);
+
   const pool = getPool();
   const { rows } = await pool.query(
     `UPDATE materials SET ${sets.join(", ")}, updated_at = now()
-      WHERE id = $${values.length}
+      WHERE id = $${values.length - 1} AND author_id = $${values.length}
       RETURNING *`,
     values
   );
@@ -189,29 +214,31 @@ const update = asyncHandler(async (req, res) => {
   res.json({ ok: true, material: rows[0] });
 });
 
-/** Hapus materi (soal terkait otomatis dilepas relasinya). */
+/** Hapus materi -- hanya pemiliknya. */
 const remove = asyncHandler(async (req, res) => {
   const id = toInt(req.params.id, "id", { min: 1 });
   const pool = getPool();
 
   const { rows } = await pool.query(
-    "DELETE FROM materials WHERE id = $1 RETURNING id",
-    [id]
+    "DELETE FROM materials WHERE id = $1 AND author_id = $2 RETURNING id",
+    [id, req.teacher.id]
   );
   if (!rows.length) throw ApiError.notFound("Materi tidak ditemukan.");
 
   res.json({ ok: true, deletedId: id });
 });
 
-/** Publish / unpublished materi. */
+/** Publish / unpublished materi -- hanya pemiliknya. */
 const publish = asyncHandler(async (req, res) => {
   const id = toInt(req.params.id, "id", { min: 1 });
   const isPublished = toBool((req.body || {}).is_published, true);
 
   const pool = getPool();
   const { rows } = await pool.query(
-    "UPDATE materials SET is_published = $1, updated_at = now() WHERE id = $2 RETURNING *",
-    [isPublished, id]
+    `UPDATE materials SET is_published = $1, updated_at = now()
+      WHERE id = $2 AND author_id = $3
+      RETURNING *`,
+    [isPublished, id, req.teacher.id]
   );
   if (!rows.length) throw ApiError.notFound("Materi tidak ditemukan.");
 

@@ -70,7 +70,10 @@ const questionList  = $("#questionList");
 const resultsList   = $("#resultsList");
 const statMaterials = $("#statMaterials");
 const statTotal     = $("#statTotal");
-const statLastScore = $("#statLastScore");
+const statAvgScore  = $("#statAvgScore");
+const quizCodeInput = $("#quizCode");
+const mVisibility   = $("#mVisibility");
+const sSetVisibility = $("#sSetVisibility");
 
 /* Elemen form admin (kelola materi & soal) */
 const materiForm      = $("#materiForm");
@@ -125,6 +128,9 @@ let fxTimer     = null; // timer menyembunyikan flash layar
 let toastTimer  = null; // timer menyembunyikan notifikasi
 let timerInterval = null; // interval timer kuis
 let timeRemaining = 0;    // sisa waktu dalam detik
+let answered      = {};   // jawaban yang sudah dikirim: { [questionId]: hasil }
+let isSubmitting  = false;// cegah submit ganda
+let quizSetInfo   = null; // info set soal yang sedang dikerjakan
 
 /* Status form admin: daftar materi + id yang sedang diedit (null = mode tambah) */
 let materiList      = [];
@@ -205,6 +211,9 @@ function showPage(pageId) {
     target.classList.add("active");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
+  if (pageId === "page-home") {
+    loadHomeStats();
+  }
 }
 
 /* Navigasi universal: elemen dengan data-page="id-halaman" berpindah halaman. */
@@ -268,6 +277,41 @@ function createDecorations() {
   if (!decorLayer) return;
 }
 
+/** Memuat statistik beranda (Soal Tersedia, Mata Pelajaran/Materi, Siswa Aktif). */
+async function loadHomeStats() {
+  const elQuestions = $("#homeStatQuestions");
+  const elMaterials = $("#homeStatMaterials");
+  const elStudents  = $("#homeStatStudents");
+  if (!elQuestions && !elMaterials && !elStudents) return;
+
+  try {
+    const data = await api("/api/stats");
+    const totalQuestions = Number(data.totalQuestions) || 0;
+    const totalMaterials = Number(data.totalMaterials) || 0;
+    const totalStudents  = Number(data.totalStudents) || 0;
+
+    if (elQuestions) {
+      elQuestions.dataset.count = totalQuestions;
+      elQuestions.textContent = totalQuestions;
+    }
+    if (elMaterials) {
+      elMaterials.dataset.count = totalMaterials;
+      elMaterials.textContent = totalMaterials;
+    }
+    if (elStudents) {
+      elStudents.dataset.count = totalStudents;
+      elStudents.textContent = totalStudents;
+    }
+  } catch (_) {
+    /* abaikan jika server belum menyala */
+  }
+}
+
+function createDecorations_unused() {
+  /* Dekorasi emoji lama tidak dipakai lagi. */
+  if (!decorLayer) return;
+}
+
 /* =============== (6) LOGIKA KUIS ======================================= */
 
 /**
@@ -277,98 +321,152 @@ function createDecorations() {
  *   ?materi=ID → hanya soal dari materi itu (backward compatible)
  * Bila tidak ada parameter, semua soal dimuat.
  */
-async function startQuiz(forceSetId = null) {
-  /* Jika dipanggil dari event listener (klik tombol), argumen pertama adalah Event object */
-  if (typeof forceSetId !== "number" && typeof forceSetId !== "string") {
-    forceSetId = null;
-  }
+async function startQuiz(event) {
+  if (event && typeof event.preventDefault === "function") event.preventDefault();
 
   const btnStart = $("#btnStart");
-  const labelBefore = btnStart.textContent;
-
+  const labelBefore = btnStart ? btnStart.textContent : "";
   const params = new URLSearchParams(location.search);
-  let setId = forceSetId ? Number(forceSetId) : (Number(params.get("set")) || null);
-  const materialId = setId ? null : (Number(params.get("materi")) || null);
 
-  btnStart.disabled = true;
-  btnStart.textContent = "Memuat soal...";
+  const rawCode = quizCodeInput
+    ? quizCodeInput.value
+    : params.get("code") || sessionStorage.getItem("kuis.code") || "";
+  const code = String(rawCode).trim().toUpperCase();
 
-  /* Bangun URL dan body berdasarkan filter */
-  let questionUrl = "/api/questions";
-  const startBody = {};
+  /* Kode wajib: siswa hanya bisa masuk kuis lewat kode dari guru. */
+  if (!code) {
+    showToast("Masukkan kode kuis dari gurumu dulu, ya.");
+    if (quizCodeInput) quizCodeInput.focus();
+    return;
+  }
+  if (code.length !== 6) {
+    showToast("Kode kuis terdiri dari 6 karakter.");
+    if (quizCodeInput) quizCodeInput.focus();
+    return;
+  }
 
-  if (setId) {
-    questionUrl += "?setId=" + setId;
-    startBody.setId = setId;
-  } else if (materialId) {
-    questionUrl += "?materialId=" + materialId;
-    startBody.materialId = materialId;
+  if (btnStart) {
+    btnStart.disabled = true;
+    btnStart.textContent = "Menyiapkan kuis...";
   }
 
   try {
-    const [startData, listData] = await Promise.all([
-      api("/api/quiz/start", {
-        method: "POST",
-        body: JSON.stringify(startBody)
-      }),
-      api(questionUrl)
-    ]);
+    const nameInput = document.getElementById("studentName");
+    const data = await api("/api/quiz/start", {
+      method: "POST",
+      body: JSON.stringify({
+        code,
+        studentName: nameInput ? nameInput.value.trim() : ""
+      })
+    });
 
-    const list = Array.isArray(listData) ? listData : listData.questions;
-    if (!list || !list.length) throw new Error("Soal masih kosong.");
-
-    questions = list;
-    currentIndex = 0;
-    score = 0;
-    showPage("page-quiz");
-    renderQuestion();
-
-    /* Mulai timer jika ada batas waktu */
-    const quizTimer = $("#quizTimer");
-    if (startData.timeLimit > 0) {
-      timeRemaining = startData.timeLimit * 60;
-      quizTimer.classList.remove("hidden");
-      updateTimerDisplay();
-      
-      clearInterval(timerInterval);
-      timerInterval = setInterval(() => {
-        timeRemaining--;
-        updateTimerDisplay();
-        if (timeRemaining <= 0) {
-          clearInterval(timerInterval);
-          showToast("Waktu habis.");
-          showResult();
-        }
-      }, 1000);
-    } else {
-      quizTimer.classList.add("hidden");
-      clearInterval(timerInterval);
-    }
+    sessionStorage.setItem("kuis.code", code);
+    if (quizCodeInput) quizCodeInput.value = code;
+    applyQuizData(data);
   } catch (err) {
-    showToast(
-      err.message && err.message !== "Soal masih kosong."
-        ? err.message
-        : "Server belum terhubung. Jalankan \"npm start\" lalu muat ulang halaman."
-    );
+    showToast(err.message || "Kode tidak ditemukan atau kuis belum dibuka.");
   } finally {
-    btnStart.disabled = false;
-    btnStart.textContent = labelBefore;
+    if (btnStart) {
+      btnStart.disabled = false;
+      btnStart.textContent = labelBefore;
+    }
   }
 }
 
-/** Memperbarui tampilan timer kuis */
+/** Tampilkan kuis dari data server (mulai baru atau lanjut setelah refresh). */
+function applyQuizData(data) {
+  questions = Array.isArray(data.questions) ? data.questions : [];
+  if (!questions.length) {
+    showToast("Kuis ini belum punya soal.");
+    return;
+  }
+
+  quizSetInfo = {
+    setId: data.setId || null,
+    title: data.title || "Kuis",
+    timeLimit: Number(data.timeLimit) || 0,
+    total: Number(data.total) || questions.length
+  };
+
+  answered = {};
+  (data.answers || []).forEach(function (item) {
+    if (item && item.questionId !== undefined) {
+      answered[String(item.questionId)] = item;
+    }
+  });
+
+  score = Number(data.score) || 0;
+  currentIndex = Math.min(Math.max(Number(data.currentIndex) || 0, 0), questions.length - 1);
+  isSubmitting = false;
+  isAnswered = false;
+
+  showPage("page-quiz");
+  renderQuestion();
+
+  if (quizSetInfo.timeLimit > 0) {
+    var remaining =
+      data.remainingSeconds === null || data.remainingSeconds === undefined
+        ? quizSetInfo.timeLimit * 60
+        : Number(data.remainingSeconds);
+    startQuizTimer(remaining);
+  } else {
+    stopQuizTimer();
+  }
+}
+
+/** Timer besar; saat habis jawaban otomatis dikumpulkan. */
+function startQuizTimer(seconds) {
+  var timerEl = $("#quizTimer");
+  timeRemaining = Math.max(0, Math.floor(seconds));
+
+  if (timerEl) {
+    timerEl.classList.remove("hidden", "warning");
+    updateTimerDisplay();
+  }
+
+  clearInterval(timerInterval);
+  if (timeRemaining <= 0) {
+    submitQuiz(true);
+    return;
+  }
+
+  timerInterval = setInterval(function () {
+    timeRemaining -= 1;
+    updateTimerDisplay();
+    if (timeRemaining <= 0) {
+      clearInterval(timerInterval);
+      showToast("Waktu habis. Jawabanmu dikumpulkan otomatis.");
+      submitQuiz(true);
+    }
+  }, 1000);
+}
+
+function stopQuizTimer() {
+  clearInterval(timerInterval);
+  timerInterval = null;
+  var timerEl = $("#quizTimer");
+  if (timerEl) {
+    timerEl.classList.add("hidden");
+    timerEl.classList.remove("warning");
+  }
+}
+
+/** Memperbarui tampilan timer kuis (MM:SS, merah saat < 1 menit). */
 function updateTimerDisplay() {
   const quizTimer = $("#quizTimer");
   if (!quizTimer) return;
-  const m = Math.floor(timeRemaining / 60).toString().padStart(2, "0");
-  const s = (timeRemaining % 60).toString().padStart(2, "0");
+  const safe = Math.max(0, timeRemaining);
+  const m = Math.floor(safe / 60).toString().padStart(2, "0");
+  const s = (safe % 60).toString().padStart(2, "0");
   quizTimer.textContent = m + ":" + s;
+  quizTimer.classList.toggle("warning", safe <= 60);
 }
 
 /** Menampilkan soal sesuai currentIndex ke dalam kartu pertanyaan. */
 function renderQuestion() {
   const q = questions[currentIndex];
-  isAnswered = false;
+  const saved = answered[String(q.id)];
+  isAnswered = Boolean(saved);
 
   /* Perbarui progress bar & chip skor */
   progressFill.style.width = ((currentIndex + 1) / questions.length * 100) + "%";
@@ -376,7 +474,7 @@ function renderQuestion() {
   scoreChip.textContent = score + " poin";
 
   /* Isi konten kartu */
-  qSubject.textContent = q.subject;
+  qSubject.textContent = q.subject || (quizSetInfo ? quizSetInfo.title : "Kuis");
   qImage.textContent = q.image;
   qText.textContent = q.question;
   feedbackBox.textContent = "";
@@ -385,7 +483,7 @@ function renderQuestion() {
 
   /* Hancurkan & bangun ulang animasi masuknya kartu */
   questionCard.classList.remove("card-in");
-  void questionCard.offsetWidth; // paksa reflow agar animasi berjalan lagi
+  void questionCard.offsetWidth;
   questionCard.classList.add("card-in");
 
   /* Buat tombol opsi jawaban */
@@ -401,6 +499,28 @@ function renderQuestion() {
     btn.addEventListener("click", () => chooseAnswer(index));
     answersBox.appendChild(btn);
   });
+
+  /* Soal yang sudah dijawab sebelum refresh: tampilkan hasil tersimpan */
+  if (saved) {
+    const buttons = answersBox.querySelectorAll(".answer-btn");
+    buttons.forEach((btn) => (btn.disabled = true));
+    buttons.forEach((btn, index) => {
+      if (index === saved.chosen && !saved.correct) btn.classList.add("wrong");
+      if (index === saved.correctIndex) btn.classList.add("correct");
+    });
+    feedbackBox.className = "feedback " + (saved.correct ? "ok" : "no");
+    feedbackBox.innerHTML = saved.correct
+      ? "<b>Tepat.</b> " + (saved.fact || "")
+      : "<b>Belum tepat.</b> Jawaban yang benar: <b>" +
+        q.options[saved.correctIndex] + "</b>. " + (saved.fact || "");
+    showNextButton();
+  }
+}
+
+/** Tombol lanjut / selesai setelah soal dijawab. */
+function showNextButton() {
+  btnNext.textContent = currentIndex === questions.length - 1 ? "Selesai" : "Lanjut";
+  btnNext.classList.remove("hidden");
 }
 
 /**
@@ -409,12 +529,12 @@ function renderQuestion() {
  * Salah  -> getar (shake) merah muda + kunci jawaban ditampilkan.
  */
 async function chooseAnswer(selectedIndex) {
-  if (isAnswered) return; // cegah jawaban ganda
+  if (isAnswered) return;
   isAnswered = true;
 
   const q = questions[currentIndex];
   const buttons = answersBox.querySelectorAll(".answer-btn");
-  buttons.forEach((btn) => (btn.disabled = true)); // kunci selama request
+  buttons.forEach((btn) => (btn.disabled = true));
 
   let result;
   try {
@@ -423,14 +543,23 @@ async function chooseAnswer(selectedIndex) {
       body: JSON.stringify({ questionId: q.id, choice: selectedIndex })
     });
   } catch (err) {
-    /* Gagal terhubung: buka kembali tombol agar bisa dicoba lagi */
     isAnswered = false;
     buttons.forEach((btn) => (btn.disabled = false));
     showToast(err.status === 400 ? err.message : "Gagal mengirim jawaban, coba lagi.");
     return;
   }
 
+  /* Waktu habis di server: hasil langsung disimpan & ditampilkan. */
+  if (result.expired) {
+    isSubmitting = false;
+    sessionStorage.removeItem("kuis.code");
+    stopQuizTimer();
+    renderResult(result.score, result.total);
+    return;
+  }
+
   score = result.score;
+  answered[String(q.id)] = result;
 
   if (result.correct) {
     buttons[selectedIndex].classList.add("correct");
@@ -440,7 +569,7 @@ async function chooseAnswer(selectedIndex) {
     burstConfetti(45);
   } else {
     buttons[selectedIndex].classList.add("wrong");
-    buttons[result.correctIndex].classList.add("correct"); // tampilkan jawaban benar
+    buttons[result.correctIndex].classList.add("correct");
     feedbackBox.className = "feedback no";
     feedbackBox.innerHTML =
       "<b>Belum tepat.</b> Jawaban yang benar: <b>" +
@@ -449,20 +578,15 @@ async function chooseAnswer(selectedIndex) {
   }
 
   scoreChip.textContent = score + " poin";
+  showNextButton();
 
-  /* Tampilkan tombol lanjut */
-  btnNext.textContent =
-    currentIndex === questions.length - 1 ? "Lihat hasil" : "Lanjut";
-  btnNext.classList.remove("hidden");
-
-  /* Di HP, bila umpan balik terpotong layar, gulirkan ke situ */
   const rect = feedbackBox.getBoundingClientRect();
   if (rect.bottom > window.innerHeight) {
     feedbackBox.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 }
 
-/** Beralih ke soal berikutnya, atau menyimpan skor di soal terakhir. */
+/** Beralih ke soal berikutnya, atau langsung menyimpan skor di soal terakhir. */
 function nextQuestion() {
   if (!isAnswered) return;
   if (currentIndex < questions.length - 1) {
@@ -518,11 +642,16 @@ function animateNumber(element, targetValue, duration = 1200) {
 /* =============== (8) HALAMAN HASIL ==================================== */
 
 /**
- * Mengirim skor akhir ke server (tersimpan di tabel results),
- * lalu menampilkan bintang, skor berjalan, dan pesan motivasi.
+ * Mengirim skor akhir ke server lalu LANGSUNG menampilkan halaman skor.
+ * Tidak ada tombol "Lihat Skor" perantara.
  */
-async function showResult() {
-  clearInterval(timerInterval);
+async function showResult(options) {
+  if (isSubmitting) return;
+  isSubmitting = true;
+
+  const timedOut = options === true || Boolean(options && options.timedOut);
+  stopQuizTimer();
+
   let finalScore = score;
   let total = questions.length;
 
@@ -537,13 +666,39 @@ async function showResult() {
     total = data.total;
     lastScore = finalScore;
   } catch (err) {
-    /* Server bermasalah: hasil tetap tampil, hanya tidak tersimpan */
     lastScore = finalScore;
-    showToast("Skor tampil, tetapi gagal tersimpan di server.");
+    showToast(
+      timedOut
+        ? "Waktu habis. Skor ditampilkan, tetapi gagal tersimpan di server."
+        : "Skor tampil, tetapi gagal tersimpan di server."
+    );
   }
 
   score = finalScore;
+  sessionStorage.removeItem("kuis.code");
   renderResult(finalScore, total);
+  loadHomeStats();
+  isSubmitting = false;
+}
+
+/** Dipakai timer: kumpulkan jawaban otomatis saat waktu habis. */
+function submitQuiz(timedOut) {
+  return showResult({ timedOut: Boolean(timedOut) });
+}
+
+/** Lanjutkan kuis setelah halaman di-refresh (timer dihitung dari server). */
+async function restoreQuizSession() {
+  try {
+    const data = await api("/api/quiz/session");
+    if (data && data.active) {
+      applyQuizData(data);
+      showToast("Melanjutkan kuis. Waktumu tetap berjalan.");
+    } else if (data && data.expired && data.result) {
+      renderResult(data.result.score, data.result.total);
+    }
+  } catch (_) {
+    /* tidak ada sesi aktif */
+  }
 }
 
 /** Merender tampilan halaman hasil. */
@@ -758,7 +913,7 @@ async function renderDashboard() {
 
     statMaterials.textContent = data.totalMaterials ?? 0;
     statTotal.textContent = data.totalQuestions;
-    statLastScore.textContent = data.lastScore || "-";
+    statAvgScore.textContent = data.averageScore ? data.averageScore.label : "-";
 
     /* Daftar soal */
     questionList.innerHTML = "";
@@ -789,7 +944,10 @@ async function renderDashboard() {
         li.innerHTML =
           '<span class="ql-num">' + (index + 1) + '</span>' +
           "<div><strong>" + (r.student_name || "Siswa") + " — " + r.score + "/" + r.total + " benar</strong>" +
-          '<p class="ql-text">' + (r.material_title || "Semua materi") + " • " + waktu + "</p></div>";
+          '<p class="ql-text">' +
+            (r.set_title || r.material_title || "Kuis") + " • " +
+            (r.score || 0) + "/" + (r.total || 0) + " • " + waktu +
+          "</p></div>";
         resultsList.appendChild(li);
       });
     }
@@ -863,6 +1021,19 @@ function renderMateriAdmin() {
   materiList.forEach((material, index) => {
     const li = document.createElement("li");
     li.style.animationDelay = index * 0.05 + "s";
+    const isOwner = material.is_owner !== false;
+
+    const actions = isOwner
+      ? '<div class="admin-actions">' +
+          '<button class="icon-mini edit" type="button" title="Ubah materi" data-action="edit" data-id="' + material.id + '">Ubah</button>' +
+          '<button class="icon-mini" type="button" title="Publish / draf" data-action="toggle" data-id="' + material.id + '">' +
+            (material.is_published ? "Draf" : "Publish") + "</button>" +
+          '<button class="icon-mini" type="button" title="Publik / privat" data-action="toggle-visibility" data-id="' + material.id + '">' +
+            (material.visibility === "public" ? "Privat" : "Publik") + "</button>" +
+          '<button class="icon-mini danger" type="button" title="Hapus materi" data-action="delete" data-id="' + material.id + '">Hapus</button>' +
+        "</div>"
+      : '<div class="admin-actions"><span class="tag">Hanya lihat</span></div>';
+
     li.innerHTML =
       '<span class="admin-thumb">' +
         (material.image_url
@@ -877,15 +1048,14 @@ function renderMateriAdmin() {
           '<span class="tag' + (material.is_published ? "" : " warn") + '">' +
             (material.is_published ? "Publish" : "Draf") +
           "</span>" +
+          '<span class="tag ' + (material.visibility === "public" ? "pub" : "priv") + '">' +
+            (material.visibility === "public" ? "Publik" : "Privat") +
+          "</span>" +
+          (!isOwner && material.owner_name ? "Milik " + material.owner_name + " · " : "") +
           (material.subject || "Umum") + " · " + material.question_count + " soal" +
         "</small>" +
       "</div>" +
-      '<div class="admin-actions">' +
-        '<button class="icon-mini edit" type="button" title="Ubah materi" data-action="edit" data-id="' + material.id + '">Ubah</button>' +
-        '<button class="icon-mini" type="button" title="Publish / draf" data-action="toggle" data-id="' + material.id + '">' +
-          (material.is_published ? "Draf" : "Publish") + "</button>" +
-        '<button class="icon-mini danger" type="button" title="Hapus materi" data-action="delete" data-id="' + material.id + '">Hapus</button>' +
-      "</div>";
+      actions;
 
     materiAdminList.appendChild(li);
   });
@@ -902,6 +1072,7 @@ function editMateri(material) {
   mImage.value = material.image_url || "";
   mContent.value = material.content || "";
   mPublish.checked = material.is_published;
+  if (mVisibility) mVisibility.checked = material.visibility === "public";
   btnCancelMateri.hidden = false;
   showFormError(materiError, "");
   switchTab("tabMateri");
@@ -916,6 +1087,7 @@ function resetMateriForm() {
   materiForm.reset();
   mEmoji.value = "📘";
   mPublish.checked = true;
+  if (mVisibility) mVisibility.checked = false;
   btnCancelMateri.hidden = true;
   showFormError(materiError, "");
 }
@@ -1001,24 +1173,63 @@ function renderSetAdmin() {
   setList.forEach(function (set, index) {
     var li = document.createElement("li");
     li.style.animationDelay = index * 0.05 + "s";
+
+    var isOwner = set.is_owner !== false;
+    var codeText = set.access_code || "Belum ada";
+    var codeClass = !set.access_code ? "empty" : set.access_code_active ? "active" : "off";
+
+    var badges =
+      '<span class="tag' + (set.is_published ? "" : " warn") + '">' +
+        (set.is_published ? "Publish" : "Draf") +
+      "</span>" +
+      '<span class="tag ' + (set.visibility === "public" ? "pub" : "priv") + '">' +
+        (set.visibility === "public" ? "Publik" : "Privat") +
+      "</span>" +
+      (!isOwner && set.owner_name ? '<span class="tag">Milik ' + set.owner_name + "</span>" : "");
+
+    /* Tombol kode diletakkan sebaris dengan kode kuis. */
+    var codeActions = isOwner
+      ? '<div class="set-code-actions">' +
+          '<button class="icon-mini code" type="button" data-action="gen-code" data-id="' + set.id + '">' +
+            (set.access_code ? "Acak Kode" : "Buat Kode") + "</button>" +
+          '<button class="icon-mini" type="button" title="Salin kode ke clipboard" data-action="copy-code" data-id="' + set.id + '"' +
+            (set.access_code && set.access_code_active ? "" : " disabled") + ">Salin</button>" +
+          '<button class="icon-mini danger" type="button" data-action="disable-code" data-id="' + set.id + '"' +
+            (set.access_code_active === false ? " disabled" : "") + ">Nonaktifkan</button>" +
+        "</div>"
+      : "";
+
+    var actions = isOwner
+      ? '<div class="admin-actions">' +
+          '<button class="icon-mini edit" type="button" data-action="edit-set" data-id="' + set.id + '">Ubah</button>' +
+          '<button class="icon-mini" type="button" data-action="toggle-set" data-id="' + set.id + '">' +
+            (set.is_published ? "Draf" : "Publish") + "</button>" +
+          '<button class="icon-mini" type="button" data-action="toggle-visibility" data-id="' + set.id + '">' +
+            (set.visibility === "public" ? "Privat" : "Publik") + "</button>" +
+          '<button class="icon-mini danger" type="button" data-action="delete-set" data-id="' + set.id + '">Hapus</button>' +
+        "</div>"
+      : "";
+
     li.innerHTML =
       '<span class="admin-thumb">≡</span>' +
       '<div class="admin-info">' +
         "<strong>" + set.title + "</strong>" +
-        "<small>" +
-          '<span class="tag' + (set.is_published ? "" : " warn") + '">' +
-            (set.is_published ? "Publish" : "Draf") +
-          "</span>" +
+        "<small>" + badges +
           "Materi: " + (set.material_title || "?") + " · " + set.question_count + " soal" +
           (set.time_limit > 0 ? " · " + set.time_limit + " menit" : "") +
         "</small>" +
+        (isOwner
+          ? '<div class="set-code-row">' +
+              '<span class="code-label">Kode kuis</span>' +
+              '<span class="code-chip ' + codeClass + '">' + codeText + "</span>" +
+              (set.access_code
+                ? '<span class="code-status">' + (set.access_code_active ? "Aktif" : "Nonaktif") + "</span>"
+                : '<span class="code-status">Tekan "Buat Kode"</span>') +
+              codeActions +
+            "</div>"
+          : "") +
       "</div>" +
-      '<div class="admin-actions">' +
-        '<button class="icon-mini edit" type="button" title="Ubah set" data-action="edit-set" data-id="' + set.id + '">Ubah</button>' +
-        '<button class="icon-mini" type="button" title="Publish / draf" data-action="toggle-set" data-id="' + set.id + '">' +
-          (set.is_published ? "Draf" : "Publish") + "</button>" +
-        '<button class="icon-mini danger" type="button" title="Hapus set" data-action="delete-set" data-id="' + set.id + '">Hapus</button>' +
-      "</div>";
+      actions;
 
     setAdminList.appendChild(li);
   });
@@ -1032,6 +1243,7 @@ function editSet(set) {
   sSetDesc.value = set.description || "";
   sSetTime.value = set.time_limit || "";
   sSetPublish.checked = set.is_published;
+  if (sSetVisibility) sSetVisibility.checked = set.visibility === "public";
   btnCancelSet.hidden = false;
   showFormError(setError, "");
   switchTab("tabSetSoal");
@@ -1045,6 +1257,7 @@ function resetSetForm() {
   setForm.reset();
   sSetTime.value = "";
   sSetPublish.checked = true;
+  if (sSetVisibility) sSetVisibility.checked = false;
   btnCancelSet.hidden = true;
   showFormError(setError, "");
 }
@@ -1054,7 +1267,7 @@ function fillMaterialSelect() {
   const current = qMaterial.value;
   qMaterial.innerHTML =
     '<option value="">— Belum terhubung materi —</option>' +
-    materiList.map((m) =>
+    materiList.filter((m) => m.is_owner !== false).map((m) =>
       '<option value="' + m.id + '">' + m.title + "</option>"
     ).join("");
   if (current) qMaterial.value = current;
@@ -1066,7 +1279,7 @@ function fillSetSelect() {
   const current = qSet.value;
   qSet.innerHTML =
     '<option value="">— Belum terhubung set soal —</option>' +
-    setList.map((s) =>
+    setList.filter((s) => s.is_owner !== false).map((s) =>
       '<option value="' + s.id + '">' + s.title + " (" + (s.material_title || "?") + ")</option>"
     ).join("");
   if (current) qSet.value = current;
@@ -1078,7 +1291,7 @@ function fillSetMaterialSelect() {
   const current = sSetMaterial.value;
   sSetMaterial.innerHTML =
     '<option value="">— Pilih Materi —</option>' +
-    materiList.map((m) =>
+    materiList.filter((m) => m.is_owner !== false).map((m) =>
       '<option value="' + m.id + '">' + m.title + "</option>"
     ).join("");
   if (current) sSetMaterial.value = current;
@@ -1103,7 +1316,8 @@ function bindAdminEvents() {
       emoji: mEmoji.value.trim() || "📘",
       image_url: mImage.value.trim(),
       content: mContent.value,
-      is_published: mPublish.checked
+      is_published: mPublish.checked,
+      visibility: mVisibility && mVisibility.checked ? "public" : "private"
     };
 
     if (!payload.title || !payload.content) {
@@ -1145,7 +1359,8 @@ function bindAdminEvents() {
         description: sSetDesc.value.trim(),
         timeLimit: sSetTime.value ? Number(sSetTime.value) : 0,
         materialId: sSetMaterial.value ? Number(sSetMaterial.value) : null,
-        is_published: sSetPublish.checked
+        is_published: sSetPublish.checked,
+        visibility: sSetVisibility && sSetVisibility.checked ? "public" : "private"
       };
 
       if (!payload.title || !payload.materialId) {
@@ -1180,7 +1395,7 @@ function bindAdminEvents() {
     btnCancelSet.addEventListener("click", resetSetForm);
   }
 
-  /* Aksi pada daftar set soal (ubah / publish / hapus) */
+  /* Aksi pada daftar set soal (ubah / publish / kode / hapus) */
   if (setAdminList) {
     setAdminList.addEventListener("click", async (event) => {
       const button = event.target.closest("button[data-action]");
@@ -1190,10 +1405,12 @@ function bindAdminEvents() {
       const set = setList.find((item) => item.id === id);
       if (!set) return;
 
+      const action = button.dataset.action;
+
       try {
-        if (button.dataset.action === "edit-set") {
+        if (action === "edit-set") {
           editSet(set);
-        } else if (button.dataset.action === "toggle-set") {
+        } else if (action === "toggle-set") {
           await api("/api/sets/" + id + "/publish", {
             method: "PATCH",
             body: JSON.stringify({ is_published: !set.is_published })
@@ -1202,7 +1419,41 @@ function bindAdminEvents() {
             ? "Set soal dipindahkan ke draf."
             : "Set soal dipublikasikan untuk siswa.");
           await loadAdminData();
-        } else if (button.dataset.action === "delete-set") {
+        } else if (action === "toggle-visibility") {
+          await api("/api/sets/" + id, {
+            method: "PUT",
+            body: JSON.stringify({ visibility: set.visibility === "public" ? "private" : "public" })
+          });
+          showToast(set.visibility === "public"
+            ? "Set soal kembali privat."
+            : "Set soal dibagikan ke semua guru (publik).");
+          await loadAdminData();
+        } else if (action === "gen-code") {
+          const data = await api("/api/sets/" + id + "/code", { method: "POST" });
+          showToast("Kode kuis baru: " + data.code);
+          try {
+            await navigator.clipboard.writeText(data.code);
+            showToast("Kode kuis " + data.code + " sudah disalin.");
+          } catch (_) { /* clipboard tidak tersedia */ }
+          await loadAdminData();
+        } else if (action === "copy-code") {
+          if (!set.access_code) {
+            showToast("Buat kode dulu, ya.");
+            return;
+          }
+          try {
+            await navigator.clipboard.writeText(set.access_code);
+            showToast("Kode " + set.access_code + " disalin.");
+          } catch (_) {
+            showToast("Kode kuis: " + set.access_code);
+          }
+        } else if (action === "disable-code") {
+          if (!set.access_code_active) return;
+          if (!confirm('Nonaktifkan kode "' + set.access_code + '"? Siswa tidak bisa memakai kode ini lagi.')) return;
+          await api("/api/sets/" + id + "/code", { method: "DELETE" });
+          showToast("Kode kuis dinonaktifkan.");
+          await loadAdminData();
+        } else if (action === "delete-set") {
           if (!confirm('Hapus set soal "' + set.title + '"? Soal di dalamnya tidak akan terhapus, hanya kehilangan referensi set.')) return;
           await api("/api/sets/" + id, { method: "DELETE" });
           showToast("Set soal dihapus.");
@@ -1227,6 +1478,15 @@ function bindAdminEvents() {
     try {
       if (button.dataset.action === "edit") {
         editMateri(material);
+      } else if (button.dataset.action === "toggle-visibility") {
+        await api("/api/materials/" + id, {
+          method: "PUT",
+          body: JSON.stringify({ visibility: material.visibility === "public" ? "private" : "public" })
+        });
+        showToast(material.visibility === "public"
+          ? "Materi kembali privat."
+          : "Materi dibagikan ke semua guru (publik).");
+        await loadAdminData();
       } else if (button.dataset.action === "toggle") {
         await api("/api/materials/" + id + "/publish", {
           method: "PATCH",
@@ -1361,6 +1621,7 @@ if (regTogglePass) {
 function init() {
   splitTitle();
   createDecorations();
+  loadHomeStats();
 
   /* Tombol memulai kuis (dipakai di home, hasil, dan dashboard guru) */
   const btnStart = $("#btnStart");
@@ -1371,7 +1632,29 @@ function init() {
   if (btnReplay) btnReplay.addEventListener("click", startQuiz);
   
   const btnGuruMulai = $("#btnGuruMulai");
-  if (btnGuruMulai) btnGuruMulai.addEventListener("click", startQuiz);
+  if (btnGuruMulai) {
+    btnGuruMulai.addEventListener("click", () => {
+      showPage("page-home");
+      if (quizCodeInput) quizCodeInput.focus();
+      showToast("Masukkan kode kuis, lalu bagikan kode itu ke siswa.");
+    });
+  }
+
+  /* Kode kuis: huruf besar, hanya huruf/angka, maksimal 6 karakter */
+  if (quizCodeInput) {
+    quizCodeInput.addEventListener("input", () => {
+      quizCodeInput.value = quizCodeInput.value
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, "")
+        .slice(0, 6);
+    });
+  }
+
+  /* Isi otomatis dari tautan materi-detail.html?code=XXXXXX */
+  const urlCode = new URLSearchParams(location.search).get("code");
+  if (urlCode && quizCodeInput) {
+    quizCodeInput.value = urlCode.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
+  }
 
   /* Tombol lanjut */
   if (typeof btnNext !== "undefined" && btnNext) {
@@ -1415,17 +1698,28 @@ function init() {
     });
   }
 
-  /* Tombol logout (ada di halaman dashboard) */
+  /* Tombol logout guru: dua konfirmasi berurutan */
   const btnLogout = $("#btnLogout");
   if (btnLogout) {
     btnLogout.addEventListener("click", async () => {
+      const yakin = window.confirm("Apakah Anda yakin ingin keluar?");
+      if (!yakin) return;
+
+      const konfirmasi = window.confirm("Konfirmasi sekali lagi, keluar dari akun?");
+      if (!konfirmasi) return;
+
       try { await api("/api/auth/logout", { method: "POST" }); } catch (_) { /* abaikan */ }
       clearToken();
       if (loginForm) loginForm.reset();
-      loginError.classList.remove("show");
+      if (loginError) loginError.classList.remove("show");
       if (registerError) registerError.classList.remove("show");
       showPage("page-home");
     });
+  }
+
+  /* Lanjutkan kuis yang masih berjalan setelah halaman di-refresh */
+  if (document.getElementById("page-quiz")) {
+    restoreQuizSession();
   }
 
   /* Dukungan keyboard: tekan 1-4 untuk memilih opsi, Enter untuk lanjut */

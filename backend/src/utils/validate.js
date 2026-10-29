@@ -42,4 +42,14 @@ function sanitizeStudentName(value, { max = 60 } = {}) {
   return cleaned.slice(0, max);
 }
 
-module.exports = { requireFields, toInt, toBool, sanitizeStudentName };
+/** Visibilitas data: "private" (hanya pemilik) atau "public" (semua guru). */
+function toVisibility(value, fallback = "private") {
+  if (value === undefined || value === null || value === "") return fallback;
+  const normalized = String(value).toLowerCase();
+  if (!["private", "public"].includes(normalized)) {
+    throw ApiError.badRequest('Field "visibility" harus "private" atau "public".');
+  }
+  return normalized;
+}
+
+module.exports = { requireFields, toInt, toBool, toVisibility, sanitizeStudentName };

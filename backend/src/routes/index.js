@@ -9,7 +9,7 @@
 
      GET    /api/materials                  daftar materi (siswa)
      GET    /api/materials/:id              detail materi (siswa)
-     GET    /api/materials/manage           semua materi (guru)
+     GET    /api/materials/manage           materi milik guru + publik (guru)
      POST   /api/materials                  buat materi (guru)
      PUT    /api/materials/:id              ubah materi (guru)
      DELETE /api/materials/:id              hapus materi (guru)
@@ -21,7 +21,8 @@
      PUT    /api/questions/:id              ubah soal (guru)
      DELETE /api/questions/:id              hapus soal (guru)
 
-     POST   /api/quiz/start                 mulai sesi kuis (siswa)
+     POST   /api/quiz/start                 mulai sesi kuis lewat kode (siswa)
+     GET    /api/quiz/session               lanjutkan kuis setelah refresh
      POST   /api/quiz/answer                kirim jawaban (siswa)
      POST   /api/quiz/submit                simpan skor (siswa, {studentName?})
      GET    /api/quiz/results               riwayat skor (guru, ?format=csv)
@@ -72,13 +73,14 @@ router.delete("/materials/:id", authenticate(), materiController.remove);
 router.patch("/materials/:id/publish", authenticate(), materiController.publish);
 
 /* ----------------------------- SET SOAL --------------------------------- */
-router.get("/sets", quizSetController.list);
 router.get("/sets/code/:code", quizSetController.getByCode);
 router.get("/sets/manage", authenticate(), quizSetController.manage);
 router.post("/sets", authenticate(), quizSetController.create);
 router.put("/sets/:id", authenticate(), quizSetController.update);
 router.delete("/sets/:id", authenticate(), quizSetController.remove);
 router.patch("/sets/:id/publish", authenticate(), quizSetController.publish);
+router.post("/sets/:id/code", authenticate(), quizSetController.generateCode);
+router.delete("/sets/:id/code", authenticate(), quizSetController.disableCode);
 
 /* ------------------------------ SOAL ------------------------------------ */
 router.get("/questions", questionController.listPublic);
@@ -89,12 +91,14 @@ router.delete("/questions/:id", authenticate(), questionController.remove);
 
 /* ------------------------------ KUIS ------------------------------------ */
 router.post("/quiz/start", quizController.start);
+router.get("/quiz/session", quizController.session);
 router.post("/quiz/answer", quizController.answer);
 router.post("/quiz/submit", quizController.submit);
 router.get("/quiz/results", authenticate(), quizController.results);
-router.get("/quiz/leaderboard", quizController.leaderboard);
+router.get("/quiz/leaderboard", authenticate(), quizController.leaderboard);
 
 /* --------------------------- DASHBOARD GURU ----------------------------- */
+router.get("/stats", quizController.publicStats);
 router.get("/teacher/stats", authenticate(), teacherController.stats);
 
 module.exports = router;

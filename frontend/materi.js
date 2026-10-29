@@ -145,9 +145,6 @@ async function loadMaterialDetail() {
     /* Isi materi dikirim sebagai HTML oleh pengajar */
     $("#dContent").innerHTML = material.content;
 
-    /* Tombol kuis: muat daftar set soal dari API */
-    await loadQuizSets(material.id);
-
     document.title = material.title + " | Kuis Petualangan Ceria";
     showState("#materiDetail");
   } catch (err) {
@@ -160,49 +157,29 @@ async function loadMaterialDetail() {
   }
 }
 
-/* ======================== DAFTAR SET SOAL (DETAIL) ====================== */
+/* ====================== MASUK KUIS LEWAT KODE =========================== */
 
-async function loadQuizSets(materialId) {
-  const list = $("#quizSetsList");
-  const empty = $("#quizSetsEmpty");
-  if (!list) return;
+function bindCodeEntry() {
+  const form = $("#codeEntryForm");
+  const input = $("#detailCode");
+  if (!form || !input) return;
 
-  try {
-    const data = await api("/api/sets?materialId=" + materialId);
-    const sets = data.sets || [];
+  input.addEventListener("input", () => {
+    input.value = input.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
+  });
 
-    if (!sets.length) {
-      list.innerHTML = "";
-      if (empty) empty.classList.remove("hidden");
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const code = input.value.trim().toUpperCase();
+
+    if (code.length !== 6) {
+      showToast("Kode kuis terdiri dari 6 karakter.");
+      input.focus();
       return;
     }
 
-    if (empty) empty.classList.add("hidden");
-    list.innerHTML = "";
-
-    sets.forEach(function (set, index) {
-      const card = document.createElement("a");
-      card.className = "quiz-set-card";
-      card.href = "index.html?set=" + set.id;
-      card.style.animationDelay = index * 0.08 + "s";
-
-      card.innerHTML =
-                '<div class="quiz-set-info">' +
-          "<strong>" + set.title + "</strong>" +
-          (set.description ? "<p>" + set.description + "</p>" : "") +
-          '<span class="quiz-set-count">' + set.question_count + " soal</span>" +
-        "</div>" +
-        '<span class="quiz-set-go">Mulai</span>';
-
-      list.appendChild(card);
-    });
-  } catch (err) {
-    if (list) list.innerHTML = "";
-    if (empty) {
-      empty.textContent = "Gagal memuat set soal.";
-      empty.classList.remove("hidden");
-    }
-  }
+    location.href = "index.html?code=" + encodeURIComponent(code);
+  });
 }
 
 /* ============================== INISIALISASI ============================= */
@@ -210,4 +187,5 @@ async function loadQuizSets(materialId) {
 document.addEventListener("DOMContentLoaded", () => {
   loadMaterials();
   loadMaterialDetail();
+  bindCodeEntry();
 });

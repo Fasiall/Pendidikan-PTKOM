@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&amp;family=Nunito:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="theme.css?v=3">
+  <link rel="stylesheet" href="theme.css?v=9">
 </head>
 <body>
 
@@ -39,11 +39,16 @@
       <div class="materi-content" id="dContent"></div>
 
       <div class="materi-cta">
-        <!-- Daftar set soal (diisi oleh materi.js) -->
+        <!-- Siswa masuk kuis lewat kode dari guru -->
         <div class="quiz-sets-wrap" id="quizSetsWrap">
-          <h3 class="quiz-sets-title">Pilih set soal</h3>
-          <div class="quiz-sets-list" id="quizSetsList"></div>
-          <p class="quiz-sets-empty hidden" id="quizSetsEmpty">Belum ada set soal untuk materi ini.</p>
+          <h3 class="quiz-sets-title">Punya kode kuis?</h3>
+          <form class="code-entry-form" id="codeEntryForm" novalidate>
+            <input type="text" id="detailCode" maxlength="6" autocomplete="off"
+                   spellcheck="false" placeholder="Contoh: A7K2M9"
+                   aria-label="Kode kuis dari guru">
+            <button class="btn btn-start btn-small" type="submit">Masuk kuis</button>
+          </form>
+          <p class="quiz-sets-empty">Minta kode 6 karakter kepada gurumu, ya!</p>
         </div>
         <a class="btn btn-ghost" href="materi.html">Semua materi</a>
       </div>
@@ -64,6 +69,6 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="materi.js?v=4"></script>
+  <script src="materi.js?v=6"></script>
 </body>
 </html>
