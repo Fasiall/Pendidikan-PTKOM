@@ -22,11 +22,11 @@
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <!-- File styling utama -->
-  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="stylesheet" href="style.css?v=6">
   <link rel="stylesheet" href="theme.css?v=1">
-  <link rel="stylesheet" href="theme-extra.css?v=3">
+  <link rel="stylesheet" href="theme-extra.css?v=6">
   <link rel="stylesheet" href="home.css?v=1">
-  <link rel="stylesheet" href="navbar.css?v=1">
+  <link rel="stylesheet" href="navbar.css?v=2">
 </head>
 <body>
 
@@ -128,11 +128,6 @@
       <div class="hero-container">
 
         <div class="hero-content">
-          <!-- Pill Badge di Atas -->
-          <div class="badge-wrapper">
-            <span class="pill-badge">Belajar seru untuk semua siswa</span>
-          </div>
-
           <!-- Judul Utama -->
           <h1 class="main-title" id="mainTitle" aria-label="Kuis Petualangan Ceria"><span class="t-word tw-kuis">Kuis</span> <span class="t-word tw-petualangan">Petualangan</span> <span class="t-word tw-ceria">Ceria</span></h1>
 
@@ -528,7 +523,7 @@
         <div class="admin-grid">
 
           <!-- Form tambah / ubah set soal -->
-          <form class="admin-card" id="setForm" novalidate>
+          <form class="admin-card" id="setForm" novalidate autocomplete="off">
             <div class="admin-card-header">
               <span class="card-kicker">MANAJEMEN KUIS</span>
               <h4 id="setFormTitle">Tambah Set Soal Baru</h4>
@@ -537,21 +532,21 @@
 
             <div class="field">
               <label for="sSetTitle">Judul Set Soal <span class="req-star">*</span></label>
-              <input type="text" id="sSetTitle" placeholder="Mis. Latihan Mudah" maxlength="160">
+              <input type="text" id="sSetTitle" name="set_title_quiz" placeholder="Mis. Latihan Mudah" maxlength="160" autocomplete="off">
             </div>
 
             <div class="field">
               <label for="sSetDesc">Deskripsi (opsional)</label>
-              <input type="text" id="sSetDesc" placeholder="Keterangan singkat" maxlength="300">
+              <input type="text" id="sSetDesc" name="set_desc_quiz" placeholder="Keterangan singkat" maxlength="300" autocomplete="off">
             </div>
 
             <div class="field">
               <label for="sSetTime">Waktu Pengerjaan (menit)</label>
-              <input type="number" id="sSetTime" placeholder="0 untuk tanpa batas waktu" min="0">
+              <input type="number" id="sSetTime" name="set_time_quiz" placeholder="0 untuk tanpa batas waktu" min="0" autocomplete="off">
             </div>
 
             <label class="check-line">
-              <input type="checkbox" id="sSetPublish" checked>
+              <input type="checkbox" id="sSetPublish" name="set_publish_quiz" checked>
               <span>Publikasikan untuk siswa</span>
             </label>
 
@@ -602,23 +597,11 @@
 
       <!-- ================= TAB 2: KELOLA SOAL ================= -->
       <section class="tab-panel" id="tabSoal">
-        <div class="dash-notice-banner">
-          <div class="dash-notice-icon"><i data-lucide="pen-tool"></i></div>
-          <div class="dash-notice-content">
-            <div class="dash-notice-top">
-              <span class="badge-pill badge-primary">STUDIO SOAL</span>
-              <span class="dash-notice-meta">ISOLASI AKUN PENGAJAR</span>
-            </div>
-            <p class="dash-notice-text">
-              Soal dirancang dan tersimpan eksklusif di akun pengajar Anda. Tentukan set kuis tujuan, susun butir pertanyaan, dan tandai radio untuk menetapkan <strong>kunci jawaban yang benar</strong>.
-            </p>
-          </div>
-        </div>
 
         <div class="admin-grid">
 
           <!-- Form tambah / ubah soal modern -->
-          <form class="admin-card editor-card" id="soalForm" novalidate>
+          <form class="admin-card editor-card" id="soalForm" novalidate autocomplete="off">
             <div class="admin-card-header">
               <span class="card-kicker">PENYUSUN SOAL</span>
               <h4 id="soalFormTitle">Tambah Soal Baru</h4>
@@ -627,12 +610,12 @@
 
             <div class="field">
               <label for="qSet">Set Kuis / Soal Tujuan <span class="req-star">*</span></label>
-              <select id="qSet" required></select>
+              <select id="qSet" name="soal_quiz_set" required autocomplete="off"></select>
             </div>
 
             <div class="field">
               <label for="qQuestion">Pertanyaan <span class="req-star">*</span></label>
-              <textarea id="qQuestion" rows="3" placeholder="Mis. Berapa hasil dari 12 + 7 ?"></textarea>
+              <textarea id="qQuestion" name="soal_question" rows="3" placeholder="Mis. Berapa hasil dari 12 + 7 ?" autocomplete="off"></textarea>
             </div>
 
             <!-- Editor Pilihan Jawaban Visual & Kunci Jawaban Benar -->
@@ -647,60 +630,56 @@
               <div class="options-creator-list" id="optionsCreatorList">
                 <div class="option-create-item is-correct" data-idx="0">
                   <label class="opt-radio-wrapper" title="Jadikan Kunci Jawaban Benar">
-                    <input type="radio" name="optCorrectRadio" value="0" checked>
+                    <input type="radio" name="optCorrectRadio" value="0" checked autocomplete="off">
                     <span class="opt-badge-letter">A</span>
                   </label>
-                  <input type="text" class="opt-input-text" id="optInput0" placeholder="Pilihan jawaban A" required>
+                  <input type="text" class="opt-input-text" id="optInput0" name="soal_option_0" placeholder="Pilihan jawaban A" required autocomplete="off">
                   <span class="opt-correct-status" title="Jawaban ini ditandai sebagai yang benar"><i data-lucide="check"></i> Kunci</span>
                 </div>
 
                 <div class="option-create-item" data-idx="1">
                   <label class="opt-radio-wrapper" title="Jadikan Kunci Jawaban Benar">
-                    <input type="radio" name="optCorrectRadio" value="1">
+                    <input type="radio" name="optCorrectRadio" value="1" autocomplete="off">
                     <span class="opt-badge-letter">B</span>
                   </label>
-                  <input type="text" class="opt-input-text" id="optInput1" placeholder="Pilihan jawaban B" required>
+                  <input type="text" class="opt-input-text" id="optInput1" name="soal_option_1" placeholder="Pilihan jawaban B" required autocomplete="off">
                   <span class="opt-correct-status"><i data-lucide="check"></i> Kunci</span>
                 </div>
 
                 <div class="option-create-item" data-idx="2">
                   <label class="opt-radio-wrapper" title="Jadikan Kunci Jawaban Benar">
-                    <input type="radio" name="optCorrectRadio" value="2">
+                    <input type="radio" name="optCorrectRadio" value="2" autocomplete="off">
                     <span class="opt-badge-letter">C</span>
                   </label>
-                  <input type="text" class="opt-input-text" id="optInput2" placeholder="Pilihan jawaban C">
+                  <input type="text" class="opt-input-text" id="optInput2" name="soal_option_2" placeholder="Pilihan jawaban C" autocomplete="off">
                   <span class="opt-correct-status"><i data-lucide="check"></i> Kunci</span>
                 </div>
 
                 <div class="option-create-item" data-idx="3">
                   <label class="opt-radio-wrapper" title="Jadikan Kunci Jawaban Benar">
-                    <input type="radio" name="optCorrectRadio" value="3">
+                    <input type="radio" name="optCorrectRadio" value="3" autocomplete="off">
                     <span class="opt-badge-letter">D</span>
                   </label>
-                  <input type="text" class="opt-input-text" id="optInput3" placeholder="Pilihan jawaban D">
+                  <input type="text" class="opt-input-text" id="optInput3" name="soal_option_3" placeholder="Pilihan jawaban D" autocomplete="off">
                   <span class="opt-correct-status"><i data-lucide="check"></i> Kunci</span>
                 </div>
               </div>
             </div>
 
             <div class="admin-row">
-              <div class="field">
+              <div class="field field-half">
                 <label for="adSubject">Topik / Mapel</label>
-                <input type="text" id="adSubject" placeholder="Mis. Matematika" list="subjectList">
+                <input type="text" id="adSubject" name="soal_subject" placeholder="Mis. Matematika" list="subjectList" autocomplete="off">
               </div>
-              <div class="field">
+              <div class="field field-half">
                 <label for="qMaterial">Materi Terkait (opsional)</label>
-                <select id="qMaterial"></select>
-              </div>
-              <div class="field field-narrow">
-                <label for="adEmoji">Emoji</label>
-                <input type="text" id="adEmoji" value="❓" maxlength="4">
+                <select id="qMaterial" name="soal_material" autocomplete="off"></select>
               </div>
             </div>
 
             <div class="field">
               <label for="qFact">Penjelasan Singkat (tampil setelah siswa menjawab)</label>
-              <input type="text" id="qFact" placeholder="Mis. 12 + 7 = 19">
+              <input type="text" id="qFact" name="soal_fact" placeholder="Mis. 12 + 7 = 19" autocomplete="off">
             </div>
 
             <div class="form-actions">
@@ -756,7 +735,7 @@
   <div class="toast-container" id="toastContainer" role="region" aria-label="Notifikasi" aria-live="polite"></div>
 
   <!-- File logika utama kuis -->
-  <script src="script.js?v=7"></script>
+  <script src="script.js?v=10"></script>
   <script src="home.js?v=1"></script>
 </body>
 </html>

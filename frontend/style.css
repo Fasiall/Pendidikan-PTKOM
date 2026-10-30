@@ -3612,7 +3612,7 @@ i[data-lucide] {
 /* Baris input tambahan */
 #tabSoal .admin-row {
   display: grid;
-  grid-template-columns: 1fr 1fr 90px;
+  grid-template-columns: 1fr 1fr;
   gap: 14px;
 }
 @media (max-width: 640px) {
@@ -4565,67 +4565,6 @@ body.login-modal-open .floating-bg {
   color: #FFFFFF;
 }
 
-/* Banner Informasi Dashboard */
-#page-dashboard .dash-notice-banner {
-  background: linear-gradient(135deg, rgba(238, 242, 255, 0.95) 0%, rgba(240, 253, 244, 0.95) 100%);
-  border: 2px solid #C7D2FE;
-  border-radius: 20px;
-  padding: 18px 24px;
-  margin-bottom: 26px;
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  box-shadow: 0 8px 20px -6px rgba(79, 70, 229, 0.05);
-}
-
-#page-dashboard .dash-notice-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  background: #4F46E5;
-  color: #FFFFFF;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.28);
-}
-#page-dashboard .dash-notice-icon svg,
-#page-dashboard .dash-notice-icon i {
-  width: 22px;
-  height: 22px;
-}
-
-#page-dashboard .dash-notice-top {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 6px;
-  flex-wrap: wrap;
-}
-
-#page-dashboard .dash-notice-meta {
-  font-family: var(--font-display);
-  font-size: 0.8rem;
-  font-weight: 800;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
-  color: #64748B;
-}
-
-#page-dashboard .dash-notice-text {
-  font-family: inherit;
-  font-size: 0.95rem;
-  color: #334155;
-  margin: 0;
-  line-height: 1.55;
-}
-#page-dashboard .dash-notice-text strong {
-  color: #1E293B;
-  font-weight: 800;
-}
-
 /* Grid Manajemen */
 #page-dashboard .admin-grid {
   display: grid;
@@ -4850,9 +4789,8 @@ body.login-modal-open .floating-bg {
   border-radius: 16px;
   padding: 16px 20px;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
+  flex-direction: column;
+  gap: 12px;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
@@ -4868,8 +4806,7 @@ body.login-modal-open .floating-bg {
   display: flex;
   align-items: flex-start;
   gap: 14px;
-  flex: 1;
-  min-width: 0;
+  width: 100%;
 }
 
 #page-dashboard .set-card-thumb {
@@ -4894,6 +4831,9 @@ body.login-modal-open .floating-bg {
 #page-dashboard .set-card-body {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 #page-dashboard .set-card-headline {
@@ -4931,38 +4871,7 @@ body.login-modal-open .floating-bg {
   flex-wrap: wrap;
 }
 
-/* Status Pill (Publik / Draf) */
-#page-dashboard .set-status-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
-  border-radius: 9999px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
-}
-
-#page-dashboard .set-status-pill.published {
-  background: #ECFDF5;
-  color: #059669;
-  border: 1px solid #A7F3D0;
-}
-
-#page-dashboard .set-status-pill.draft {
-  background: #FFFBEB;
-  color: #D97706;
-  border: 1px solid #FDE68A;
-}
-
-#page-dashboard .set-status-pill svg {
-  width: 12px;
-  height: 12px;
-  stroke-width: 2.2px;
-}
-
-/* Meta Pills (Soal / Durasi) */
+/* Meta Pills (Status, Soal, Durasi) - Unified Style */
 #page-dashboard .set-meta-pill {
   display: inline-flex;
   align-items: center;
@@ -4974,6 +4883,8 @@ body.login-modal-open .floating-bg {
   font-weight: 600;
   padding: 3px 9px;
   border-radius: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 #page-dashboard .set-meta-pill svg {
@@ -4981,6 +4892,30 @@ body.login-modal-open .floating-bg {
   height: 13px;
   color: #64748B;
   stroke-width: 2px;
+}
+
+/* Status variants using meta-pill base */
+#page-dashboard .set-meta-pill.set-status-pill.published {
+  background: #ECFDF5;
+  border-color: #A7F3D0;
+  color: #059669;
+}
+#page-dashboard .set-meta-pill.set-status-pill.draft {
+  background: #FFFBEB;
+  border-color: #FDE68A;
+  color: #D97706;
+}
+#page-dashboard .set-meta-pill.set-status-pill svg {
+  width: 12px;
+  height: 12px;
+  stroke-width: 2.2px;
+}
+
+/* Code row - separate line below meta pills */
+#page-dashboard .set-card-meta.set-code-row {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed #E2E8F0;
 }
 
 /* Kode Kuis Badge & Copy Button */
@@ -5056,12 +4991,15 @@ body.login-modal-open .floating-bg {
   border-color: #059669 !important;
 }
 
-/* Action Controls (Manage Questions + Action Buttons) */
+/* Action Controls (Manage Questions + Action Buttons) - Bottom Row */
 #page-dashboard .set-card-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px solid #F1F5F9;
+  flex-wrap: wrap;
 }
 
 #page-dashboard .btn-manage-q {
@@ -5080,6 +5018,7 @@ body.login-modal-open .floating-bg {
   gap: 7px;
   white-space: nowrap;
   box-shadow: 0 2px 6px rgba(79, 70, 229, 0.2);
+  flex-shrink: 0;
 }
 
 #page-dashboard .btn-manage-q svg {
@@ -5107,6 +5046,7 @@ body.login-modal-open .floating-bg {
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-shrink: 0;
 }
 
 #page-dashboard .action-btn-ui {
@@ -5199,16 +5139,21 @@ body.login-modal-open .floating-bg {
   line-height: 1.45;
 }
 
-@media (max-width: 768px) {
-  #page-dashboard .set-card-item {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 14px;
+@media (max-width: 380px) {
+  #page-dashboard .set-card-meta {
+    gap: 6px;
+  }
+  #page-dashboard .set-meta-pill {
+    font-size: 0.72rem;
+    padding: 2px 7px;
   }
   #page-dashboard .set-card-actions {
-    justify-content: space-between;
-    border-top: 1px solid #F1F5F9;
-    padding-top: 12px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  #page-dashboard .set-action-buttons {
+    justify-content: flex-end;
   }
 }
 
@@ -5536,6 +5481,186 @@ body.login-modal-open .floating-bg {
   color: #64748B;
   font-size: 0.95rem;
   font-weight: 600;
+}
+
+/* Grouped Riwayat Siswa Styles */
+#page-dashboard .results-list .quiz-group-card {
+  background: #FFFFFF;
+  border: 2px solid #E2E8F0;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.02);
+}
+
+#page-dashboard .results-list .quiz-group-card:hover {
+  border-color: #818CF8;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px -4px rgba(79, 70, 229, 0.08);
+}
+
+#page-dashboard .results-list .quiz-group-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  cursor: pointer;
+  user-select: none;
+}
+
+#page-dashboard .results-list .quiz-group-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+  border: 1.5px solid #FCD34D;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #D97706;
+  flex-shrink: 0;
+}
+
+#page-dashboard .results-list .quiz-group-icon i {
+  width: 22px;
+  height: 22px;
+}
+
+#page-dashboard .results-list .quiz-group-info {
+  flex: 1;
+  min-width: 0;
+}
+
+#page-dashboard .results-list .quiz-group-title {
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1E293B;
+  display: block;
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#page-dashboard .results-list .quiz-group-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 0.82rem;
+  color: #64748B;
+}
+
+#page-dashboard .results-list .quiz-group-avg {
+  background: #EEF2FF;
+  color: #4F46E5;
+  border: 1px solid #C7D2FE;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  display: inline-block;
+}
+
+#page-dashboard .results-list .quiz-group-count {
+  background: #F1F5F9;
+  color: #475569;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  display: inline-block;
+  font-weight: 600;
+}
+
+#page-dashboard .results-list .quiz-group-code {
+  background: #ECFDF5;
+  color: #059669;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  display: inline-block;
+  font-family: var(--font-mono, monospace);
+  font-weight: 600;
+}
+
+#page-dashboard .results-list .quiz-group-latest {
+  font-size: 0.8rem;
+  color: #94A3B8;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+#page-dashboard .results-list .quiz-group-toggle {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: #F1F5F9;
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, background 0.2s ease;
+  flex-shrink: 0;
+}
+
+#page-dashboard .results-list .quiz-group-toggle i {
+  width: 18px;
+  height: 18px;
+}
+
+#page-dashboard .results-list .quiz-group-header:hover .quiz-group-toggle {
+  background: #E2E8F0;
+}
+
+#page-dashboard .results-list .quiz-group-attempts {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-top: 1px solid #E2E8F0;
+  background: #FAFAFA;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+#page-dashboard .results-list .quiz-group-attempts:not(.hidden) {
+  max-height: 500px;
+  padding: 12px 0 4px 0;
+}
+
+#page-dashboard .results-list .quiz-group-attempts li {
+  background: transparent;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 20px;
+  margin: 0 16px 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px -2px rgba(0, 0, 0, 0.03);
+}
+
+#page-dashboard .results-list .quiz-group-attempts li:hover {
+  background: #FFFFFF;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px -4px rgba(79, 70, 229, 0.08);
+}
+
+#page-dashboard .results-list .quiz-group-attempts .ql-num {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  font-size: 1rem;
+}
+
+#page-dashboard .results-list .quiz-group-attempts strong {
+  font-size: 0.94rem;
+  font-weight: 600;
+}
+
+#page-dashboard .results-list .quiz-group-attempts .ql-text {
+  font-size: 0.85rem;
+  color: #64748B;
 }
 
 /* ==========================================================================

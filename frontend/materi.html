@@ -19,11 +19,11 @@
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <!-- File styling utama -->
-  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="stylesheet" href="style.css?v=6">
   <link rel="stylesheet" href="theme.css?v=1">
-  <link rel="stylesheet" href="theme-extra.css?v=3">
+  <link rel="stylesheet" href="theme-extra.css?v=6">
   <link rel="stylesheet" href="materi-list.css?v=2">
-  <link rel="stylesheet" href="navbar.css?v=1">
+  <link rel="stylesheet" href="navbar.css?v=2">
 </head>
 <body>
 
@@ -48,7 +48,6 @@
     <header class="mlist-head">
       <a class="mlist-back" href="index.html" title="Kembali ke halaman awal" aria-label="Kembali ke halaman awal"><i data-lucide="arrow-left"></i></a>
       <div class="mlist-head-text">
-        <span class="mlist-badge">Belajar dulu, baru kuis</span>
         <h1 class="mlist-title">Materi Belajar</h1>
       </div>
       <span class="mlist-count" id="materiCount">0 materi</span>
@@ -141,9 +140,68 @@
 
   </div>
 
+  <!-- =====================================================
+       MODAL LOGIN KREATOR SOAL (untuk data-page="page-login")
+  ====================================================== -->
+  <div class="login-modal-overlay" id="modalLogin" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="loginModalTitle">
+    <div class="login-modal-card">
+      <button class="modal-close" id="btnCloseModalLogin" aria-label="Tutup modal login"><i data-lucide="x"></i></button>
+
+      <div class="login-wrapper">
+        <div class="login-card-modern">
+          <div class="login-badge-wrap">
+            <div class="login-avatar-circle" aria-hidden="true"><i data-lucide="shield-check"></i></div>
+          </div>
+          <h2 class="login-title" id="loginModalTitle">Area Guru</h2>
+          <p class="login-desc">Masuk untuk membuat materi, soal, dan memantau hasil kuis siswa.</p>
+
+          <div class="google-auth-wrapper">
+            <div class="google-btn-container" id="googleBtnContainer"></div>
+          </div>
+
+          <div class="auth-security-badge">
+            <i data-lucide="lock"></i>
+            <span>Login aman dengan enkripsi</span>
+          </div>
+
+          <div class="auth-divider"><span>atau</span></div>
+
+          <button class="btn-toggle-manual" id="btnToggleManualLogin" type="button">
+            <i data-lucide="mail"></i>
+            <span>Masuk dengan username & password</span>
+          </button>
+
+          <form id="loginForm" novalidate style="display: none;">
+            <div class="field" style="text-align: left;">
+              <label for="username">Username atau email</label>
+              <div class="input-wrap">
+                <input type="text" id="username" name="username"
+                       placeholder="Masukkan username atau email" autocomplete="username">
+              </div>
+            </div>
+
+            <div class="field" style="text-align: left;">
+              <label for="password">Password</label>
+              <div class="input-wrap">
+                <input type="password" id="password" name="password"
+                       placeholder="Masukkan password" autocomplete="current-password">
+                <button type="button" class="toggle-pass" id="togglePass" data-label="true"
+                        aria-label="Tampilkan password">Lihat</button>
+              </div>
+            </div>
+
+            <p class="form-error" id="loginError" role="alert"></p>
+
+            <button class="btn btn-login" type="submit" style="width: 100%;">Masuk</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="toast-container" id="toastContainer" role="region" aria-label="Notifikasi" aria-live="polite"></div>
 
-  <script src="materi.js?v=4"></script>
+  <script src="materi.js?v=5"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function() {
       if (window.lucide) lucide.createIcons();

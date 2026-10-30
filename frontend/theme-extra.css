@@ -2234,60 +2234,6 @@
 
 .opt-correct-status i { width: 12px; height: 12px; }
 
-/* Dashboard notice banner */
-.dash-notice-banner {
-  display: flex;
-  gap: 16px;
-  padding: 20px;
-  background: linear-gradient(135deg, var(--accent-soft), var(--purple-soft));
-  border: 2px solid var(--ink);
-  border-radius: 20px;
-  margin-bottom: 24px;
-  box-shadow: 0 4px 0 rgba(43,42,74,.1);
-}
-
-.dash-notice-icon {
-  width: 48px;
-  height: 48px;
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  background: #fff;
-  border: 2px solid var(--ink);
-  border-radius: 14px;
-  color: var(--accent);
-  box-shadow: 0 3px 0 rgba(43,42,74,.12);
-}
-
-.dash-notice-icon i { width: 24px; height: 24px; }
-
-.dash-notice-content { flex: 1; }
-
-.dash-notice-top {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
-  flex-wrap: wrap;
-}
-
-.dash-notice-meta {
-  font-size: .68rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-  color: var(--accent);
-}
-
-.dash-notice-text {
-  font-size: .88rem;
-  line-height: 1.7;
-  color: var(--ink);
-  margin: 0;
-}
-
-.dash-notice-text strong { color: var(--ink); }
-
 /* Question list (tab riwayat) */
 .question-list {
   list-style: none;

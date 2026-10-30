@@ -17,6 +17,7 @@ const stats = asyncHandler(async (req, res) => {
               COUNT(q.id)::int AS question_count
          FROM materials m
          LEFT JOIN questions q ON q.material_id = m.id AND q.teacher_id = $1
+        WHERE m.author_id = $1
         GROUP BY m.id
         ORDER BY m.position, m.id`,
       [teacherId]
@@ -35,26 +36,29 @@ const stats = asyncHandler(async (req, res) => {
       `SELECT qs.id, qs.title, qs.access_code, qs.is_published, qs.time_limit,
               COUNT(q.id)::int AS question_count
          FROM quiz_sets qs
-         LEFT JOIN questions q ON q.quiz_set_id = qs.id AND q.teacher_id = qs.teacher_id
+         LEFT JOIN questions q ON q.quiz_set_id = qs.id AND q.teacher_id = $1
         WHERE qs.teacher_id = $1
         GROUP BY qs.id
         ORDER BY qs.id`,
       [teacherId]
     ),
     pool.query(
-      `SELECT r.score, r.total, r.student_name, r.created_at
+      `SELECT r.score, r.total, r.student_name, r.created_at,
+              qs.id AS quiz_set_id, qs.title AS quiz_set_title
          FROM results r
-         INNER JOIN quiz_sets qs ON qs.id = r.quiz_set_id AND qs.teacher_id = $1
+         LEFT JOIN quiz_sets qs ON qs.id = r.quiz_set_id
+        WHERE qs.teacher_id = $1
         ORDER BY r.id DESC LIMIT 1`,
       [teacherId]
     ),
     pool.query(
       `SELECT r.id, r.student_name, r.score, r.total, r.created_at,
-              m.title AS material_title, qs.title AS quiz_set_title
+              m.title AS material_title, qs.title AS quiz_set_title, qs.id AS quiz_set_id, qs.access_code
          FROM results r
          LEFT JOIN materials m ON m.id = r.material_id
-         INNER JOIN quiz_sets qs ON qs.id = r.quiz_set_id AND qs.teacher_id = $1
+         LEFT JOIN quiz_sets qs ON qs.id = r.quiz_set_id
         WHERE qs.teacher_id = $1
+           OR (qs.id IS NULL AND m.author_id = $1)
         ORDER BY r.id DESC
         LIMIT 10`,
       [teacherId]
