@@ -3,26 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Kuis Petualangan Ceria - Website kuis interaktif yang seru untuk seluruh siswa">
-  <meta name="theme-color" content="#6a4cff">
-  <title>Kuis Petualangan Ceria | Kuis Interaktif Siswa</title>
+  <meta name="description" content="Kuis Petualangan Ceria - Platform kuis interaktif dan materi belajar untuk siswa">
+  <meta name="theme-color" content="#4F46E5">
+  <title>Kuis Petualangan Ceria | Platform Belajar Interaktif</title>
 
-  <!-- Ikon tab browser (emoji burung hantu) -->
+  <!-- Ikon tab browser (burung hantu pintar) -->
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%A6%89%3C/text%3E%3C/svg%3E">
 
-  <!-- Tipografi -->
+  <!-- Google Fonts: Baloo 2 + Nunito (DESAIN) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&amp;family=Nunito:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons Vector Library (pinned) -->
+  <script src="https://unpkg.com/lucide@0.294.0"></script>
+
+  <!-- Google Identity Services (GIS) untuk Login Pengajar -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <!-- File styling utama -->
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="theme.css?v=9">
+  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="stylesheet" href="theme.css?v=1">
+  <link rel="stylesheet" href="theme-extra.css?v=3">
+  <link rel="stylesheet" href="home.css?v=1">
+  <link rel="stylesheet" href="navbar.css?v=1">
 </head>
 <body>
 
   <!-- =====================================================
-       LAPISAN HIASAN: emoji melayang di latar belakang
+       LAPISAN HIASAN: Ikon edukasi minimalis & subtle di latar
        (diisi otomatis oleh script.js)
   ====================================================== -->
   <div class="decor-layer" id="decorLayer" aria-hidden="true"></div>
@@ -33,301 +42,334 @@
   <div class="confetti-layer" id="confettiLayer" aria-hidden="true"></div>
 
   <!-- =====================================================
-       FLASH EFEK: kedipan layar hijau (benar) / merah muda (salah)
+       FLASH EFEK: kedipan layar hijau (benar) / merah (salah)
   ====================================================== -->
   <div class="fx-flash" id="fxFlash" aria-hidden="true"><span id="fxEmoji"></span></div>
 
   <!-- Notifikasi bila JavaScript tidak aktif -->
   <noscript>
-    <div class="noscript-note">Halaman ini membutuhkan JavaScript agar kuis dapat berjalan.</div>
+    <div class="noscript-note">⚠️ Halaman ini membutuhkan JavaScript agar kuis dapat berjalan.</div>
   </noscript>
+
+  <!-- =====================================================
+       MODAL MASUKKAN KODE KUIS
+  ====================================================== -->
+  <div class="modal-overlay" id="modalJoinQuiz">
+    <div class="modal-card" style="max-width: 420px;">
+      <button class="modal-close" id="btnCloseModalJoin" aria-label="Tutup"><i data-lucide="x"></i></button>
+      <div class="modal-header-icon" style="margin: 0 auto 14px auto;"><i data-lucide="key-round"></i></div>
+      <h3 style="text-align:center; font-size: 1.4rem; font-weight: 800; margin-bottom: 6px;">Masukkan Kode Kuis</h3>
+      <p style="text-align:center; color:var(--text-sub); margin-bottom: 20px; font-size: 0.95rem;">
+        Masukkan 6 digit kode kuis yang diberikan oleh gurumu atau dari Kreator Soal.
+      </p>
+      <div class="input-wrap" style="margin-bottom: 20px;">
+        <input type="text" id="joinCodeInput" placeholder="A1B2C3" maxlength="6" autocomplete="off" style="text-align:center; font-size: 1.6rem; text-transform: uppercase; letter-spacing: 6px; font-weight: 800; font-family: monospace;">
+      </div>
+      <button class="btn btn-3d btn-primary" id="btnSubmitJoin" style="width: 100%;">
+        <span>Mulai Kuis</span> <i data-lucide="arrow-right"></i>
+      </button>
+      <p class="form-error" id="joinError" style="text-align:center; margin-top:12px; font-size: 0.9rem;"></p>
+    </div>
+  </div>
+
+  <!-- =====================================================
+       MODAL KONFIRMASI LOGOUT
+  ====================================================== -->
+  <div class="modal-overlay" id="modalLogoutConfirm">
+    <div class="modal-card" style="max-width: 400px;">
+      <button class="modal-close" id="btnCloseModalLogout" aria-label="Tutup"><i data-lucide="x"></i></button>
+      <div class="modal-header-icon" style="margin: 0 auto 14px auto;"><i data-lucide="log-out" style="color: var(--accent);"></i></div>
+      <h3 style="text-align:center; font-size: 1.4rem; font-weight: 800; margin-bottom: 6px;">Keluar dari Akun?</h3>
+      <p style="text-align:center; color:var(--text-sub); margin-bottom: 24px; font-size: 0.95rem;">
+        Apakah Anda yakin ingin keluar dari area guru? Anda perlu login kembali untuk mengakses dashboard.
+      </p>
+      <div style="display: flex; gap: 12px;">
+        <button class="btn btn-3d btn-secondary" id="btnCancelLogout" style="flex: 1;">
+          <i data-lucide="x"></i> <span>Batal</span>
+        </button>
+        <button class="btn btn-3d btn-danger" id="btnConfirmLogout" style="flex: 1;">
+          <i data-lucide="log-out"></i> <span>Ya, Keluar</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+    <!-- =========================================================
+       HEADER NAVIGASI PERSISTEN & FULL SCREEN (SEMUA HALAMAN)
+  ========================================================== -->
+  <header class="home-nav">
+    <a href="index.html" class="nav-brand" data-page="page-home" aria-label="Kuis Ceria - ke beranda">
+      <span class="nav-brand-icon" aria-hidden="true">KC</span>
+      <span class="nav-title">Kuis Ceria</span>
+    </a>
+    <nav class="nav-menu" aria-label="Navigasi utama">
+      <a href="index.html" class="nav-link active" data-page="page-home"><span>Beranda</span></a>
+      <a href="materi.html" class="nav-link"><span>Materi</span></a>
+      <a href="#homeFeatures" class="nav-link" data-scroll="homeFeatures"><span>Fitur</span></a>
+    </nav>
+    <a href="login.html" class="nav-cta" data-page="page-login" title="Buat &amp; kelola kuis"><span>Area guru</span></a>
+  </header>
 
   <!-- =========================================================
        HALAMAN 1: HALAMAN UTAMA (SISWA)
   ========================================================== -->
   <section class="page active" id="page-home">
 
-    <!-- Header Navigasi Atas yang Modern -->
-    <header class="home-nav">
-      <div class="nav-brand">
-        <span class="nav-logo" aria-hidden="true">KC</span>
-        <span class="nav-title">Kuis Ceria</span>
-      </div>
-      <nav class="nav-menu">
-        <a href="#page-home" class="nav-link active" data-page="page-home">Beranda</a>
-        <a href="materi.html" class="nav-link">Materi</a>
-        <a href="#homeFeatures" class="nav-link">Fitur</a>
-      </nav>
-      <!-- Tombol Area Guru -->
-      <button class="area-guru" type="button" data-page="page-login">Area guru</button>
-    </header>
-
-    <!-- Animated background blobs & scenery -->
+    <!-- Ambient Glow Blobs Minimalis & Elegan -->
     <div class="hero-blobs" aria-hidden="true">
       <div class="blob blob-1"></div>
       <div class="blob blob-2"></div>
       <div class="blob blob-3"></div>
-      <div class="blob blob-4"></div>
-      <div class="floating-balloon">🎈</div>
-      <div class="floating-cloud cloud-1">☁️</div>
-      <div class="floating-cloud cloud-2">☁️</div>
-    </div>
-
-    <!-- Pemandangan bukit kartun ceria di latar bawah -->
-    <div class="landscape-hills" aria-hidden="true">
-      <svg class="hills-svg" viewBox="0 0 1440 260" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="hillGrad1" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#A7F3D0" stop-opacity="0.5"/>
-            <stop offset="100%" stop-color="#6EE7B7" stop-opacity="0.3"/>
-          </linearGradient>
-          <linearGradient id="hillGrad2" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#86EFAC" stop-opacity="0.6"/>
-            <stop offset="100%" stop-color="#4ADE80" stop-opacity="0.4"/>
-          </linearGradient>
-          <linearGradient id="hillGrad3" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#4ADE80" stop-opacity="0.7"/>
-            <stop offset="100%" stop-color="#22C55E" stop-opacity="0.5"/>
-          </linearGradient>
-        </defs>
-        <path d="M0,90 C320,30 540,120 860,60 C1140,10 1320,80 1440,50 L1440,260 L0,260 Z" fill="url(#hillGrad1)"/>
-        <path d="M0,130 C260,70 560,150 920,95 C1220,55 1360,130 1440,110 L1440,260 L0,260 Z" fill="url(#hillGrad2)"/>
-        <path d="M0,175 C380,120 720,185 1060,140 C1280,115 1390,165 1440,150 L1440,260 L0,260 Z" fill="url(#hillGrad3)"/>
-      </svg>
     </div>
 
     <div class="home-inner">
 
-      <!-- Pill Badge di Atas -->
-      <div class="badge-wrapper">
-        <span class="pill-badge">Belajar seru untuk semua siswa</span>
+      <!-- HERO INTERAKTIF: Layout Terpusat Modern -->
+      <div class="hero-container">
+
+        <div class="hero-content">
+          <!-- Pill Badge di Atas -->
+          <div class="badge-wrapper">
+            <span class="pill-badge">Belajar seru untuk semua siswa</span>
+          </div>
+
+          <!-- Judul Utama -->
+          <h1 class="main-title" id="mainTitle" aria-label="Kuis Petualangan Ceria"><span class="t-word tw-kuis">Kuis</span> <span class="t-word tw-petualangan">Petualangan</span> <span class="t-word tw-ceria">Ceria</span></h1>
+
+          <!-- Subtitle Deskripsi -->
+          <p class="hero-subtitle">
+            Ayo uji pengetahuanmu lewat soal-soal seru tentang Matematika, IPA, Bahasa Indonesia, dan umum!
+          </p>
+
+          <!-- Input Nama Siswa & Action Hub -->
+          <div class="student-action-box">
+            <div class="student-input-group">
+              <label for="studentName" class="student-label">
+                Nama kamu
+              </label>
+              <div class="input-with-icon">
+                <input type="text" id="studentName" maxlength="60" placeholder="Tulis namamu di sini..." autocomplete="off">
+              </div>
+              <p class="student-name-error hidden" id="studentNameError" role="alert">
+                <i data-lucide="alert-circle"></i>
+                <span>Silakan tuliskan namamu terlebih dahulu!</span>
+              </p>
+            </div>
+
+            <!-- Tombol Utama Memulai Kuis & Belajar (3D Pushable) -->
+            <div class="hero-actions">
+              <button class="btn btn-3d btn-primary btn-start" id="btnStart" type="button">
+                <span>Mulai kuis</span>
+              </button>
+              <a class="btn btn-3d btn-secondary btn-materi" href="materi.html">
+                <span>Baca materi belajar</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Maskot burung hantu (kolom kanan hero) -->
+          <div class="hero-mascot-center">
+            <div class="mascot-card">
+
+            <svg class="mascot-svg" viewBox="0 0 240 230" xmlns="http://www.w3.org/2000/svg"
+                 role="img" aria-label="Maskot burung hantu pintar dan keren">
+              <defs>
+                <!-- Gradien Badan (DESAIN purple palette) -->
+                <linearGradient id="owlBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#8B5CF6"/>
+                  <stop offset="45%" stop-color="#7C3AED"/>
+                  <stop offset="100%" stop-color="#5B21B6"/>
+                </linearGradient>
+                <!-- Gradien Highlight Badan -->
+                <linearGradient id="owlHighlight" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#C4B5FD" stop-opacity="0.8"/>
+                  <stop offset="100%" stop-color="#7C3AED" stop-opacity="0"/>
+                </linearGradient>
+                <!-- Gradien Sayap Kiri -->
+                <linearGradient id="owlWingL" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#A78BFA"/>
+                  <stop offset="100%" stop-color="#6D28D9"/>
+                </linearGradient>
+                <!-- Gradien Sayap Kanan (Melambai) -->
+                <linearGradient id="owlWingR" x1="100%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#A78BFA"/>
+                  <stop offset="100%" stop-color="#6D28D9"/>
+                </linearGradient>
+                <!-- Gradien Perut -->
+                <linearGradient id="owlTummy" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#FFFFFF"/>
+                  <stop offset="100%" stop-color="#FEF3C7"/>
+                </linearGradient>
+                <!-- Gradien Iris Mata -->
+                <radialGradient id="owlIris" cx="35%" cy="35%" r="65%">
+                  <stop offset="0%" stop-color="#38BDF8"/>
+                  <stop offset="60%" stop-color="#0284C7"/>
+                  <stop offset="100%" stop-color="#0F172A"/>
+                </radialGradient>
+                <!-- Gradien Paruh -->
+                <linearGradient id="owlBeak" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#FCD34D"/>
+                  <stop offset="100%" stop-color="#F59E0B"/>
+                </linearGradient>
+                <!-- Gradien Kaki -->
+                <linearGradient id="owlFeet" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#FDE047"/>
+                  <stop offset="100%" stop-color="#EA580C"/>
+                </linearGradient>
+                <!-- Gradien Topi Wisuda -->
+                <linearGradient id="capGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#3730A3"/>
+                  <stop offset="100%" stop-color="#1E1B4B"/>
+                </linearGradient>
+                <!-- Gradien Emas Topi -->
+                <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#FDE047"/>
+                  <stop offset="100%" stop-color="#D97706"/>
+                </linearGradient>
+                <!-- Bayangan lembut -->
+                <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
+                  <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#4C1D95" flood-opacity="0.25"/>
+                </filter>
+              </defs>
+
+              <!-- Jambul / Telinga Kiri & Kanan (DESAIN colors) -->
+              <path class="owl-ear ear-left" d="M68 85 C55 50 62 26 78 28 C88 40 92 65 92 82 Z" fill="#6D28D9"/>
+              <path class="owl-ear ear-right" d="M172 85 C185 50 178 26 162 28 C152 40 148 65 148 82 Z" fill="#6D28D9"/>
+              <path d="M72 78 C64 52 70 36 78 35 C84 45 86 65 86 78 Z" fill="#A78BFA" opacity="0.6"/>
+              <path d="M168 78 C176 52 170 36 162 35 C156 45 154 65 154 78 Z" fill="#A78BFA" opacity="0.6"/>
+
+              <g class="owl-foot" id="footLeft">
+                <ellipse cx="84" cy="204" rx="10" ry="7" fill="url(#owlFeet)"/>
+                <ellipse cx="96" cy="205" rx="10" ry="7" fill="url(#owlFeet)"/>
+                <ellipse cx="108" cy="204" rx="9" ry="6" fill="url(#owlFeet)"/>
+              </g>
+              <g class="owl-foot" id="footRight">
+                <ellipse cx="132" cy="204" rx="9" ry="6" fill="url(#owlFeet)"/>
+                <ellipse cx="144" cy="205" rx="10" ry="7" fill="url(#owlFeet)"/>
+                <ellipse cx="156" cy="204" rx="10" ry="7" fill="url(#owlFeet)"/>
+              </g>
+
+              <ellipse cx="120" cy="130" rx="78" ry="75" fill="url(#owlBodyGrad)" filter="url(#softShadow)"/>
+              <ellipse cx="120" cy="74" rx="42" ry="16" fill="url(#owlHighlight)"/>
+
+              <g class="owl-wing wing-left">
+                <path d="M48 116 C28 136 28 175 48 190 C62 186 66 160 62 135 C60 125 54 118 48 116 Z" fill="url(#owlWingL)"/>
+                <path d="M44 140 C34 154 36 174 48 182 C52 170 54 155 52 142 Z" fill="#C4B5FD" opacity="0.4"/>
+              </g>
+
+              <g class="owl-wing wing-right waving-wing">
+                <path d="M192 116 C212 136 212 175 192 190 C178 186 174 160 178 135 C180 125 186 118 192 116 Z" fill="url(#owlWingR)"/>
+                <path d="M196 140 C206 154 204 174 192 182 C188 170 186 155 188 142 Z" fill="#C4B5FD" opacity="0.4"/>
+              </g>
+
+              <ellipse cx="120" cy="144" rx="52" ry="50" fill="url(#owlTummy)"/>
+              <!-- Motif Bulu Halus Chevron di Perut (DESAIN color) -->
+              <path d="M110 128 Q120 134 130 128" stroke="#E5E7EB" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+              <path d="M102 144 Q112 150 122 144" stroke="#E5E7EB" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+              <path d="M120 144 Q130 150 140 144" stroke="#E5E7EB" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+              <path d="M110 160 Q120 166 130 160" stroke="#E5E7EB" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+
+              <circle cx="68" cy="136" r="11" fill="#FF8BA7" opacity="0.75"/>
+              <circle cx="172" cy="136" r="11" fill="#FF8BA7" opacity="0.75"/>
+
+              <g class="owl-eye eye-left">
+                <circle cx="90" cy="108" r="28" fill="#FFFFFF" stroke="#6D28D9" stroke-width="2.5"/>
+                <circle cx="93" cy="109" r="17" fill="url(#owlIris)"/>
+                <circle cx="95" cy="110" r="11" fill="#0F172A"/>
+                <circle cx="99" cy="105" r="4.5" fill="#FFFFFF"/>
+                <circle cx="91" cy="115" r="2.2" fill="#FFFFFF"/>
+              </g>
+
+              <g class="owl-eye eye-right">
+                <circle cx="150" cy="108" r="28" fill="#FFFFFF" stroke="#6D28D9" stroke-width="2.5"/>
+                <circle cx="147" cy="109" r="17" fill="url(#owlIris)"/>
+                <circle cx="145" cy="110" r="11" fill="#0F172A"/>
+                <circle cx="149" cy="105" r="4.5" fill="#FFFFFF"/>
+                <circle cx="141" cy="115" r="2.2" fill="#FFFFFF"/>
+              </g>
+
+              <path d="M120 120 L132 134 Q120 148 108 134 Z" fill="url(#owlBeak)" filter="url(#softShadow)"/>
+              <path d="M116 124 Q120 123 124 124 Q126 130 120 134 Z" fill="#FEF3C7" opacity="0.6"/>
+
+              <g class="owl-grad-cap">
+                <path d="M96 52 C96 46 144 46 144 52 L140 60 C140 64 100 64 100 60 Z" fill="#1E1B4B"/>
+                <path d="M98 56 Q120 60 142 56" stroke="url(#goldGrad)" stroke-width="2" fill="none"/>
+                <polygon points="120,26 166,42 120,54 74,42" fill="url(#capGrad)" stroke="#4338CA" stroke-width="1.5" filter="url(#softShadow)"/>
+                <circle cx="120" cy="40" r="3.5" fill="url(#goldGrad)"/>
+                <path class="tassel-string" d="M120 40 Q150 44 158 58" stroke="url(#goldGrad)" stroke-width="2" fill="none"/>
+                <polygon class="tassel-brush" points="155,58 163,58 165,70 153,70" fill="url(#goldGrad)"/>
+              </g>
+            </svg>
+
+            <div class="mascot-shadow"></div>
+              <div class="speech-bubble">
+                <span>Halo! Ayo main kuis.</span>
+              </div>
+
+          </div>
+        </div>
+
       </div>
 
-      <!-- Judul dengan animasi meloncat (huruf dipisah oleh JS) -->
-      <h1 class="main-title" id="mainTitle">Kuis Petualangan Ceria</h1>
-
-      <!-- Subtitle Deskripsi -->
-      <p class="home-sub">
-        Ayo uji pengetahuanmu lewat soal-soal seru tentang
-        Matematika, IPA, Bahasa Indonesia, dan umum!
-      </p>
-
-      <!-- Maskot burung hantu pintar & keren (SVG Modern) -->
-      <div class="mascot-wrap">
-        <div class="speech">Halo! Ayo main kuis.</div>
-
-        <svg class="mascot" viewBox="0 0 240 230" xmlns="http://www.w3.org/2000/svg"
-             role="img" aria-label="Maskot burung hantu pintar dan keren">
-          <defs>
-            <!-- Gradien Badan -->
-            <linearGradient id="owlBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#8B5CF6"/>
-              <stop offset="45%" stop-color="#7C3AED"/>
-              <stop offset="100%" stop-color="#5B21B6"/>
-            </linearGradient>
-            <!-- Gradien Highlight Badan -->
-            <linearGradient id="owlHighlight" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color="#C4B5FD" stop-opacity="0.8"/>
-              <stop offset="100%" stop-color="#7C3AED" stop-opacity="0"/>
-            </linearGradient>
-            <!-- Gradien Sayap Kiri -->
-            <linearGradient id="owlWingL" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#A78BFA"/>
-              <stop offset="100%" stop-color="#6D28D9"/>
-            </linearGradient>
-            <!-- Gradien Sayap Kanan (Melambai) -->
-            <linearGradient id="owlWingR" x1="100%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color="#A78BFA"/>
-              <stop offset="100%" stop-color="#6D28D9"/>
-            </linearGradient>
-            <!-- Gradien Perut -->
-            <linearGradient id="owlTummy" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color="#FFFFFF"/>
-              <stop offset="100%" stop-color="#FEF3C7"/>
-            </linearGradient>
-            <!-- Gradien Iris Mata -->
-            <radialGradient id="owlIris" cx="35%" cy="35%" r="65%">
-              <stop offset="0%" stop-color="#38BDF8"/>
-              <stop offset="60%" stop-color="#0284C7"/>
-              <stop offset="100%" stop-color="#0F172A"/>
-            </radialGradient>
-            <!-- Gradien Paruh -->
-            <linearGradient id="owlBeak" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color="#FCD34D"/>
-              <stop offset="100%" stop-color="#F59E0B"/>
-            </linearGradient>
-            <!-- Gradien Kaki -->
-            <linearGradient id="owlFeet" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color="#FDE047"/>
-              <stop offset="100%" stop-color="#EA580C"/>
-            </linearGradient>
-            <!-- Gradien Topi Wisuda -->
-            <linearGradient id="capGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#3730A3"/>
-              <stop offset="100%" stop-color="#1E1B4B"/>
-            </linearGradient>
-            <!-- Gradien Emas Topi -->
-            <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#FDE047"/>
-              <stop offset="100%" stop-color="#D97706"/>
-            </linearGradient>
-            <!-- Bayangan lembut -->
-            <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
-              <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#4C1D95" flood-opacity="0.25"/>
-            </filter>
-          </defs>
-
-          <!-- Jambul / Telinga Kiri & Kanan -->
-          <path class="owl-ear ear-left" d="M68 85 C55 50 62 26 78 28 C88 40 92 65 92 82 Z" fill="#6D28D9"/>
-          <path class="owl-ear ear-right" d="M172 85 C185 50 178 26 162 28 C152 40 148 65 148 82 Z" fill="#6D28D9"/>
-          <path d="M72 78 C64 52 70 36 78 35 C84 45 86 65 86 78 Z" fill="#A78BFA" opacity="0.6"/>
-          <path d="M168 78 C176 52 170 36 162 35 C156 45 154 65 154 78 Z" fill="#A78BFA" opacity="0.6"/>
-
-          <!-- Kaki Oranye 3D (3 Jari masing-masing) -->
-          <g class="owl-foot" id="footLeft">
-            <ellipse cx="84" cy="204" rx="10" ry="7" fill="url(#owlFeet)"/>
-            <ellipse cx="96" cy="205" rx="10" ry="7" fill="url(#owlFeet)"/>
-            <ellipse cx="108" cy="204" rx="9" ry="6" fill="url(#owlFeet)"/>
-          </g>
-          <g class="owl-foot" id="footRight">
-            <ellipse cx="132" cy="204" rx="9" ry="6" fill="url(#owlFeet)"/>
-            <ellipse cx="144" cy="205" rx="10" ry="7" fill="url(#owlFeet)"/>
-            <ellipse cx="156" cy="204" rx="10" ry="7" fill="url(#owlFeet)"/>
-          </g>
-
-          <!-- Badan Burung Hantu -->
-          <ellipse cx="120" cy="130" rx="78" ry="75" fill="url(#owlBodyGrad)" filter="url(#softShadow)"/>
-          <!-- Kilau Bulu di Atas Kepala -->
-          <ellipse cx="120" cy="74" rx="42" ry="16" fill="url(#owlHighlight)"/>
-
-          <!-- Sayap Kiri -->
-          <g class="owl-wing wing-left">
-            <path d="M48 116 C28 136 28 175 48 190 C62 186 66 160 62 135 C60 125 54 118 48 116 Z" fill="url(#owlWingL)"/>
-            <path d="M44 140 C34 154 36 174 48 182 C52 170 54 155 52 142 Z" fill="#C4B5FD" opacity="0.4"/>
-          </g>
-
-          <!-- Sayap Kanan (Pose Melambai Menyapa Siswa) -->
-          <g class="owl-wing wing-right waving-wing">
-            <path d="M192 116 C212 136 212 175 192 190 C178 186 174 160 178 135 C180 125 186 118 192 116 Z" fill="url(#owlWingR)"/>
-            <path d="M196 140 C206 154 204 174 192 182 C188 170 186 155 188 142 Z" fill="#C4B5FD" opacity="0.4"/>
-          </g>
-
-          <!-- Perut Bulat Lembut Krem -->
-          <ellipse cx="120" cy="144" rx="52" ry="50" fill="url(#owlTummy)"/>
-
-          <!-- Motif Bulu Halus Chevron di Perut -->
-          <path d="M110 128 Q120 134 130 128" stroke="#E5E7EB" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-          <path d="M102 144 Q112 150 122 144" stroke="#E5E7EB" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-          <path d="M120 144 Q130 150 140 144" stroke="#E5E7EB" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-          <path d="M110 160 Q120 166 130 160" stroke="#E5E7EB" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-
-          <!-- Pipi Merah Merona (Blush) -->
-          <circle cx="68" cy="136" r="11" fill="#FF8BA7" opacity="0.75"/>
-          <circle cx="172" cy="136" r="11" fill="#FF8BA7" opacity="0.75"/>
-
-          <!-- MATA BESAR EKSPRESIF -->
-          <g class="owl-eye eye-left">
-            <circle cx="90" cy="108" r="28" fill="#FFFFFF" stroke="#6D28D9" stroke-width="2.5"/>
-            <circle cx="93" cy="109" r="17" fill="url(#owlIris)"/>
-            <circle cx="95" cy="110" r="11" fill="#0F172A"/>
-            <circle cx="99" cy="105" r="4.5" fill="#FFFFFF"/>
-            <circle cx="91" cy="115" r="2.2" fill="#FFFFFF"/>
-          </g>
-
-          <g class="owl-eye eye-right">
-            <circle cx="150" cy="108" r="28" fill="#FFFFFF" stroke="#6D28D9" stroke-width="2.5"/>
-            <circle cx="147" cy="109" r="17" fill="url(#owlIris)"/>
-            <circle cx="145" cy="110" r="11" fill="#0F172A"/>
-            <circle cx="149" cy="105" r="4.5" fill="#FFFFFF"/>
-            <circle cx="141" cy="115" r="2.2" fill="#FFFFFF"/>
-          </g>
-
-          <!-- Paruh 3D Oranye Mengkilap -->
-          <path d="M120 120 L132 134 Q120 148 108 134 Z" fill="url(#owlBeak)" filter="url(#softShadow)"/>
-          <path d="M116 124 Q120 123 124 124 Q126 130 120 134 Z" fill="#FEF3C7" opacity="0.6"/>
-
-          <!-- TOPI WISUDA PINTAR (Graduation Cap) -->
-          <g class="owl-grad-cap">
-            <path d="M96 52 C96 46 144 46 144 52 L140 60 C140 64 100 64 100 60 Z" fill="#1E1B4B"/>
-            <path d="M98 56 Q120 60 142 56" stroke="url(#goldGrad)" stroke-width="2" fill="none"/>
-            <polygon points="120,26 166,42 120,54 74,42" fill="url(#capGrad)" stroke="#4338CA" stroke-width="1.5" filter="url(#softShadow)"/>
-            <circle cx="120" cy="40" r="3.5" fill="url(#goldGrad)"/>
-            <path class="tassel-string" d="M120 40 Q150 44 158 58" stroke="url(#goldGrad)" stroke-width="2" fill="none"/>
-            <polygon class="tassel-brush" points="155,58 163,58 165,70 153,70" fill="url(#goldGrad)"/>
-          </g>
-
-          <!-- Sparkle Bintang Kecil Magis -->
-          <g class="owl-sparkles">
-            <path class="sparkle sp-1" d="M46 62 Q50 62 50 58 Q50 62 54 62 Q50 62 50 66 Q50 62 46 62 Z" fill="#FDE047"/>
-            <path class="sparkle sp-2" d="M192 70 Q196 70 196 66 Q196 70 200 70 Q196 70 196 74 Q196 70 192 70 Z" fill="#FDE047"/>
-            <path class="sparkle sp-3" d="M184 196 Q187 196 187 193 Q187 196 190 196 Q187 196 187 199 Q187 196 184 196 Z" fill="#38BDF8"/>
-          </g>
-        </svg>
-
-        <div class="mascot-shadow"></div>
-      </div>
-
-      <!-- Card Input Nama Siswa (Centered) -->
-      <div class="student-card-center">
-        <label for="studentName" class="student-label">Nama kamu</label>
-        <div class="input-with-icon">
-          <input type="text" id="studentName" maxlength="60" placeholder="Tulis namamu di sini...">
+      <!-- Stats counter cards -->
+      <div class="home-stats-grid" aria-label="Ringkasan kuis">
+        <div class="stat-card stat-card-soal">
+          <span class="stat-number" id="homeStatSoal">–</span>
+          <span class="stat-label">Soal tersedia</span>
+        </div>
+        <div class="stat-card stat-card-mapel">
+          <span class="stat-number" id="homeStatMapel">–</span>
+          <span class="stat-label">Mata pelajaran</span>
+        </div>
+        <div class="stat-card stat-card-siswa">
+          <span class="stat-number" id="homeStatSiswa">–</span>
+          <span class="stat-label">Siswa aktif</span>
         </div>
       </div>
 
-      <!-- Kode kuis dari guru (wajib sebelum mulai) -->
-      <div class="student-card-center code-card-center">
-        <label for="quizCode" class="student-label">Kode kuis dari gurumu</label>
-        <div class="input-with-icon code-input-wrap">
-          <input type="text" id="quizCode" maxlength="6" autocomplete="off" spellcheck="false"
-                 placeholder="Contoh: A7K2M9">
-        </div>
-        <p class="code-hint">Minta kode 6 huruf/angka kepada gurumu, ya!</p>
-      </div>
-
-      <!-- Tombol Utama Memulai Kuis & Belajar (Centered) -->
-      <div class="hero-actions-center">
-        <button class="btn btn-start" id="btnStart" type="button">
-          Mulai kuis
-        </button>
-        <a class="btn btn-materi" href="materi.html">
-          Baca materi belajar
-        </a>
-      </div>
-
-      <!-- Stats counter row -->
-      <div class="home-stats">
-        <div class="home-stat-item">
-          <span class="home-stat-num" id="homeStatQuestions" data-count="0">0</span>
-          <span class="home-stat-label">Soal Tersedia</span>
-        </div>
-        <div class="home-stat-divider"></div>
-        <div class="home-stat-item">
-          <span class="home-stat-num" id="homeStatMaterials" data-count="0">0</span>
-          <span class="home-stat-label">Mata Pelajaran</span>
-        </div>
-        <div class="home-stat-divider"></div>
-        <div class="home-stat-item">
-          <span class="home-stat-num" id="homeStatStudents" data-count="0">0</span>
-          <span class="home-stat-label">Siswa Aktif</span>
-        </div>
-      </div>
-
-      <!-- 3 kartu fitur -->
+      <!-- 3 kartu fitur bernilai tinggi -->
       <div class="home-cards" id="homeFeatures">
-        <div class="mini-card">
+        <div class="mini-card mini-card-soal">
+          <div class="mini-card-icon" aria-hidden="true">🎯</div>
           <h3>Soal Seru</h3>
           <p>Matematika, IPA, Bahasa &amp; Pengetahuan Umum</p>
         </div>
-        <div class="mini-card">
+        <div class="mini-card mini-card-skor">
+          <div class="mini-card-icon" aria-hidden="true">⭐</div>
           <h3>Skor Bintang</h3>
           <p>Kumpulkan bintang sebagai tanda keberhasilanmu</p>
         </div>
-        <div class="mini-card">
+        <div class="mini-card mini-card-animasi">
+          <div class="mini-card-icon" aria-hidden="true">🎉</div>
           <h3>Animasi Ceria</h3>
           <p>Konfeti, efek pop-up, dan transisi yang mulus</p>
         </div>
       </div>
+
+      <!-- Galeri Foto Berjalan Otomatis (Infinite Marquee Slider) -->
+      <section class="gallery-section" aria-label="Galeri Keseruan Belajar">
+        <h2 class="gallery-title">
+          <i data-lucide="camera"></i>
+          Keseruan Belajar Bersama Kuis Ceria
+        </h2>
+        <div class="gallery-marquee">
+          <div class="gallery-track">
+            <!-- 5 foto asli -->
+            <img src="public/1.jpg" alt="Keseruan belajar 1" loading="lazy">
+            <img src="public/2.jpg" alt="Keseruan belajar 2" loading="lazy">
+            <img src="public/3.jpg" alt="Keseruan belajar 3" loading="lazy">
+            <img src="public/4.jpg" alt="Keseruan belajar 4" loading="lazy">
+            <img src="public/5.jpg" alt="Keseruan belajar 5" loading="lazy">
+            <!-- Duplikasi untuk infinite loop mulus -->
+            <img src="public/1.jpg" alt="Keseruan belajar 1" loading="lazy" aria-hidden="true">
+            <img src="public/2.jpg" alt="Keseruan belajar 2" loading="lazy" aria-hidden="true">
+            <img src="public/3.jpg" alt="Keseruan belajar 3" loading="lazy" aria-hidden="true">
+            <img src="public/4.jpg" alt="Keseruan belajar 4" loading="lazy" aria-hidden="true">
+            <img src="public/5.jpg" alt="Keseruan belajar 5" loading="lazy" aria-hidden="true">
+          </div>
+        </div>
+      </section>
 
       <footer class="home-footer">
         <span>Dibuat untuk seluruh siswa Indonesia</span>
@@ -339,19 +381,22 @@
        HALAMAN 2: HALAMAN KUIS (SISWA)
   ========================================================== -->
   <section class="page" id="page-quiz">
+    <!-- Layer Animasi Interaktif Saat Menjawab (Benar / Salah) -->
+    <div class="quiz-anim-overlay" id="quizAnimOverlay" aria-hidden="true"></div>
+
     <div class="quiz-shell">
 
       <!-- Bar atas: tombol home, progress bar, dan skor -->
       <div class="quiz-top">
-        <button class="icon-btn" type="button" data-page="page-home" title="Kembali ke halaman awal">←</button>
+        <button class="icon-btn" type="button" data-page="page-home" title="Kembali ke halaman awal"><i data-lucide="arrow-left"></i></button>
 
         <div class="progress-track" role="progressbar" aria-label="Progres kuis">
           <div class="progress-fill" id="progressFill"></div>
         </div>
 
         <span class="progress-text" id="progressText">1/8</span>
-        <span class="score-chip" id="scoreChip">0 poin</span>
-        <span class="quiz-timer hidden" id="quizTimer">00:00</span>
+        <span class="score-chip" id="scoreChip"><i data-lucide="star" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:2px;fill:currentColor;"></i> 0</span>
+        <span class="quiz-timer hidden" id="quizTimer"><i data-lucide="clock" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:2px;"></i> 00:00</span>
       </div>
 
       <!-- Kartu pertanyaan -->
@@ -359,7 +404,7 @@
         <span class="subject-badge" id="qSubject">Matematika</span>
 
         <!-- Tempat gambar / ilustrasi soal (emoji besar) -->
-        <div class="q-image" id="qImage" aria-hidden="true"></div>
+        <div class="q-image" id="qImage" aria-hidden="true">🧮</div>
 
         <h2 class="q-text" id="qText">Berapa hasil dari 7 + 8?</h2>
 
@@ -371,7 +416,9 @@
       </div>
 
       <!-- Tombol lanjut (muncul setelah menjawab) -->
-      <button class="btn btn-next hidden" id="btnNext" type="button">Lanjut</button>
+      <button class="btn btn-3d btn-primary btn-next hidden" id="btnNext" type="button">
+        <span>Lanjut Soal Berikutnya</span> <i data-lucide="arrow-right"></i>
+      </button>
     </div>
   </section>
 
@@ -380,7 +427,8 @@
   ========================================================== -->
   <section class="page" id="page-result">
     <div class="result-card">
-      <div class="result-emoji" id="resultEmoji"></div>
+      <div class="result-badge-top"><i data-lucide="trophy"></i></div>
+      <div class="result-emoji" id="resultEmoji" style="display:none;">🏆</div>
       <h2 class="result-title" id="resultTitle">Luar Biasa!</h2>
 
       <!-- Rating bintang (dibuat oleh JavaScript, muncul satu per satu) -->
@@ -393,238 +441,102 @@
       </div>
 
       <!-- Pesan motivasi -->
-      <p class="motivation" id="motivation">Hebat! Terus belajar ya.</p>
+      <p class="motivation" id="motivation">Hebat! Terus Belajar ya!</p>
 
       <div class="result-btns">
-        <button class="btn btn-start" id="btnReplay" type="button">Main lagi</button>
-        <button class="btn btn-ghost" type="button" data-page="page-home">Halaman awal</button>
+        <button class="btn btn-3d btn-primary" id="btnReplay" type="button">
+          <i data-lucide="rotate-ccw"></i> <span>Main Lagi</span>
+        </button>
+        <button class="btn btn-ghost" type="button" data-page="page-home">
+          <i data-lucide="home"></i> <span>Halaman Awal</span>
+        </button>
       </div>
     </div>
   </section>
 
-  <!-- =========================================================
-       HALAMAN 4: LOGIN / REGISTRASI PENGAJAR (GURU)
-       Dibuka lewat tombol "Area Guru" di navigasi atas.
-  ========================================================== -->
-  <section class="page" id="page-login">
-    <button class="icon-btn back-home" type="button" data-page="page-home">← Kembali</button>
-
-    <div class="login-card">
-      <div class="login-avatar" id="authAvatar"></div>
-
-      <!-- Tab Switcher: Masuk atau Daftar Akun Baru -->
-      <div class="auth-tabs" role="tablist">
-        <button type="button" class="auth-tab-btn active" id="tabBtnLogin" role="tab" aria-selected="true">Masuk</button>
-        <button type="button" class="auth-tab-btn" id="tabBtnRegister" role="tab" aria-selected="false">Daftar akun</button>
-      </div>
-
-      <!-- FORM LOGIN -->
-      <form id="loginForm" novalidate>
-        <h2>Masuk Area Guru</h2>
-        <p class="login-sub">Kelola materi, soal, dan pantau hasil kuis siswa</p>
-
-        <!-- Input Username -->
-        <div class="field">
-          <label for="username">Username atau email</label>
-          <div class="input-wrap">
-            <input type="text" id="username" name="username"
-                   placeholder="Masukkan username atau email" autocomplete="username">
-          </div>
-        </div>
-
-        <!-- Input Password -->
-        <div class="field">
-          <label for="password">Password</label>
-          <div class="input-wrap">
-            <input type="password" id="password" name="password"
-                   placeholder="Masukkan password" autocomplete="current-password">
-            <button type="button" class="toggle-pass" id="togglePass"
-                    aria-label="Tampilkan password">Lihat</button>
-          </div>
-        </div>
-
-        <!-- Pesan error validasi -->
-        <p class="form-error" id="loginError" role="alert"></p>
-
-        <button class="btn btn-login" type="submit">Masuk</button>
-
-        <p class="register-link">Belum punya akun? <button type="button" class="link-btn" id="linkToRegister">Daftar akun baru gratis</button></p>
-
-        <p class="demo-hint">Demo: username <b>guru</b> • password <b>guru123</b> (atau buat akun barumu sendiri di tab atas)</p>
-      </form>
-
-      <!-- FORM REGISTRASI (DAFTAR AKUN BARU) -->
-      <form id="registerForm" novalidate style="display: none;">
-        <h2>Daftar Akun Baru</h2>
-        <p class="login-sub">Buat akun untuk membuat materi & kuis sendiri</p>
-
-        <!-- Input Username -->
-        <div class="field">
-          <label for="regUsername">Username</label>
-          <div class="input-wrap">
-            <input type="text" id="regUsername" name="username"
-                   placeholder="Pilih username unik" autocomplete="username">
-          </div>
-        </div>
-
-        <!-- Input Email -->
-        <div class="field">
-          <label for="regEmail">Email</label>
-          <div class="input-wrap">
-            <input type="email" id="regEmail" name="email"
-                   placeholder="nama@email.com" autocomplete="email">
-          </div>
-        </div>
-
-        <!-- Input Password -->
-        <div class="field">
-          <label for="regPassword">Password</label>
-          <div class="input-wrap">
-            <input type="password" id="regPassword" name="password"
-                   placeholder="Minimal 6 karakter" autocomplete="new-password">
-            <button type="button" class="toggle-pass" id="toggleRegPass"
-                    aria-label="Tampilkan password">Lihat</button>
-          </div>
-        </div>
-
-        <!-- Input Konfirmasi Password -->
-        <div class="field">
-          <label for="regConfirmPassword">Konfirmasi Password</label>
-          <div class="input-wrap">
-            <input type="password" id="regConfirmPassword" name="confirmPassword"
-                   placeholder="Ulangi password" autocomplete="new-password">
-          </div>
-        </div>
-
-        <!-- Pesan error validasi -->
-        <p class="form-error" id="registerError" role="alert"></p>
-
-        <button class="btn btn-login" type="submit">Daftar & masuk</button>
-
-        <p class="register-link">Sudah punya akun? <button type="button" class="link-btn" id="linkToLogin">Masuk di sini</button></p>
-      </form>
-    </div>
-  </section>
+  <!-- Placeholder halaman login (dialihkan ke popup modal verifikasi login) -->
+  <div class="page" id="page-login" style="display:none!important;" aria-hidden="true"></div>
 
   <!-- =========================================================
        HALAMAN 5: DASHBOARD GURU (tampil setelah login berhasil)
   ========================================================== -->
   <section class="page" id="page-dashboard">
+
     <div class="dash-shell">
 
+      <!-- Header Profil Pengajar Modern -->
       <header class="dash-head">
-        <div>
-          <h2>Halo, <span id="dashTeacherName">Guru</span>.</h2>
-          <p>Berikut ringkasan kuis yang sedang aktif.</p>
+        <div class="dash-user-profile">
+          <div class="dash-avatar-wrapper">
+            <img id="dashTeacherAvatar" class="dash-teacher-avatar hidden" src="" alt="Foto Pengajar" referrerpolicy="no-referrer">
+            <div class="dash-avatar-fallback" id="dashTeacherAvatarFallback">
+              <span id="dashTeacherInitials" class="dash-teacher-initials">G</span>
+            </div>
+          </div>
+          <div class="dash-user-info">
+            <div class="dash-badge-row">
+              <span class="dash-badge-pill"><i data-lucide="shield-check"></i> Area Pengajar & Kreator</span>
+            </div>
+            <h2>Halo, <span id="dashTeacherName">Guru</span>! 👋</h2>
+            <p id="dashTeacherEmail" class="dash-teacher-email">Kelola set soal kuis dan pantau hasil belajar siswa.</p>
+          </div>
         </div>
-        <button class="btn btn-ghost btn-small" id="btnLogout" type="button">Keluar</button>
+        <button class="btn btn-3d btn-secondary btn-small" id="btnLogout" type="button"><i data-lucide="log-out"></i> <span>Keluar</span></button>
       </header>
 
-      <!-- Kartu statistik -->
+      <!-- Kartu statistik cerah & interaktif -->
       <div class="stat-grid">
-        <div class="stat-card">
-          <strong id="statMaterials">0</strong>
-          <small>Materi Belajar</small>
+        <div class="stat-card stat-card-indigo">
+          <div class="stat-icon"><i data-lucide="book-open"></i></div>
+          <div class="stat-info">
+            <strong id="statMaterials" class="stat-number">0</strong>
+            <small class="stat-label">Materi Tersedia</small>
+          </div>
         </div>
-        <div class="stat-card">
-          <strong id="statTotal">0</strong>
-          <small>Jumlah Soal</small>
+        <div class="stat-card stat-card-violet">
+          <div class="stat-icon"><i data-lucide="file-question"></i></div>
+          <div class="stat-info">
+            <strong id="statTotal" class="stat-number">0</strong>
+            <small class="stat-label">Jumlah Soal</small>
+          </div>
         </div>
-        <div class="stat-card">
-          <strong id="statAvgScore">-</strong>
-          <small>Skor Rata-rata</small>
+        <div class="stat-card stat-card-amber">
+          <div class="stat-icon"><i data-lucide="tags"></i></div>
+          <div class="stat-info">
+            <strong id="statTopics" class="stat-number">0</strong>
+            <small class="stat-label">Topik Berbeda</small>
+          </div>
+        </div>
+        <div class="stat-card stat-card-emerald">
+          <div class="stat-icon"><i data-lucide="award"></i></div>
+          <div class="stat-info">
+            <strong id="statAvgScore" class="stat-number">-</strong>
+            <small class="stat-label">Rata-rata Nilai Siswa</small>
+          </div>
         </div>
       </div>
 
-      <!-- Tab navigasi dashboard -->
+      <!-- Tab navigasi dashboard modern -->
       <nav class="dash-tabs" role="tablist">
-        <button class="dash-tab active" type="button" data-tab="tabMateri">Materi</button>
-        <button class="dash-tab" type="button" data-tab="tabSetSoal">Set soal</button>
-        <button class="dash-tab" type="button" data-tab="tabSoal">Soal</button>
-        <button class="dash-tab" type="button" data-tab="tabRiwayat">Riwayat</button>
+        <button class="dash-tab active" type="button" data-tab="tabSetSoal"><i data-lucide="list-checks"></i> <span>Set Soal</span></button>
+        <button class="dash-tab" type="button" data-tab="tabSoal"><i data-lucide="help-circle"></i> <span>Bank Soal</span></button>
+        <button class="dash-tab" type="button" data-tab="tabRiwayat"><i data-lucide="bar-chart-3"></i> <span>Riwayat Siswa</span></button>
       </nav>
 
-      <!-- ================= TAB 1: KELOLA MATERI ================= -->
-      <section class="tab-panel active" id="tabMateri">
-        <div class="admin-grid">
-
-          <!-- Form tambah / ubah materi -->
-          <form class="admin-card" id="materiForm" novalidate>
-            <h4 id="materiFormTitle">Tambah materi baru</h4>
-
-            <div class="field">
-              <label for="mTitle">Judul Materi</label>
-              <input type="text" id="mTitle" placeholder="Mis. Bangun Datar di Sekitar Kita" maxlength="160">
-            </div>
-
-            <div class="field">
-              <label for="mSummary">Deskripsi Singkat</label>
-              <input type="text" id="mSummary" placeholder="Satu kalimat yang bikin penasaran" maxlength="300">
-            </div>
-
-            <div class="admin-row">
-              <div class="field">
-                <label for="mSubject">Mapel</label>
-                <input type="text" id="mSubject" placeholder="Mis. Matematika" list="subjectList">
-              </div>
-              <div class="field field-narrow">
-                <label for="mEmoji">Emoji</label>
-                <input type="text" id="mEmoji" value="📘" maxlength="4">
-              </div>
-            </div>
-
-            <div class="field">
-              <label for="mImage">URL Gambar / Ilustrasi</label>
-              <input type="url" id="mImage" placeholder="https://.../gambar.jpg (opsional)">
-            </div>
-
-            <div class="field">
-              <label for="mContent">Isi Materi (teks panjang / HTML)</label>
-              <textarea id="mContent" rows="7"
-                placeholder="<h2>Judul</h2><p>Tulis penjelasan untuk siswa di sini...</p>"></textarea>
-            </div>
-
-            <label class="check-line">
-              <input type="checkbox" id="mPublish" checked>
-              <span>Publikasikan untuk siswa</span>
-            </label>
-
-            <label class="check-line">
-              <input type="checkbox" id="mVisibility">
-              <span>Bagikan ke semua guru (publik)</span>
-            </label>
-
-            <div class="form-actions">
-              <button class="btn btn-small" id="btnSaveMateri" type="submit">Simpan materi</button>
-              <button class="btn btn-ghost btn-small" id="btnCancelMateri" type="button" hidden>Batal Edit</button>
-            </div>
-            <p class="form-error" id="materiError" role="alert"></p>
-          </form>
-
-          <!-- Daftar materi + aksi ubah/hapus -->
-          <div class="admin-card">
-            <h4>Daftar materi <span class="count-chip" id="materiCount">0</span></h4>
-            <ul class="admin-list" id="materiAdminList"></ul>
-          </div>
-
-        </div>
-      </section>
-
-      <!-- ================= TAB 2: KELOLA SET SOAL ================= -->
-      <section class="tab-panel" id="tabSetSoal">
+      <!-- ================= TAB 1: KELOLA SET SOAL ================= -->
+      <section class="tab-panel active" id="tabSetSoal">
         <div class="admin-grid">
 
           <!-- Form tambah / ubah set soal -->
           <form class="admin-card" id="setForm" novalidate>
-            <h4 id="setFormTitle">Tambah set soal baru</h4>
-
-            <div class="field">
-              <label for="sSetMaterial">Materi Induk</label>
-              <select id="sSetMaterial"></select>
+            <div class="admin-card-header">
+              <span class="card-kicker">MANAJEMEN KUIS</span>
+              <h4 id="setFormTitle">Tambah Set Soal Baru</h4>
+              <p class="card-sub-desc">Buat paket kuis untuk siswa dengan judul dan batasan waktu.</p>
             </div>
 
             <div class="field">
-              <label for="sSetTitle">Judul Set Soal</label>
+              <label for="sSetTitle">Judul Set Soal <span class="req-star">*</span></label>
               <input type="text" id="sSetTitle" placeholder="Mis. Latihan Mudah" maxlength="160">
             </div>
 
@@ -643,50 +555,142 @@
               <span>Publikasikan untuk siswa</span>
             </label>
 
-            <label class="check-line">
-              <input type="checkbox" id="sSetVisibility">
-              <span>Bagikan ke semua guru (publik)</span>
-            </label>
-
             <div class="form-actions">
-              <button class="btn btn-small" id="btnSaveSet" type="submit">Simpan set</button>
-              <button class="btn btn-ghost btn-small" id="btnCancelSet" type="button" hidden>Batal Edit</button>
+              <button class="btn btn-3d btn-primary" id="btnSaveSet" type="submit"><i data-lucide="save"></i> <span>Simpan Set</span></button>
+              <button class="btn btn-ghost" id="btnCancelSet" type="button" hidden>Batal Edit</button>
             </div>
             <p class="form-error" id="setError" role="alert"></p>
           </form>
 
           <!-- Daftar set soal + aksi ubah/hapus -->
           <div class="admin-card">
-            <h4>Daftar set soal <span class="count-chip" id="setCount">0</span></h4>
-            <p class="admin-note">Kode kuis dibuat lewat tombol <b>Buat Kode</b> pada tiap set. Bagikan kode itu ke siswa.</p>
+            <div class="admin-card-header">
+              <span class="card-kicker">INVENTARIS KUIS</span>
+              <h4>Daftar Set Soal <span class="badge-pill badge-primary" id="setCount">0</span></h4>
+              <p class="card-sub-desc">Daftar paket kuis yang telah Anda buat beserta kode akses untuk siswa.</p>
+            </div>
             <ul class="admin-list" id="setAdminList"></ul>
           </div>
 
         </div>
+
+        <!-- Panel Interaktif Atur Soal & Kunci Jawaban Kuis -->
+        <div class="quiz-questions-panel hidden admin-card" id="quizQuestionsManager">
+          <div class="quiz-panel-header">
+            <div class="quiz-panel-title-area">
+              <div class="dash-badge-row">
+                <span class="dash-badge-pill"><i data-lucide="sliders"></i> Pengaturan Kuis</span>
+              </div>
+              <h3 id="mgrSetTitle">Atur Soal & Jawaban Kuis</h3>
+              <p id="mgrSetMeta" class="mgr-meta">Materi: - · Kode Kuis: - · Waktu: -</p>
+            </div>
+            <div class="panel-header-actions">
+              <button class="btn btn-3d btn-primary btn-small" type="button" id="btnMgrAddQuestion">
+                <i data-lucide="plus-circle"></i> <span>Tambah Soal ke Kuis Ini</span>
+              </button>
+              <button class="btn btn-ghost btn-small" type="button" id="btnMgrClose">
+                <i data-lucide="x"></i> <span>Tutup Pengaturan</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="quiz-questions-list" id="mgrQuestionsList">
+            <!-- Diisi dinamis oleh JavaScript -->
+          </div>
+        </div>
       </section>
 
-      <!-- ================= TAB 3: KELOLA SOAL ================= -->
+      <!-- ================= TAB 2: KELOLA SOAL ================= -->
       <section class="tab-panel" id="tabSoal">
+        <div class="dash-notice-banner">
+          <div class="dash-notice-icon"><i data-lucide="pen-tool"></i></div>
+          <div class="dash-notice-content">
+            <div class="dash-notice-top">
+              <span class="badge-pill badge-primary">STUDIO SOAL</span>
+              <span class="dash-notice-meta">ISOLASI AKUN PENGAJAR</span>
+            </div>
+            <p class="dash-notice-text">
+              Soal dirancang dan tersimpan eksklusif di akun pengajar Anda. Tentukan set kuis tujuan, susun butir pertanyaan, dan tandai radio untuk menetapkan <strong>kunci jawaban yang benar</strong>.
+            </p>
+          </div>
+        </div>
+
         <div class="admin-grid">
 
-          <!-- Form tambah / ubah soal -->
-          <form class="admin-card" id="soalForm" novalidate>
-            <h4 id="soalFormTitle">Tambah soal baru</h4>
-
-            <div class="field">
-              <label for="qQuestion">Pertanyaan</label>
-              <textarea id="qQuestion" rows="3" placeholder="Mis. Berapa hasil dari 12 + 7 ?"></textarea>
+          <!-- Form tambah / ubah soal modern -->
+          <form class="admin-card editor-card" id="soalForm" novalidate>
+            <div class="admin-card-header">
+              <span class="card-kicker">PENYUSUN SOAL</span>
+              <h4 id="soalFormTitle">Tambah Soal Baru</h4>
+              <p class="card-sub-desc">Rancang butir pertanyaan dengan opsi jawaban terstruktur untuk set kuis Anda.</p>
             </div>
 
             <div class="field">
-              <label for="qOptions">Pilihan Jawaban (satu per baris)</label>
-              <textarea id="qOptions" rows="4" placeholder="19&#10;20&#10;21&#10;22"></textarea>
+              <label for="qSet">Set Kuis / Soal Tujuan <span class="req-star">*</span></label>
+              <select id="qSet" required></select>
+            </div>
+
+            <div class="field">
+              <label for="qQuestion">Pertanyaan <span class="req-star">*</span></label>
+              <textarea id="qQuestion" rows="3" placeholder="Mis. Berapa hasil dari 12 + 7 ?"></textarea>
+            </div>
+
+            <!-- Editor Pilihan Jawaban Visual & Kunci Jawaban Benar -->
+            <div class="options-creator-container">
+              <div class="options-creator-header">
+                <div>
+                  <label class="field-label-bold">Pilihan Jawaban & Kunci Benar <span class="req-star">*</span></label>
+                  <small class="field-hint">Pilih radio button pada opsi yang merupakan kunci jawaban yang benar.</small>
+                </div>
+              </div>
+
+              <div class="options-creator-list" id="optionsCreatorList">
+                <div class="option-create-item is-correct" data-idx="0">
+                  <label class="opt-radio-wrapper" title="Jadikan Kunci Jawaban Benar">
+                    <input type="radio" name="optCorrectRadio" value="0" checked>
+                    <span class="opt-badge-letter">A</span>
+                  </label>
+                  <input type="text" class="opt-input-text" id="optInput0" placeholder="Pilihan jawaban A" required>
+                  <span class="opt-correct-status" title="Jawaban ini ditandai sebagai yang benar"><i data-lucide="check"></i> Kunci</span>
+                </div>
+
+                <div class="option-create-item" data-idx="1">
+                  <label class="opt-radio-wrapper" title="Jadikan Kunci Jawaban Benar">
+                    <input type="radio" name="optCorrectRadio" value="1">
+                    <span class="opt-badge-letter">B</span>
+                  </label>
+                  <input type="text" class="opt-input-text" id="optInput1" placeholder="Pilihan jawaban B" required>
+                  <span class="opt-correct-status"><i data-lucide="check"></i> Kunci</span>
+                </div>
+
+                <div class="option-create-item" data-idx="2">
+                  <label class="opt-radio-wrapper" title="Jadikan Kunci Jawaban Benar">
+                    <input type="radio" name="optCorrectRadio" value="2">
+                    <span class="opt-badge-letter">C</span>
+                  </label>
+                  <input type="text" class="opt-input-text" id="optInput2" placeholder="Pilihan jawaban C">
+                  <span class="opt-correct-status"><i data-lucide="check"></i> Kunci</span>
+                </div>
+
+                <div class="option-create-item" data-idx="3">
+                  <label class="opt-radio-wrapper" title="Jadikan Kunci Jawaban Benar">
+                    <input type="radio" name="optCorrectRadio" value="3">
+                    <span class="opt-badge-letter">D</span>
+                  </label>
+                  <input type="text" class="opt-input-text" id="optInput3" placeholder="Pilihan jawaban D">
+                  <span class="opt-correct-status"><i data-lucide="check"></i> Kunci</span>
+                </div>
+              </div>
             </div>
 
             <div class="admin-row">
               <div class="field">
-                <label for="qAnswer">Nomor Jawaban Benar</label>
-                <input type="number" id="qAnswer" min="1" max="5" value="1">
+                <label for="adSubject">Topik / Mapel</label>
+                <input type="text" id="adSubject" placeholder="Mis. Matematika" list="subjectList">
+              </div>
+              <div class="field">
+                <label for="qMaterial">Materi Terkait (opsional)</label>
+                <select id="qMaterial"></select>
               </div>
               <div class="field field-narrow">
                 <label for="adEmoji">Emoji</label>
@@ -694,37 +698,25 @@
               </div>
             </div>
 
-            <div class="admin-row">
-              <div class="field">
-                <label for="adSubject">Mapel</label>
-                <input type="text" id="adSubject" placeholder="Mis. IPA" list="subjectList">
-              </div>
-              <div class="field">
-                <label for="qMaterial">Terhubung ke Materi</label>
-                <select id="qMaterial"></select>
-              </div>
-            </div>
-
             <div class="field">
-              <label for="qSet">Set Soal</label>
-              <select id="qSet"></select>
-            </div>
-
-            <div class="field">
-              <label for="qFact">Info Singkat (tampil setelah siswa menjawab)</label>
+              <label for="qFact">Penjelasan Singkat (tampil setelah siswa menjawab)</label>
               <input type="text" id="qFact" placeholder="Mis. 12 + 7 = 19">
             </div>
 
             <div class="form-actions">
-              <button class="btn btn-small" id="btnSaveSoal" type="submit">Simpan soal</button>
-              <button class="btn btn-ghost btn-small" id="btnCancelSoal" type="button" hidden>Batal Edit</button>
+              <button class="btn btn-3d btn-primary" id="btnSaveSoal" type="submit"><i data-lucide="save"></i> <span>Simpan Soal</span></button>
+              <button class="btn btn-ghost" id="btnCancelSoal" type="button" hidden>Batal Edit</button>
             </div>
             <p class="form-error" id="soalError" role="alert"></p>
           </form>
 
           <!-- Daftar soal + aksi ubah/hapus -->
           <div class="admin-card">
-            <h4>Daftar soal <span class="count-chip" id="soalCount">0</span></h4>
+            <div class="admin-card-header">
+              <span class="card-kicker">INVENTARIS</span>
+              <h4>Bank Soal Saya <span class="badge-pill badge-primary" id="soalCount">0</span></h4>
+              <p class="card-sub-desc">Daftar inventaris pertanyaan yang tersimpan pada akun pengajar Anda.</p>
+            </div>
             <ul class="admin-list" id="soalAdminList"></ul>
           </div>
 
@@ -733,18 +725,20 @@
 
       <!-- ================= TAB 3: RIWAYAT & STATISTIK ================= -->
       <section class="tab-panel" id="tabRiwayat">
-        <h3 class="dash-title">Daftar soal</h3>
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <span class="card-kicker">AKTIVITAS SISWA</span>
+            <h4><i data-lucide="history"></i> Riwayat Skor Siswa</h4>
+            <p class="card-sub-desc">Catatan hasil evaluasi dan pengerjaan kuis terbaru oleh siswa.</p>
+          </div>
+          <!-- Riwayat skor dari database (diisi oleh JavaScript) -->
+          <ul class="results-list" id="resultsList"></ul>
 
-        <!-- Daftar soal (diisi oleh JavaScript) -->
-        <ol class="question-list" id="questionList"></ol>
-
-        <h3 class="dash-title">Riwayat skor siswa</h3>
-
-        <!-- Riwayat skor dari database (diisi oleh JavaScript) -->
-        <ul class="results-list" id="resultsList"></ul>
-
-        <div class="dash-actions">
-          <button class="btn btn-start" id="btnGuruMulai" type="button">Mulai kuis siswa</button>
+          <div class="dash-actions" style="margin-top: 24px;">
+            <button class="btn btn-3d btn-primary btn-start" id="btnGuruMulai" type="button">
+              <i data-lucide="play"></i> <span>Mulai Kuis Siswa</span>
+            </button>
+          </div>
         </div>
       </section>
 
@@ -758,10 +752,11 @@
     </div>
   </section>
 
-  <!-- Notifikasi melayang (error/info dari server) -->
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <!-- Container Notifikasi Melayang (Toast System) -->
+  <div class="toast-container" id="toastContainer" role="region" aria-label="Notifikasi" aria-live="polite"></div>
 
   <!-- File logika utama kuis -->
-  <script src="script.js?v=13"></script>
+  <script src="script.js?v=7"></script>
+  <script src="home.js?v=1"></script>
 </body>
 </html>

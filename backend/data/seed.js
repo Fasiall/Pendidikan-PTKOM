@@ -22,6 +22,7 @@ const MATERIALS = [
   {
     title: "Penjumlahan & Perkalian Seru",
     summary: "Belajar tambah dan kali dengan trik mudah ala anak ceria.",
+    image_url: "/public/matematika.jpg",
     emoji: "🧮",
     color: "#FFE8A3",
     subject: "Matematika",
@@ -77,6 +78,7 @@ const MATERIALS = [
   {
     title: "Mengenal Hewan & Lingkungan",
     summary: "Kenali teman-teman hewan dan cara menjaga rumah mereka.",
+    image_url: "/public/ipa.jpg",
     emoji: "🐰",
     color: "#CFF3E1",
     subject: "IPA",
@@ -136,6 +138,7 @@ const MATERIALS = [
   {
     title: "Kata Bersahabat: Sinonim & Antonim",
     summary: "Perkaya kosakata dengan kata persamaan dan lawan kata.",
+    image_url: "/public/indo.jpg",
     emoji: "🌈",
     color: "#FFD9E8",
     subject: "Bahasa Indonesia",
@@ -194,6 +197,7 @@ const MATERIALS = [
   {
     title: "Jelajah Alam: Planet & Kebersihan",
     summary: "Singgah ke planet terdekat dan pelajari cara menjaga bumi.",
+    image_url: "/public/pe%20um.jpg",
     emoji: "🌍",
     color: "#D6E8FF",
     subject: "Pengetahuan Umum",
@@ -248,6 +252,134 @@ const MATERIALS = [
     ],
     quizSets: [
       { title: "Kuis Utama", description: "Set soal bawaan" }
+    ]
+  },
+
+  {
+    title: "Dunia Komputer & Internet Pintar",
+    summary: "Mengenal bagian perangkat keras komputer, cara kerja internet, dan etika berselancar aman di dunia digital.",
+    image_url: "/public/if.jpg",
+    emoji: "💻",
+    color: "#C7D2FE",
+    subject: "Informatika",
+    position: 5,
+    content: `
+      <h2>💻 Menjadi Generasi Digital Cerdas</h2>
+      <p>Komputer dan smartphone adalah alat canggih yang membantu kita belajar, berkomunikasi, dan berkarya. Mari kita pelajari cara kerjanya!</p>
+
+      <h3>1. Hardware (Perangkat Keras)</h3>
+      <p>Hardware adalah bagian fisik komputer yang bisa dilihat dan disentuh secara nyata:</p>
+      <ul>
+        <li><strong>Input (Masukan):</strong> Keyboard untuk mengetik, mouse untuk mengarahkan kursor, mikrofon untuk suara.</li>
+        <li><strong>Process (Pemroses):</strong> CPU (Processor) adalah otak komputer yang memproses semua instruksi.</li>
+        <li><strong>Storage (Penyimpan):</strong> Harddisk atau SSD untuk menyimpan file tugas, dokumen, foto, dan lagu.</li>
+        <li><strong>Output (Keluaran):</strong> Monitor menampilkan gambar, speaker mengeluarkan suara, printer mencetak dokumen.</li>
+      </ul>
+
+      <h3>2. Software (Perangkat Lunak)</h3>
+      <p>Program atau aplikasi tanpa wujud fisik yang memberi instruksi pada komputer, seperti Sistem Operasi (Windows, macOS, Linux, Android) dan browser web.</p>
+
+      <h3>3. Aturan Emas Internet Sehat & Aman</h3>
+      <table>
+        <thead><tr><th>Boleh Dilakukan (Do's)</th><th>Dilarang Dilakukan (Don'ts)</th></tr></thead>
+        <tbody>
+          <tr><td>Gunakan kata sandi (password) yang rumit dan jaga kerahasiaannya</td><td>Memberikan password kepada orang lain atau teman</td></tr>
+          <tr><td>Tanyakan pada orang tua/guru jika melihat hal mencurigakan</td><td>Mengklik tautan asing atau mengunduh file sembarangan</td></tr>
+          <tr><td>Gunakan internet untuk belajar hal positif dan wawasan baru</td><td>Berbicara kasar atau menyebarkan pesan bohong (hoax)</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout">🛡️ <strong>Aturan 20-20-20:</strong> Setiap menatap layar selama 20 menit, istirahatkan mata dengan melihat benda berjarak 20 kaki (6 meter) selama 20 detik!</div>
+    `,
+    questions: [
+      {
+        subject: "Informatika",
+        image: "💻",
+        question: "Bagian komputer yang berfungsi sebagai otak pemroses instruksi adalah?",
+        options: ["Monitor", "CPU / Processor", "Keyboard", "Mouse"],
+        answer: 1,
+        fact: "CPU (Central Processing Unit) adalah otak komputer yang menjalankan seluruh perintah!"
+      },
+      {
+        subject: "Informatika",
+        image: "🌐",
+        question: "Apa yang harus kita lakukan untuk menjaga keamanan akun di internet?",
+        options: [
+          "Memberikan kata sandi ke semua teman",
+          "Membuat kata sandi yang kuat dan merahasiakannya",
+          "Mengklik sembarang link yang mencurigakan",
+          "Menulis kata sandi di tempat umum"
+        ],
+        answer: 1,
+        fact: "Kata sandi yang kuat dan rahasia melindungi informasi pribadi kita di internet!"
+      }
+    ],
+    quizSets: [
+      { title: "Dasar Perangkat Komputer", description: "Hardware vs Software" },
+      { title: "Cerdas Berinternet", description: "Privasi dan keamanan digital anak" }
+    ]
+  },
+
+  {
+    title: "Harmoni Warna & Musik Nusantara",
+    summary: "Mengenal percampuran warna primer, ragam alat musik tradisional daerah, dan keindahan budaya bangsa.",
+    image_url: "/public/sb.jpg",
+    emoji: "🎨",
+    color: "#FED7AA",
+    subject: "Seni Budaya",
+    position: 6,
+    content: `
+      <h2>🎨 Berkreasi dengan Warna & Irama Tradisional</h2>
+      <p>Seni dan budaya membuat hidup kita penuh warna dan kegembiraan. Dari lukisan cerah hingga alunan musik tradisional Indonesia yang mendunia!</p>
+
+      <h3>1. Pencampuran Warna (Teori Roda Warna)</h3>
+      <p>Warna dasar yang tidak bisa dihasilkan dari campuran warna lain disebut <strong>Warna Primer</strong>:</p>
+      <ul>
+        <li><strong>Warna Primer:</strong> Merah, Kuning, dan Biru.</li>
+        <li><strong>Warna Sekunder:</strong> Campuran dua warna primer dengan takaran seimbang:
+          <ul>
+            <li>Merah + Kuning = <strong>Jingga (Orange)</strong></li>
+            <li>Kuning + Biru = <strong>Hijau</strong></li>
+            <li>Biru + Merah = <strong>Ungu</strong></li>
+          </ul>
+        </li>
+      </ul>
+
+      <h3>2. Ragam Alat Musik Tradisional Indonesia</h3>
+      <table>
+        <thead><tr><th>Alat Musik</th><th>Asal Daerah</th><th>Cara Memainkan</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Angklung</strong></td><td>Jawa Barat</td><td>Digoyang sampai menghasilkan bunyi bambu merdu</td></tr>
+          <tr><td><strong>Sasando</strong></td><td>Rote, Nusa Tenggara Timur</td><td>Dipetik seperti harpa bersarang daun lontar</td></tr>
+          <tr><td><strong>Gamelan</strong></td><td>Jawa dan Bali</td><td>Dipukul menggunakan alat pemukul khusus</td></tr>
+          <tr><td><strong>Tifa</strong></td><td>Papua dan Maluku</td><td>Dipukul seperti gendang menggunakan telapak tangan</td></tr>
+          <tr><td><strong>Kolintang</strong></td><td>Sulawesi Utara</td><td>Dipukul bilah-bilah kayunya secara berirama</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout">🎶 <strong>Bangga Budaya:</strong> Angklung Indonesia telah diakui oleh UNESCO sebagai Warisan Budaya Takbenda Dunia sejak tahun 2010!</div>
+    `,
+    questions: [
+      {
+        subject: "Seni Budaya",
+        image: "🎨",
+        question: "Percampuran warna merah dan kuning akan menghasilkan warna apa?",
+        options: ["Hijau", "Jingga (Orange)", "Ungu", "Cokelat"],
+        answer: 1,
+        fact: "Merah + Kuning menghasilkan warna Jingga (Orange) yang hangat!"
+      },
+      {
+        subject: "Seni Budaya",
+        image: "🎵",
+        question: "Alat musik tradisional Angklung berasal dari daerah mana?",
+        options: ["Jawa Barat", "Sumatera Barat", "Papua", "Bali"],
+        answer: 0,
+        fact: "Angklung adalah alat musik bambu khas Jawa Barat yang mendunia!"
+      }
+    ],
+    quizSets: [
+      { title: "Kreativitas Warna & Gambar", description: "Roda warna dan seni rupa" },
+      { title: "Irama Musik Tradisional", description: "Alat musik daerah Nusantara" }
     ]
   }
 ];

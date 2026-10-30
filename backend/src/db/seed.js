@@ -7,8 +7,8 @@
 
 const bcrypt = require("bcryptjs");
 
+const { getPool } = require("./embedded");
 const { TEACHER, MATERIALS } = require("../../data/seed");
-const { generateUniqueCode } = require("../utils/quizCode");
 
 /** Membuat thumbnail SVG sederhana (emoji + warna) sebagai data URI. */
 function svgThumb(emoji, color) {
@@ -21,10 +21,8 @@ function svgThumb(emoji, color) {
   return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
 }
 
-async function seed(poolArg) {
-  /* Pool bisa dikirim pemanggil (skrip db:init) atau diambil dari koneksi
-     yang sudah berjalan saat server menyala. */
-  const pool = poolArg || require("./embedded").getPool();
+async function seed() {
+  const pool = getPool();
 
   /* --------------------------- 1. Akun guru ---------------------------- */
   const { rows: teacherRows } = await pool.query(
@@ -67,7 +65,7 @@ async function seed(poolArg) {
             material.title,
             material.summary,
             material.content.trim(),
-            svgThumb(material.emoji, material.color),
+            material.image_url || svgThumb(material.emoji, material.color),
             material.emoji,
             material.subject,
             material.position,
@@ -80,14 +78,12 @@ async function seed(poolArg) {
         const quizSets = material.quizSets || [{ title: "Kuis Utama", description: "Set soal bawaan" }];
         const setIds = [];
         for (let s = 0; s < quizSets.length; s++) {
-          const accessCode = await generateUniqueCode(client);
+          const accessCode = Math.random().toString(36).substring(2, 8).toUpperCase();
           const { rows: setRows } = await client.query(
-            `INSERT INTO quiz_sets
-               (material_id, title, description, is_published, position,
-                access_code, access_code_active, teacher_id, visibility)
-             VALUES ($1, $2, $3, TRUE, $4, $5, TRUE, $6, 'private')
+            `INSERT INTO quiz_sets (material_id, title, description, is_published, position, access_code)
+             VALUES ($1, $2, $3, TRUE, $4, $5)
              RETURNING id`,
-            [materialId, quizSets[s].title, quizSets[s].description || "", s, accessCode, authorId]
+            [materialId, quizSets[s].title, quizSets[s].description || "", s, accessCode]
           );
           setIds.push(setRows[0].id);
         }
@@ -99,8 +95,8 @@ async function seed(poolArg) {
         for (const question of material.questions || []) {
           await client.query(
             `INSERT INTO questions
-               (material_id, quiz_set_id, subject, image, question, options, answer, fact, position, teacher_id)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+               (material_id, quiz_set_id, subject, image, question, options, answer, fact, position)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
             [
               materialId,
               defaultSetId,
@@ -110,8 +106,7 @@ async function seed(poolArg) {
               JSON.stringify(question.options),
               question.answer,
               question.fact || "",
-              position++,
-              authorId
+              position++
             ]
           );
         }

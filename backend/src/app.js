@@ -15,9 +15,8 @@ const config = require("./config");
 const apiRoutes = require("./routes");
 const { notFoundHandler, errorHandler } = require("./middleware/errorHandler");
 
-function createApp({ pool = null } = {}) {
+function createApp() {
   const app = express();
-  if (config.isProduction) app.set("trust proxy", 1);
   app.disable("x-powered-by");
 
   /* --------------------------- MIDDLEWARE DASAR -------------------------- */
@@ -30,33 +29,20 @@ function createApp({ pool = null } = {}) {
       credentials: true
     })
   );
-  /* Penyimpanan sesi kuis:
-     - Lokal (PostgreSQL embedded) -> MemoryStore, cukup untuk satu proses.
-     - Production / serverless    -> tabel Postgres, agar sesi kuis tetap ada
-       walau request ditangani instance yang berbeda. */
-  const sessionOptions = {
-    name: "kuis.sid",
-    secret: config.session.secret,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      httpOnly: true, // tidak bisa dibaca dari JavaScript
-      sameSite: "lax", // proteksi CSRF ringan
-      secure: config.isProduction, // HTTPS-only di production
-      maxAge: 1000 * 60 * 60 * 2 // 2 jam
-    }
-  };
-
-  if (pool && config.db.useExternal) {
-    const PgStore = require("connect-pg-simple")(session);
-    sessionOptions.store = new PgStore({
-      pool,
-      tableName: "user_sessions",
-      createTableIfMissing: true
-    });
-  }
-
-  app.use(session(sessionOptions));
+  app.use(
+    session({
+      name: "kuis.sid",
+      secret: config.session.secret,
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        httpOnly: true, // tidak bisa dibaca dari JavaScript
+        sameSite: "lax", // proteksi CSRF ringan
+        secure: config.isProduction, // HTTPS-only di production
+        maxAge: 1000 * 60 * 60 * 2 // 2 jam
+      }
+    })
+  );
 
   /* Header keamanan dasar */
   app.use((req, res, next) => {

@@ -4,12 +4,12 @@
    Semua nilai bisa di-override lewat file .env (lihat .env.example).
    ========================================================================== */
 
-require("dotenv").config();
-
 const path = require("path");
 const crypto = require("crypto");
 
-const ROOT = __dirname.replace(/[\\/]+src$/, "");
+const ROOT = path.dirname(__dirname);
+require("dotenv").config({ path: path.join(ROOT, ".env") });
+require("dotenv").config();
 
 /** Ambil nilai env dengan default. */
 function env(name, fallback = undefined) {
@@ -36,10 +36,6 @@ module.exports = {
   frontendDir: path.join(ROOT, "..", "frontend"),
 
   db: {
-    /* Bila DATABASE_URL diisi (mis. Neon di Vercel), PostgreSQL embedded dilewati. */
-    useExternal: Boolean(env("DATABASE_URL")),
-    url: env("DATABASE_URL"),
-
     host: env("PG_HOST", "localhost"),
     port: Number(env("PG_PORT", 5432)),
     user: env("PG_USER", "postgres"),
@@ -58,5 +54,11 @@ module.exports = {
 
   session: {
     secret: env("SESSION_SECRET", "rahasia-sesi-kuis-sd")
+  },
+
+  google: {
+    clientId: env("GOOGLE_CLIENT_ID", ""),
+    clientSecret: env("GOOGLE_CLIENT_SECRET", ""),
+    projectId: env("GOOGLE_PROJECT_ID", "")
   }
 };

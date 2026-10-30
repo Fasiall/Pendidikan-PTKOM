@@ -16,7 +16,6 @@ const path = require("path");
 const { Pool } = require("pg");
 
 const config = require("../config");
-const { createExternalPool } = require("./pool");
 
 let embedded = null;
 let pool = null;
@@ -29,14 +28,6 @@ let pool = null;
  */
 async function startDatabase() {
   if (pool) return pool;
-
-  /* Production / Vercel: pakai PostgreSQL eksternal bila DATABASE_URL diisi. */
-  if (config.db.useExternal) {
-    pool = createExternalPool();
-    await pool.query("SELECT 1");
-    console.log("[db] Memakai PostgreSQL eksternal dari DATABASE_URL.");
-    return pool;
-  }
 
   const { default: EmbeddedPostgres } = await import("embedded-postgres");
 

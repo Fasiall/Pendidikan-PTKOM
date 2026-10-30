@@ -1,205 +1,89 @@
 /* ==========================================================================
-   src/controllers/quiz.controller.js -- Alur kuis siswa lewat kode
+   src/controllers/quiz.controller.js — Alur kuis siswa
 
-   Skor disimpan di SESSION (express-session) milik browser, dan kunci
-   jawaban tidak pernah dikirim ke klien sehingga siswa tidak bisa melihat
-   jawaban lewat tab developer.
+   Skor sementara disimpan di SESSION (express-session) milik browser,
+   sementara kunci jawaban tidak pernah dikirim ke klien sehingga siswa
+   tidak bisa membuka tab developer untuk melihat jawaban.
 
-   Endpoint:
-     POST /api/quiz/start    { code, studentName? } -> mulai kuis
-     GET  /api/quiz/session               -> lanjutkan kuis setelah refresh
-     POST /api/quiz/answer   { questionId, choice }
-     POST /api/quiz/submit                -> simpan skor akhir
-     GET  /api/quiz/results  (guru)       -> riwayat milik guru yang login
-     GET  /api/quiz/leaderboard (guru)    -> papan peringkat milik guru
-
-   Catatan timer:
-     startedAt disimpan di server (session), bukan di browser. Refresh halaman
-     tidak mengulang waktu; sisa waktu dihitung dari startedAt + time_limit.
-     Bila waktu habis, kuis otomatis diselesaikan saat request berikutnya.
+   Endpoint (publik):
+     POST /api/quiz/start   { materialId? } -> mulai/reset sesi kuis
+     POST /api/quiz/answer  { questionId, choice }
+     POST /api/quiz/submit               -> simpan skor akhir ke database
+     GET  /api/quiz/results              -> 10 skor terakhir (dashboard guru)
    ========================================================================== */
 
 const { getPool } = require("../db/embedded");
 const { ApiError, asyncHandler } = require("../utils/errors");
 const { toInt, sanitizeStudentName } = require("../utils/validate");
-const { normalizeCode } = require("../utils/quizCode");
 const { toCsv } = require("../utils/csv");
 
-const CODE_NOT_FOUND = "Kode tidak ditemukan atau kuis belum dibuka.";
-
-/** Cari set soal berdasarkan kode aktif yang sudah dipublish. */
-async function findSetByCode(pool, code) {
-  const { rows } = await pool.query(
-    `SELECT qs.id, qs.title, qs.material_id, qs.time_limit, qs.teacher_id
-       FROM quiz_sets qs
-       JOIN materials m ON m.id = qs.material_id
-      WHERE qs.access_code = $1
-        AND qs.access_code_active = TRUE
-        AND qs.is_published = TRUE
-        AND m.is_published = TRUE`,
-    [code]
-  );
-  return rows[0] || null;
-}
-
-/** Soal satu set (tanpa kunci jawaban). */
-async function fetchSetQuestions(pool, setId) {
-  const { rows } = await pool.query(
-    `SELECT id, material_id, subject, image, question, options, position
-       FROM questions
-      WHERE quiz_set_id = $1
-      ORDER BY position, id`,
-    [setId]
-  );
+/** Ambil soal milik sesi kuis (difilter set soal atau materi). */
+async function fetchSessionQuestions(pool, { setId, materialId }) {
+  if (setId) {
+    const { rows } = await pool.query(
+      "SELECT id FROM questions WHERE quiz_set_id = $1 ORDER BY position, id",
+      [setId]
+    );
+    return rows;
+  }
+  if (materialId) {
+    const { rows } = await pool.query(
+      "SELECT id FROM questions WHERE material_id = $1 ORDER BY position, id",
+      [materialId]
+    );
+    return rows;
+  }
+  const { rows } = await pool.query("SELECT id FROM questions ORDER BY position, id");
   return rows;
 }
 
-/** Sisa waktu dalam detik, atau null bila tanpa batas waktu. */
-function secondsLeft(quiz) {
-  if (!quiz || !quiz.timeLimit) return null;
-  const elapsed = Math.floor((Date.now() - quiz.startedAt) / 1000);
-  return Math.max(0, quiz.timeLimit * 60 - elapsed);
-}
-
-function isExpired(quiz) {
-  const left = secondsLeft(quiz);
-  return left !== null && left <= 0;
-}
-
-/** Simpan hasil akhir lalu kosongkan sesi kuis. */
-async function finishQuiz(pool, req) {
-  const quiz = req.session.quiz;
-  if (!quiz) throw ApiError.badRequest("Belum ada kuis yang berjalan.");
-
-  const { rows } = await pool.query(
-    `INSERT INTO results
-       (material_id, quiz_set_id, teacher_id, student_name, score, total, started_at, finished_at)
-     VALUES ($1, $2, $3, $4, $5, $6, to_timestamp($7::double precision / 1000), now())
-     RETURNING id, score, total, created_at, finished_at`,
-    [
-      quiz.materialId,
-      quiz.setId,
-      quiz.teacherId,
-      quiz.studentName || "",
-      quiz.score,
-      quiz.total,
-      quiz.startedAt
-    ]
-  );
-
-  req.session.quiz = null;
-
-  return {
-    score: rows[0].score,
-    total: rows[0].total,
-    studentName: quiz.studentName || "",
-    resultId: rows[0].id,
-    savedAt: rows[0].created_at,
-    finishedAt: rows[0].finished_at
-  };
-}
-
-/** Mulai kuis dengan kode dari guru. */
+/** Mulai kuis baru. */
 const start = asyncHandler(async (req, res) => {
   const pool = getPool();
   const body = req.body || {};
-  const code = normalizeCode(body.code);
 
-  if (code.length !== 6) throw ApiError.notFound(CODE_NOT_FOUND);
+  /* --- Tentukan filter: setId lebih prioritas daripada materialId --- */
+  const setId =
+    body.setId === undefined || body.setId === null
+      ? null
+      : toInt(body.setId, "setId", { min: 1 });
 
-  const set = await findSetByCode(pool, code);
-  if (!set) throw ApiError.notFound(CODE_NOT_FOUND);
+  const materialId =
+    body.materialId === undefined || body.materialId === null
+      ? null
+      : toInt(body.materialId, "materialId", { min: 1 });
 
-  const questions = await fetchSetQuestions(pool, set.id);
-  if (!questions.length) throw ApiError.badRequest("Kuis ini belum punya soal.");
+  let timeLimit = 0;
 
-  const quiz = {
-    setId: set.id,
-    teacherId: set.teacher_id,
-    materialId: set.material_id,
-    timeLimit: Number(set.time_limit) || 0,
-    startedAt: Date.now(),
-    score: 0,
-    total: questions.length,
-    results: {},
-    studentName: sanitizeStudentName(body.studentName)
-  };
-
-  req.session.quiz = quiz;
-
-  res.json({
-    ok: true,
-    active: true,
-    setId: quiz.setId,
-    title: set.title,
-    total: quiz.total,
-    timeLimit: quiz.timeLimit,
-    remainingSeconds: secondsLeft(quiz),
-    score: 0,
-    currentIndex: 0,
-    answers: [],
-    studentName: quiz.studentName,
-    questions
-  });
-});
-
-/** Lanjutkan kuis yang masih berjalan (dipakai setelah halaman di-refresh). */
-const session = asyncHandler(async (req, res) => {
-  const quiz = req.session.quiz;
-  if (!quiz) return res.json({ active: false });
-
-  const pool = getPool();
-
-  if (isExpired(quiz)) {
-    const result = await finishQuiz(pool, req);
-    return res.json({ active: false, expired: true, finished: true, result });
+  if (setId !== null) {
+    const { rows } = await pool.query(
+      "SELECT id, material_id, time_limit FROM quiz_sets WHERE id = $1 AND is_published = TRUE",
+      [setId]
+    );
+    if (!rows.length) throw ApiError.notFound("Set soal tidak ditemukan.");
+    timeLimit = rows[0].time_limit;
+  } else if (materialId !== null) {
+    const { rows } = await pool.query(
+      "SELECT id FROM materials WHERE id = $1 AND is_published = TRUE",
+      [materialId]
+    );
+    if (!rows.length) throw ApiError.notFound("Materi tidak ditemukan.");
   }
 
-  const questions = await fetchSetQuestions(pool, quiz.setId);
-  if (!questions.length) {
-    req.session.quiz = null;
-    return res.json({ active: false });
-  }
+  const questions = await fetchSessionQuestions(pool, { setId, materialId });
+  if (!questions.length) throw ApiError.badRequest("Belum ada soal untuk kuis ini.");
 
-  const { rows: setRows } = await pool.query(
-    "SELECT title FROM quiz_sets WHERE id = $1",
-    [quiz.setId]
-  );
+  req.session.quiz = { score: 0, results: {}, setId, materialId, startedAt: Date.now() };
 
-  const answers = Object.values(quiz.results);
-  let firstUnanswered = questions.findIndex(
-    (question) => !quiz.results[String(question.id)]
-  );
-  if (firstUnanswered < 0) firstUnanswered = questions.length - 1;
-
-  res.json({
-    active: true,
-    setId: quiz.setId,
-    title: setRows.length ? setRows[0].title : "Kuis",
-    total: quiz.total,
-    timeLimit: quiz.timeLimit,
-    remainingSeconds: secondsLeft(quiz),
-    score: quiz.score,
-    currentIndex: firstUnanswered,
-    answers,
-    studentName: quiz.studentName,
-    questions
-  });
+  res.json({ ok: true, total: questions.length, setId, materialId, timeLimit });
 });
 
 /** Validasi satu jawaban siswa di server. */
 const answer = asyncHandler(async (req, res) => {
   const quiz = req.session.quiz;
-  if (!quiz) throw ApiError.badRequest("Sesi kuis belum dimulai. Masukkan kode kuis kembali.");
+  if (!quiz) throw ApiError.badRequest("Sesi kuis belum dimulai. Silakan mulai ulang.");
 
   const pool = getPool();
-
-  /* Waktu habis: kumpulkan otomatis lalu kirim hasil akhir. */
-  if (isExpired(quiz)) {
-    const result = await finishQuiz(pool, req);
-    return res.json({ expired: true, ...result });
-  }
-
   const { questionId, choice } = req.body || {};
 
   const { rows } = await pool.query(
@@ -210,8 +94,11 @@ const answer = asyncHandler(async (req, res) => {
 
   if (!question) throw ApiError.notFound("Soal tidak ditemukan.");
 
-  if (question.quiz_set_id !== quiz.setId) {
-    throw ApiError.badRequest("Soal ini bukan bagian dari kuis yang sedang dikerjakan.");
+  /* Validasi: soal harus milik set/materi yang sedang dikerjakan */
+  if (quiz.setId !== null && question.quiz_set_id !== quiz.setId) {
+    throw ApiError.badRequest("Soal ini bukan bagian dari set soal yang sedang dikerjakan.");
+  } else if (quiz.setId === null && quiz.materialId !== null && question.material_id !== quiz.materialId) {
+    throw ApiError.badRequest("Soal ini bukan bagian dari materi yang sedang dikerjakan.");
   }
 
   const chosen = Number(choice);
@@ -244,30 +131,36 @@ const submit = asyncHandler(async (req, res) => {
   const quiz = req.session.quiz;
   if (!quiz) throw ApiError.badRequest("Belum ada kuis yang berjalan.");
 
-  /* Nama boleh dikirim ulang saat submit (mis. siswa baru mengisi namanya). */
-  const name = sanitizeStudentName((req.body || {}).studentName);
-  if (name) quiz.studentName = name;
-
   const pool = getPool();
-  const result = await finishQuiz(pool, req);
+  const questions = await fetchSessionQuestions(pool, { setId: quiz.setId, materialId: quiz.materialId });
+  const total = questions.length;
 
-  res.json({ ok: true, ...result });
+  const studentName = sanitizeStudentName((req.body || {}).studentName);
+
+  const { rows } = await pool.query(
+    "INSERT INTO results (material_id, quiz_set_id, student_name, score, total) VALUES ($1, $2, $3, $4, $5) RETURNING id, created_at",
+    [quiz.materialId, quiz.setId, studentName, quiz.score, total]
+  );
+
+  req.session.quiz = null;
+
+  res.json({
+    score: quiz.score,
+    total,
+    studentName,
+    savedAt: rows[0].created_at
+  });
 });
 
-/** Riwayat skor milik guru yang login. Mendukung ?format=csv. */
+/** Riwayat skor terbaru (dipakai dashboard guru). Mendukung ?format=csv. */
 const results = asyncHandler(async (req, res) => {
   const pool = getPool();
   const { rows } = await pool.query(
-    `SELECT r.id, r.student_name, r.score, r.total, r.created_at,
-            r.started_at, r.finished_at,
-            m.title AS material_title, qs.title AS set_title
+    `SELECT r.id, r.student_name, r.score, r.total, r.created_at, m.title AS material_title
        FROM results r
        LEFT JOIN materials m ON m.id = r.material_id
-       LEFT JOIN quiz_sets qs ON qs.id = r.quiz_set_id
-      WHERE r.teacher_id = $1
       ORDER BY r.id DESC
-      LIMIT 100`,
-    [req.teacher.id]
+      LIMIT 100`
   );
 
   if (req.query.format === "csv") {
@@ -275,11 +168,9 @@ const results = asyncHandler(async (req, res) => {
       { header: "ID", value: (r) => r.id },
       { header: "Nama Siswa", value: (r) => r.student_name },
       { header: "Materi", value: (r) => r.material_title },
-      { header: "Set Soal", value: (r) => r.set_title },
       { header: "Skor", value: (r) => r.score },
       { header: "Total", value: (r) => r.total },
-      { header: "Mulai", value: (r) => r.started_at },
-      { header: "Selesai", value: (r) => r.finished_at || r.created_at }
+      { header: "Waktu", value: (r) => r.created_at }
     ]);
     res.setHeader("Content-Type", "text/csv; charset=utf-8");
     res.setHeader("Content-Disposition", 'attachment; filename="hasil-kuis.csv"');
@@ -289,7 +180,7 @@ const results = asyncHandler(async (req, res) => {
   res.json({ results: rows.slice(0, 10) });
 });
 
-/** Papan peringkat milik guru yang login (tidak mencampur data guru lain). */
+/** Papan peringkat: skor tertinggi (publik, opsional filter materialId). */
 const leaderboard = asyncHandler(async (req, res) => {
   const pool = getPool();
 
@@ -298,24 +189,20 @@ const leaderboard = asyncHandler(async (req, res) => {
       ? null
       : toInt(req.query.materialId, "materialId", { min: 1 });
 
-  const limitRaw = req.query.limit === undefined
-    ? 10
-    : toInt(req.query.limit, "limit", { min: 1, max: 50 });
+  const limitRaw = req.query.limit === undefined ? 10 : toInt(req.query.limit, "limit", { min: 1, max: 50 });
 
-  const params = [req.teacher.id];
-  let where = "WHERE r.teacher_id = $1";
+  const params = [];
+  let where = "";
   if (materialId !== null) {
     params.push(materialId);
-    where += ` AND r.material_id = $${params.length}`;
+    where = "WHERE r.material_id = $1";
   }
   params.push(limitRaw);
 
   const { rows } = await pool.query(
-    `SELECT r.student_name, r.score, r.total, r.created_at,
-            m.title AS material_title, qs.title AS set_title
+    `SELECT r.student_name, r.score, r.total, r.created_at, m.title AS material_title
        FROM results r
        LEFT JOIN materials m ON m.id = r.material_id
-       LEFT JOIN quiz_sets qs ON qs.id = r.quiz_set_id
        ${where}
       ORDER BY r.score DESC, r.total DESC, r.created_at ASC
       LIMIT $${params.length}`,
@@ -325,35 +212,4 @@ const leaderboard = asyncHandler(async (req, res) => {
   res.json({ leaderboard: rows });
 });
 
-/** Statistik publik untuk halaman beranda (jumlah soal, materi, dan siswa yang telah mengerjakan kuis). */
-const publicStats = asyncHandler(async (req, res) => {
-  const pool = getPool();
-  const [questionsRes, materialsRes, studentsRes] = await Promise.all([
-    pool.query(
-      `SELECT COUNT(q.id)::int AS count
-         FROM questions q
-         LEFT JOIN materials m ON m.id = q.material_id
-        WHERE q.material_id IS NULL OR m.is_published = TRUE`
-    ),
-    pool.query(
-      `SELECT COUNT(*)::int AS count
-         FROM materials
-        WHERE is_published = TRUE`
-    ),
-    pool.query(
-      `SELECT COUNT(DISTINCT LOWER(TRIM(student_name)))::int AS count
-         FROM results
-        WHERE TRIM(student_name) <> ''`
-    )
-  ]);
-
-  /* Angka beranda harus selalu segar setelah ada soal/materi/hasil baru. */
-  res.set("Cache-Control", "no-store");
-  res.json({
-    totalQuestions: questionsRes.rows[0]?.count ?? 0,
-    totalMaterials: materialsRes.rows[0]?.count ?? 0,
-    totalStudents: studentsRes.rows[0]?.count ?? 0
-  });
-});
-
-module.exports = { start, session, answer, submit, results, leaderboard, publicStats };
+module.exports = { start, answer, submit, results, leaderboard };

@@ -4,45 +4,150 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Daftar Materi Belajar - Kuis Petualangan Ceria">
-  <meta name="theme-color" content="#6a4cff">
-  <title>Materi Belajar | Kuis Petualangan Ceria</title>
+  <meta name="theme-color" content="#FFD93D">
+  <title>📚 Materi Belajar | Kuis Petualangan Ceria</title>
 
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%93%9A%3C/text%3E%3C/svg%3E">
+  <!-- Google Fonts: Baloo 2 + Nunito (DESAIN) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&amp;family=Nunito:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="theme.css?v=9">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons (pinned) -->
+  <script src="https://unpkg.com/lucide@0.294.0"></script>
+  <!-- Google Identity Services (GSI) -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+  <!-- File styling utama -->
+  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="stylesheet" href="theme.css?v=1">
+  <link rel="stylesheet" href="theme-extra.css?v=3">
+  <link rel="stylesheet" href="materi-list.css?v=2">
+  <link rel="stylesheet" href="navbar.css?v=1">
 </head>
 <body>
 
-  <!-- ================= HEADER HALAMAN MATERI ================= -->
-  <header class="materi-top">
-    <a class="icon-btn" href="index.html" title="Kembali ke halaman awal">←</a>
-    <div class="materi-top-text">
-      <span class="pill-badge">Belajar dulu, baru kuis</span>
-      <h1 class="materi-title">Materi Belajar</h1>
-    </div>
-    <span class="materi-count" id="materiCount">…</span>
+  <!-- Navbar Kapsul (Single Source of Truth) -->
+  <header class="home-nav">
+    <a href="index.html" class="nav-brand" data-page="page-home" aria-label="Kuis Ceria - ke beranda">
+      <span class="nav-brand-icon" aria-hidden="true">KC</span>
+      <span class="nav-title">Kuis Ceria</span>
+    </a>
+    <nav class="nav-menu" aria-label="Navigasi utama">
+      <a href="index.html" class="nav-link" data-page="page-home"><span>Beranda</span></a>
+      <a href="materi.html" class="nav-link active"><span>Materi</span></a>
+      <a href="index.html#homeFeatures" class="nav-link" data-scroll="homeFeatures"><span>Fitur</span></a>
+    </nav>
+    <a href="login.html" class="nav-cta" data-page="page-login" title="Buat & kelola kuis"><span>Area guru</span></a>
   </header>
 
-  <!-- ================= KARTU MATERI ================= -->
-  <main class="materi-wrap">
-    <div class="materi-grid" id="materiGrid"></div>
+  <!-- ================= CONTAINER HALAMAN KONSISTEN ================= -->
+  <div class="page-container">
 
-    <div class="materi-empty hidden" id="materiEmpty">
-      <p>Belum ada materi yang dipublikasikan.<br>Minta gurumu menambahkan materi, ya!</p>
-      <a class="btn btn-ghost btn-small" href="index.html">Halaman awal</a>
+    <!-- ================= HEADER SUB-HALAMAN MATERI ================= -->
+    <header class="mlist-head">
+      <a class="mlist-back" href="index.html" title="Kembali ke halaman awal" aria-label="Kembali ke halaman awal"><i data-lucide="arrow-left"></i></a>
+      <div class="mlist-head-text">
+        <span class="mlist-badge">Belajar dulu, baru kuis</span>
+        <h1 class="mlist-title">Materi Belajar</h1>
+      </div>
+      <span class="mlist-count" id="materiCount">0 materi</span>
+    </header>
+
+    <!-- ================= FILTER KATEGORI MATERI (DROPDOWN) + PENCARIAN ================= -->
+    <div class="materi-filter-search-container">
+      <div class="materi-filter-dropdown" id="materiFilterDropdown">
+        <button
+          type="button"
+          class="materi-filter-trigger"
+          id="materiFilterTrigger"
+          aria-expanded="false"
+          aria-haspopup="listbox"
+          aria-label="Pilih kategori mata pelajaran"
+        >
+          <span class="materi-filter-trigger-text" id="materiFilterTriggerText">Semua</span>
+          <i data-lucide="chevron-down" class="materi-filter-chevron"></i>
+        </button>
+
+        <div class="materi-filter-menu hidden" id="materiFilterMenu" role="listbox" aria-label="Daftar mata pelajaran">
+          <button type="button" class="materi-filter-item materi-filter-btn active" data-subject="all" role="option" aria-selected="true">
+            <span>Semua</span>
+            <i data-lucide="check" class="materi-filter-check"></i>
+          </button>
+          <button type="button" class="materi-filter-item materi-filter-btn" data-subject="Matematika" role="option" aria-selected="false">
+            <span>Matematika</span>
+            <i data-lucide="check" class="materi-filter-check"></i>
+          </button>
+          <button type="button" class="materi-filter-item materi-filter-btn" data-subject="IPA" role="option" aria-selected="false">
+            <span>IPA</span>
+            <i data-lucide="check" class="materi-filter-check"></i>
+          </button>
+          <button type="button" class="materi-filter-item materi-filter-btn" data-subject="Bahasa Indonesia" role="option" aria-selected="false">
+            <span>B. Indonesia</span>
+            <i data-lucide="check" class="materi-filter-check"></i>
+          </button>
+          <button type="button" class="materi-filter-item materi-filter-btn" data-subject="Pengetahuan Umum" role="option" aria-selected="false">
+            <span>Pengetahuan Umum</span>
+            <i data-lucide="check" class="materi-filter-check"></i>
+          </button>
+          <button type="button" class="materi-filter-item materi-filter-btn" data-subject="Informatika" role="option" aria-selected="false">
+            <span>Informatika</span>
+            <i data-lucide="check" class="materi-filter-check"></i>
+          </button>
+          <button type="button" class="materi-filter-item materi-filter-btn" data-subject="Seni Budaya" role="option" aria-selected="false">
+            <span>Seni Budaya</span>
+            <i data-lucide="check" class="materi-filter-check"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="materi-search-wrapper" id="materiSearchWrapper">
+        <label for="materiSearchInput" class="sr-only">Cari materi</label>
+        <div class="materi-search-input-wrap">
+          <i data-lucide="search" class="materi-search-icon" aria-hidden="true"></i>
+          <input
+            type="search"
+            id="materiSearchInput"
+            class="materi-search-input"
+            placeholder="Cari judul, ringkasan, atau mapel..."
+            aria-label="Cari materi"
+            autocomplete="off"
+            spellcheck="false"
+          >
+          <button type="button" class="materi-search-clear hidden" id="materiSearchClear" aria-label="Hapus pencarian">
+            <i data-lucide="x" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
     </div>
 
-    <div class="materi-loading" id="materiLoading">
-      <span class="materi-loading-emoji">⏳</span>
-      <p>Memuat materi...</p>
-    </div>
-  </main>
+    <!-- ================= KARTU MATERI ================= -->
+    <main class="materi-wrap">
+      <div class="mlist-grid" id="materiGrid"></div>
 
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+      <div class="materi-empty hidden" id="materiEmpty">
+        <div class="materi-empty-icon"><i data-lucide="inbox" style="width:48px;height:48px;color:var(--text-sub);"></i></div>
+        <p>Belum ada materi yang dipublikasikan saat ini.</p>
+        <a class="btn btn-ghost btn-small" href="index.html"><i data-lucide="home"></i> Halaman Awal</a>
+      </div>
 
-  <script src="materi.js?v=6"></script>
+      <div class="materi-loading" id="materiLoading">
+        <div class="materi-loading-icon"><i data-lucide="loader-2" class="spin" style="width:36px;height:36px;color:var(--primary);"></i></div>
+        <p>Memuat materi...</p>
+      </div>
+    </main>
+
+    <footer class="home-footer">Platform Pembelajaran Interaktif untuk Siswa & Pengajar</footer>
+
+  </div>
+
+  <div class="toast-container" id="toastContainer" role="region" aria-label="Notifikasi" aria-live="polite"></div>
+
+  <script src="materi.js?v=4"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (window.lucide) lucide.createIcons();
+    });
+  </script>
 </body>
 </html>
