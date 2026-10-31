@@ -17,7 +17,7 @@ function bindAdminEvents() {
         title: mTitle.value.trim(),
         summary: mSummary.value.trim(),
         subject: mSubject.value.trim(),
-        emoji: mEmoji.value.trim() || "📘",
+        emoji: (mEmoji && mEmoji.value ? mEmoji.value.trim() : "") || "📘",
         image_url: mImage.value.trim(),
         content: mContent.value,
         is_published: mPublish.checked
@@ -349,7 +349,16 @@ function bindAdminEvents() {
       const rawOptions = [rawA, rawB, rawC, rawD];
       const selectedRadio = getSelectedCorrectRadio();
 
-      if (!qQuestion.value.trim()) {
+      if (qSet && qSet.required && !qSet.value) {
+        if (!setList || !setList.length) {
+          showFormError(soalError, "Anda belum memiliki Set Kuis. Silakan buat Set Kuis terlebih dahulu di tab Set Soal.");
+        } else {
+          showFormError(soalError, "Silakan pilih Set Kuis tujuan untuk butir soal ini.");
+        }
+        return;
+      }
+
+      if (!qQuestion || !qQuestion.value.trim()) {
         showFormError(soalError, "Pertanyaan kuis wajib diisi.");
         return;
       }
@@ -373,10 +382,10 @@ function bindAdminEvents() {
         question: qQuestion.value.trim(),
         options,
         answer: selectedRadio,
-        image: adEmoji.value.trim() || "❓",
-        subject: adSubject.value.trim(),
-        fact: qFact.value.trim(),
-        materialId: qMaterial.value ? Number(qMaterial.value) : null,
+        image: (adEmoji && adEmoji.value ? adEmoji.value.trim() : "") || "❓",
+        subject: adSubject ? adSubject.value.trim() : "",
+        fact: qFact ? qFact.value.trim() : "",
+        materialId: qMaterial && qMaterial.value ? Number(qMaterial.value) : null,
         quizSetId: qSet && qSet.value ? Number(qSet.value) : null
       };
 

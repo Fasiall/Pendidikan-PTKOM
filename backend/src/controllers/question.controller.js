@@ -130,7 +130,7 @@ const create = asyncHandler(async (req, res) => {
   if (values[0] !== null) await assertMaterialExists(pool, values[0]);
   if (values[8] !== null) {
     const { rows: setRows } = await pool.query(
-      "SELECT id FROM quiz_sets WHERE id = $1 AND teacher_id = $2",
+      "SELECT id FROM quiz_sets WHERE id = $1 AND (teacher_id = $2 OR teacher_id IS NULL)",
       [values[8], teacherId]
     );
     if (!setRows.length) throw ApiError.badRequest("quizSetId tidak ditemukan atau bukan milik akun Anda.");
@@ -184,7 +184,7 @@ const update = asyncHandler(async (req, res) => {
 
   if (quizSetId !== null) {
     const { rows: setRows } = await pool.query(
-      "SELECT id FROM quiz_sets WHERE id = $1 AND teacher_id = $2",
+      "SELECT id FROM quiz_sets WHERE id = $1 AND (teacher_id = $2 OR teacher_id IS NULL)",
       [quizSetId, teacherId]
     );
     if (!setRows.length) throw ApiError.badRequest("quizSetId tidak ditemukan atau bukan milik akun Anda.");

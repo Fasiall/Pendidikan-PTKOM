@@ -1063,32 +1063,34 @@ function renderMateriAdmin() {
 
 /** Isi form materi dari data yang dipilih (mode ubah). */
 function editMateri(material) {
+  if (!materiForm || !materiFormTitle) return;
   editingMateriId = material.id;
   materiFormTitle.textContent = "Ubah materi: " + material.title;
-  mTitle.value = material.title;
-  mSummary.value = material.summary || "";
-  mSubject.value = material.subject || "";
-  mEmoji.value = material.emoji || "📘";
-  mImage.value = material.image_url || "";
-  mContent.value = material.content || "";
-  mPublish.checked = material.is_published;
+  if (mTitle) mTitle.value = material.title;
+  if (mSummary) mSummary.value = material.summary || "";
+  if (mSubject) mSubject.value = material.subject || "";
+  if (mEmoji) mEmoji.value = material.emoji || "📘";
+  if (mImage) mImage.value = material.image_url || "";
+  if (mContent) mContent.value = material.content || "";
+  if (mPublish) mPublish.checked = material.is_published;
   if (mVisibility) mVisibility.checked = material.visibility === "public";
-  btnCancelMateri.hidden = false;
+  if (btnCancelMateri) btnCancelMateri.hidden = false;
   showFormError(materiError, "");
   switchTab("tabMateri");
   materiForm.scrollIntoView({ behavior: "smooth", block: "center" });
-  mTitle.focus();
+  if (mTitle) mTitle.focus();
 }
 
 /** Kembali ke mode tambah materi. */
 function resetMateriForm() {
+  if (!materiForm || !materiFormTitle) return;
   editingMateriId = null;
   materiFormTitle.textContent = "Tambah materi baru";
   materiForm.reset();
-  mEmoji.value = "📘";
-  mPublish.checked = true;
+  if (mEmoji) mEmoji.value = "📘";
+  if (mPublish) mPublish.checked = true;
   if (mVisibility) mVisibility.checked = false;
-  btnCancelMateri.hidden = true;
+  if (btnCancelMateri) btnCancelMateri.hidden = true;
   showFormError(materiError, "");
 }
 
@@ -1130,30 +1132,30 @@ function renderSoalAdmin(questions) {
 /** Isi form soal dari data yang dipilih (mode ubah). */
 function editSoal(question) {
   editingSoalId = question.id;
-  soalFormTitle.textContent = "Ubah soal";
-  qQuestion.value = question.question;
-  qOptions.value = (question.options || []).join("\n");
-  qAnswer.value = (question.answer ?? 0) + 1; // UI memakai nomor mulai dari 1
-  adEmoji.value = question.image || "❓";
-  adSubject.value = question.subject || "";
-  qMaterial.value = question.material_id || "";
+  if (soalFormTitle) soalFormTitle.textContent = "Ubah soal";
+  if (qQuestion) qQuestion.value = question.question;
+  if (qOptions) qOptions.value = (question.options || []).join("\n");
+  if (qAnswer) qAnswer.value = (question.answer ?? 0) + 1; // UI memakai nomor mulai dari 1
+  if (adEmoji) adEmoji.value = question.image || "❓";
+  if (adSubject) adSubject.value = question.subject || "";
+  if (qMaterial) qMaterial.value = question.material_id || "";
   if (qSet) qSet.value = question.quiz_set_id || "";
-  qFact.value = question.fact || "";
-  btnCancelSoal.hidden = false;
+  if (qFact) qFact.value = question.fact || "";
+  if (btnCancelSoal) btnCancelSoal.hidden = false;
   showFormError(soalError, "");
   switchTab("tabSoal");
-  soalForm.scrollIntoView({ behavior: "smooth", block: "center" });
-  qQuestion.focus();
+  if (soalForm) soalForm.scrollIntoView({ behavior: "smooth", block: "center" });
+  if (qQuestion) qQuestion.focus();
 }
 
 /** Kembali ke mode tambah soal. */
 function resetSoalForm() {
   editingSoalId = null;
-  soalFormTitle.textContent = "Tambah soal baru";
-  soalForm.reset();
-  adEmoji.value = "❓";
-  qAnswer.value = "1";
-  btnCancelSoal.hidden = true;
+  if (soalFormTitle) soalFormTitle.textContent = "Tambah soal baru";
+  if (soalForm) soalForm.reset();
+  if (adEmoji) adEmoji.value = "❓";
+  if (qAnswer) qAnswer.value = "1";
+  if (btnCancelSoal) btnCancelSoal.hidden = true;
   showFormError(soalError, "");
 }
 
@@ -1306,19 +1308,20 @@ function bindAdminEvents() {
   });
 
   /* Simpan materi (tambah / ubah) */
-  materiForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
+  if (materiForm) {
+    materiForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
 
-    const payload = {
-      title: mTitle.value.trim(),
-      summary: mSummary.value.trim(),
-      subject: mSubject.value.trim(),
-      emoji: mEmoji.value.trim() || "📘",
-      image_url: mImage.value.trim(),
-      content: mContent.value,
-      is_published: mPublish.checked,
-      visibility: mVisibility && mVisibility.checked ? "public" : "private"
-    };
+      const payload = {
+        title: mTitle ? mTitle.value.trim() : "",
+        summary: mSummary ? mSummary.value.trim() : "",
+        subject: mSubject ? mSubject.value.trim() : "",
+        emoji: (mEmoji && mEmoji.value ? mEmoji.value.trim() : "") || "📘",
+        image_url: mImage ? mImage.value.trim() : "",
+        content: mContent ? mContent.value : "",
+        is_published: mPublish ? mPublish.checked : true,
+        visibility: mVisibility && mVisibility.checked ? "public" : "private"
+      };
 
     if (!payload.title || !payload.content) {
       showFormError(materiError, "Judul dan isi materi wajib diisi.");
@@ -1346,8 +1349,11 @@ function bindAdminEvents() {
       showFormError(materiError, err.message);
     }
   });
+}
 
-  btnCancelMateri.addEventListener("click", resetMateriForm);
+  if (btnCancelMateri) {
+    btnCancelMateri.addEventListener("click", resetMateriForm);
+  }
 
   /* Simpan set soal (tambah / ubah) */
   if (setForm) {
@@ -1536,10 +1542,10 @@ function bindAdminEvents() {
       question: qQuestion.value.trim(),
       options,
       answer: answerIndex,
-      image: adEmoji.value.trim(),
-      subject: adSubject.value.trim(),
-      fact: qFact.value.trim(),
-      materialId: qMaterial.value ? Number(qMaterial.value) : null,
+      image: (adEmoji && adEmoji.value ? adEmoji.value.trim() : "") || "❓",
+      subject: adSubject ? adSubject.value.trim() : "",
+      fact: qFact ? qFact.value.trim() : "",
+      materialId: qMaterial && qMaterial.value ? Number(qMaterial.value) : null,
       quizSetId: qSet && qSet.value ? Number(qSet.value) : null
     };
 

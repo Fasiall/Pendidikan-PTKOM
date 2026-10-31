@@ -103,18 +103,18 @@ function editMateri(material) {
   if (!materiForm || !materiFormTitle) return;
   editingMateriId = material.id;
   materiFormTitle.textContent = "✏️ Ubah Materi: " + material.title;
-  mTitle.value = material.title;
-  mSummary.value = material.summary || "";
-  mSubject.value = material.subject || "";
-  mEmoji.value = material.emoji || "📘";
-  mImage.value = material.image_url || "";
-  mContent.value = material.content || "";
-  mPublish.checked = material.is_published;
+  if (mTitle) mTitle.value = material.title;
+  if (mSummary) mSummary.value = material.summary || "";
+  if (mSubject) mSubject.value = material.subject || "";
+  if (mEmoji) mEmoji.value = material.emoji || "📘";
+  if (mImage) mImage.value = material.image_url || "";
+  if (mContent) mContent.value = material.content || "";
+  if (mPublish) mPublish.checked = material.is_published;
   if (btnCancelMateri) btnCancelMateri.hidden = false;
   showFormError(materiError, "");
   switchTab("tabMateri");
   materiForm.scrollIntoView({ behavior: "smooth", block: "center" });
-  mTitle.focus();
+  if (mTitle) mTitle.focus();
 }
 
 /** Kembali ke mode tambah materi. */
@@ -123,8 +123,8 @@ function resetMateriForm() {
   editingMateriId = null;
   materiFormTitle.textContent = "➕ Tambah Materi Baru";
   materiForm.reset();
-  mEmoji.value = "📘";
-  mPublish.checked = true;
+  if (mEmoji) mEmoji.value = "📘";
+  if (mPublish) mPublish.checked = true;
   if (btnCancelMateri) btnCancelMateri.hidden = true;
   showFormError(materiError, "");
 }
@@ -177,8 +177,8 @@ function renderSoalAdmin(questions) {
 /** Isi form soal dari data yang dipilih (mode ubah). */
 function editSoal(question) {
   editingSoalId = question.id;
-  soalFormTitle.textContent = "Ubah Soal";
-  qQuestion.value = question.question || "";
+  if (soalFormTitle) soalFormTitle.textContent = "Ubah Soal";
+  if (qQuestion) qQuestion.value = question.question || "";
 
   const opts = Array.isArray(question.options) ? question.options : [];
   const inputs = [$("#optInput0"), $("#optInput1"), $("#optInput2"), $("#optInput3")];
@@ -188,30 +188,30 @@ function editSoal(question) {
 
   setSelectedCorrectRadio(question.answer ?? 0);
 
-  adEmoji.value = question.image || "❓";
-  adSubject.value = question.subject || "";
-  qMaterial.value = question.material_id || "";
+  if (adEmoji) adEmoji.value = question.image || "❓";
+  if (adSubject) adSubject.value = question.subject || "";
+  if (qMaterial) qMaterial.value = question.material_id || "";
   if (qSet) qSet.value = question.quiz_set_id || "";
-  qFact.value = question.fact || "";
-  btnCancelSoal.hidden = false;
+  if (qFact) qFact.value = question.fact || "";
+  if (btnCancelSoal) btnCancelSoal.hidden = false;
   showFormError(soalError, "");
   switchTab("tabSoal");
-  soalForm.scrollIntoView({ behavior: "smooth", block: "center" });
-  qQuestion.focus();
+  if (soalForm) soalForm.scrollIntoView({ behavior: "smooth", block: "center" });
+  if (qQuestion) qQuestion.focus();
 }
 
 /** Kembali ke mode tambah soal. */
 function resetSoalForm() {
   editingSoalId = null;
-  soalFormTitle.textContent = "Tambah Soal Baru";
-  soalForm.reset();
+  if (soalFormTitle) soalFormTitle.textContent = "Tambah Soal Baru";
+  if (soalForm) soalForm.reset();
   const inputs = [$("#optInput0"), $("#optInput1"), $("#optInput2"), $("#optInput3")];
   inputs.forEach((inp) => {
     if (inp) inp.value = "";
   });
   setSelectedCorrectRadio(0);
-  adEmoji.value = "❓";
-  btnCancelSoal.hidden = true;
+  if (adEmoji) adEmoji.value = "❓";
+  if (btnCancelSoal) btnCancelSoal.hidden = true;
   showFormError(soalError, "");
 }
 
