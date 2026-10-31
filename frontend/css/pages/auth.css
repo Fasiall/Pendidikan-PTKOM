@@ -1,0 +1,349 @@
+/* =========================================================
+   auth.css — halaman Masuk / Daftar guru (login.html)
+   Dimuat terakhir. Semua selector dibatasi body.auth-page
+   agar tidak mengubah halaman lain. Warna memakai palet
+   DESAIN (nilai literal) supaya tidak terpengaruh alias token.
+   ========================================================= */
+
+body.auth-page {
+  --a-ink: #2b2a4a;
+  --a-muted: #6f6d90;
+  --a-accent: #6a4cff;
+  --a-accent-dark: #5636e0;
+  --a-line: #e3e7f7;
+  min-height: 100vh;
+  color: var(--a-ink);
+}
+
+/* ---------- Tombol kembali ---------- */
+body.auth-page .auth-back {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  background: #fff;
+  color: var(--a-ink);
+  border: 2px solid var(--a-ink);
+  border-radius: 999px;
+  font-family: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+  font-size: .85rem;
+  font-weight: 800;
+  text-decoration: none;
+  box-shadow: 0 3px 0 rgba(43,42,74,.16);
+  transition: transform .16s ease, box-shadow .16s ease;
+}
+body.auth-page .auth-back:hover { transform: translateY(-2px); box-shadow: 0 5px 0 rgba(43,42,74,.16); }
+
+/* ---------- Posisi kartu ---------- */
+body.auth-page .auth-stage {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 72px 16px 40px;
+}
+
+/* ---------- Kartu ---------- */
+body.auth-page .login-card.auth-card {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  margin: 0 auto;
+  padding: 38px 32px 32px;
+  background: #fff;
+  border: 3px solid var(--a-ink);
+  border-radius: 30px;
+  box-shadow: 0 10px 0 rgba(43,42,74,.13);
+  text-align: left;
+  overflow: hidden;
+}
+body.auth-page .login-card.auth-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 8px;
+  background: linear-gradient(90deg, #ff6b6b 0%, #ffc93c 30%, #35c97a 55%, #57a8ff 80%, #7b5cff 100%);
+}
+
+/* ---------- Avatar ---------- */
+body.auth-page .auth-card .login-avatar {
+  width: 76px;
+  height: 76px;
+  margin: 0 auto 16px;
+  display: grid;
+  place-items: center;
+  background: #fff6d8;
+  border: 3px solid var(--a-ink);
+  border-radius: 50%;
+  font-size: 2rem;
+  line-height: 1;
+  box-shadow: 0 4px 0 rgba(43,42,74,.14);
+}
+body.auth-page .auth-card .login-avatar::before { content: "👩‍🏫"; }
+
+/* ---------- Tab Masuk / Daftar akun ---------- */
+body.auth-page .auth-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 5px;
+  margin: 0 0 22px;
+  background: #f2efff;
+  border: 2px solid #e4ddff;
+  border-radius: 999px;
+}
+body.auth-page .auth-tab-btn {
+  flex: 1;
+  margin: 0;
+  padding: 10px 12px;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  font-family: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+  font-size: .9rem;
+  font-weight: 700;
+  color: var(--a-muted);
+  box-shadow: none;
+  cursor: pointer;
+  transition: color .18s ease, background .18s ease, box-shadow .18s ease;
+}
+body.auth-page .auth-tab-btn:hover { color: var(--a-accent); background: transparent; transform: none; box-shadow: none; }
+body.auth-page .auth-tab-btn.active {
+  color: var(--a-accent);
+  font-weight: 800;
+  background: #fff;
+  box-shadow: 0 3px 0 rgba(43,42,74,.10);
+}
+
+/* ---------- Judul ---------- */
+body.auth-page .auth-card h2 {
+  margin: 0 0 2px;
+  font-family: 'Baloo 2', 'Nunito', 'Segoe UI', system-ui, sans-serif;
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: var(--a-ink);
+  text-align: center;
+}
+body.auth-page .auth-card .login-sub {
+  margin: 4px 0 22px;
+  color: var(--a-muted);
+  font-size: .92rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* ---------- Field ---------- */
+body.auth-page .auth-card .field { display: block; gap: 0; margin: 0 0 16px; text-align: left; }
+body.auth-page .auth-card .field label {
+  display: block;
+  margin: 0 0 7px;
+  padding: 0;
+  line-height: 1.3;
+  font-size: .8rem;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--a-muted);
+  transform: none;
+}
+body.auth-page .auth-card .field:focus-within label { color: var(--a-accent); }
+
+/* Pembungkus input: tanpa kotak sendiri (kotaknya ada di <input>) */
+body.auth-page .auth-card .input-wrap {
+  position: relative;
+  display: block;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+body.auth-page .auth-card .input-wrap:focus-within { background: transparent; border: 0; box-shadow: none; }
+body.auth-page .auth-card .input-wrap input {
+  display: block;
+  width: 100%;
+  padding: 14px 16px;
+  font-family: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--a-ink);
+  background: #f9fbff;
+  border: 2px solid var(--a-line);
+  border-radius: 16px;
+  box-shadow: none;
+  box-sizing: border-box;
+  transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+body.auth-page .auth-card .input-wrap input:focus {
+  outline: none;
+  background: #fff;
+  border-color: var(--a-accent);
+  box-shadow: 0 0 0 4px rgba(106,76,255,.16);
+}
+body.auth-page .auth-card .input-wrap input::placeholder { color: #9c9ab8; font-weight: 600; }
+body.auth-page #password,
+body.auth-page #regPassword { padding-right: 84px; }
+
+/* Tombol "Lihat" */
+body.auth-page .auth-card .toggle-pass {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: block;
+  padding: 4px 9px;
+  background: #fff6d8;
+  border: 2px solid #f0d98a;
+  border-radius: 10px;
+  font-family: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+  font-size: .72rem;
+  font-weight: 800;
+  line-height: 1.4;
+  color: #7a5a00;
+  cursor: pointer;
+  transition: background .16s ease, transform .16s ease;
+}
+body.auth-page .auth-card .toggle-pass:hover { background: #ffc93c; color: var(--a-ink); transform: translateY(-50%) scale(1.04); }
+
+/* ---------- Pesan error ---------- */
+body.auth-page .auth-card .form-error { display: none; min-height: 0; margin: 0 0 12px; text-align: left; }
+body.auth-page .auth-card .form-error.show {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #fff0f0;
+  border: 2px solid #ffb9b9;
+  border-radius: 14px;
+  color: #b42323;
+  font-size: .85rem;
+  font-weight: 700;
+}
+body.auth-page .auth-card .form-error svg { width: 18px; height: 18px; flex: none; }
+
+/* ---------- Tombol utama (3D) ---------- */
+body.auth-page .auth-card .btn-login {
+  display: block;
+  width: 100%;
+  margin: 6px 0 0;
+  padding: 15px 20px;
+  background: var(--a-accent);
+  color: #fff;
+  border: 2px solid var(--a-ink);
+  border-radius: 16px;
+  font-family: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+  font-size: 1.05rem;
+  font-weight: 800;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 5px 0 var(--a-ink);
+  transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
+}
+body.auth-page .auth-card .btn-login:hover { background: var(--a-accent-dark); transform: translateY(-2px); box-shadow: 0 7px 0 var(--a-ink); }
+body.auth-page .auth-card .btn-login:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--a-ink); }
+
+/* ---------- Teks & tautan bawah ---------- */
+body.auth-page .auth-card .login-options {
+  margin: 16px 0 0;
+  color: var(--a-muted);
+  font-size: .86rem;
+  font-weight: 600;
+  text-align: center;
+}
+body.auth-page .auth-card .link-btn {
+  padding: 0;
+  background: none;
+  border: 0;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 800;
+  color: var(--a-accent);
+  cursor: pointer;
+}
+body.auth-page .auth-card .link-btn:hover { text-decoration: underline; }
+
+/* ---------- Kotak demo ---------- */
+body.auth-page .auth-card .demo-hint {
+  display: block;
+  margin: 16px 0 0;
+  padding: 11px 14px;
+  background: #fff9e6;
+  border: 2px dashed #f0d98a;
+  border-radius: 14px;
+  color: #6b5a1e;
+  font-size: .78rem;
+  font-weight: 600;
+  text-align: left;
+}
+body.auth-page .auth-card .demo-hint b { color: var(--a-accent); font-weight: 800; }
+
+/* ---------- Password Strength ---------- */
+body.auth-page .auth-card .pw-strength {
+  margin: 8px 0 4px;
+}
+body.auth-page .auth-card .pw-strength-bar {
+  height: 6px;
+  background: var(--a-line);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+body.auth-page .auth-card .pw-strength-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 3px;
+  transition: width .3s ease, background .3s ease;
+}
+body.auth-page .auth-card .pw-strength-fill.empty { background: transparent; }
+body.auth-page .auth-card .pw-strength-fill.partial { background: #ffc93c; }
+body.auth-page .auth-card .pw-strength-fill.full { background: #35c97a; }
+
+body.auth-page .auth-card .pw-checklist {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+body.auth-page .auth-card .pw-checklist li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .75rem;
+  font-weight: 600;
+  color: var(--a-muted);
+  transition: color .2s ease;
+}
+body.auth-page .auth-card .pw-checklist li.passed {
+  color: #35c97a;
+}
+body.auth-page .auth-card .pw-checklist li svg {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  color: var(--a-muted);
+  transition: color .2s ease;
+}
+body.auth-page .auth-card .pw-checklist li.passed svg {
+  color: #35c97a;
+}
+
+body.auth-page .auth-card .btn-login:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 3px 0 var(--a-ink);
+}
+body.auth-page .auth-card .btn-login:disabled:hover {
+  background: var(--a-accent);
+  transform: none;
+  box-shadow: 0 3px 0 var(--a-ink);
+}
+
+/* ---------- Layar kecil ---------- */
+@media (max-width: 480px) {
+  body.auth-page .auth-stage { padding-top: 64px; }
+  body.auth-page .login-card.auth-card { padding: 32px 20px 26px; border-radius: 26px; }
+}

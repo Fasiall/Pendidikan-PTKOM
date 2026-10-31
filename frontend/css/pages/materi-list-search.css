@@ -1,0 +1,100 @@
+
+.materi-search-clear:hover {
+  background: #f0eef8;
+  color: var(--ink);
+}
+
+.materi-search-clear:focus-visible {
+  outline: 3px solid var(--accent, #6c4bff);
+  outline-offset: 2px;
+}
+
+.materi-search-clear svg {
+  width: 16px;
+  height: 16px;
+}
+
+.materi-search-clear.hidden {
+  display: none;
+}
+
+/* Highlighted match in card */
+.mlist-body mark {
+  background: #fff6d8;
+  color: var(--ink);
+  padding: 0 2px;
+  border-radius: 3px;
+  font-weight: 800;
+}
+
+/* Empty state when search yields no results */
+.materi-empty {
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.materi-empty p {
+  margin: 12px 0 0;
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* Responsive for filter/search row */
+@media (max-width: 600px) {
+  .materi-filter-search-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .materi-filter-dropdown {
+    width: 100%;
+  }
+
+  .materi-filter-trigger {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .materi-search-wrapper {
+    max-width: none;
+    min-width: 0;
+  }
+
+  .materi-filter-menu {
+    left: 0;
+    right: 0;
+    min-width: auto;
+  }
+}
+
+/* ------------------------------- Responsif ------------------------------- */
+@media (max-width: 900px) {
+  .mlist-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .mlist-head {
+    flex-wrap: wrap;
+    padding: 16px;
+    border-radius: 24px;
+  }
+
+  .mlist-head-text {
+    flex: 1 1 calc(100% - 56px);
+  }
+
+  .mlist-count {
+    margin-left: 52px;
+    padding: 4px 10px;
+    font-size: .72rem;
+  }
+
+  .mlist-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+}

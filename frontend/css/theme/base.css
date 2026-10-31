@@ -1,0 +1,62 @@
+/* ==========================================================================
+   theme.css — Tampilan "Kuis Petualangan Ceria"
+
+   Lapisan tampilan yang dimuat SETELAH style.css. Semua aturan di sini
+   hanya mengubah tampilan (warna, bentuk, tipografi, jarak, animasi) —
+   tidak ada perilaku atau fitur yang diubah.
+
+   Arah desain:
+   • Palet cerah: ungu, kuning, toska, biru langit, hijau, merah muda.
+   • Kartu bergaya "stiker": sudut bulat besar, garis tebal, bayangan padat.
+   • Tipografi ramah anak: Baloo 2 (judul) + Nunito (isi).
+   • Latar bertitik warna lembut dan bentuk-bentuk dekoratif.
+   ========================================================================== */
+
+:root{
+  /* Palet ceria */
+  --cream:        #f6f8ff;
+  --sky:          #e9f4ff;
+  --coral:        #ff6b6b;
+  --yellow:       #ffc93c;
+  --teal:         #2ec8b0;
+  --purple:       #7b5cff;
+  --purple-light: #b9a8ff;
+  --blue:         #57a8ff;
+  --green:        #35c97a;
+  --pink:         #ff7ab6;
+  --orange:       #ff9f45;
+
+  --ink:          #2b2a4a;
+  --muted:        #6f6d90;
+  --white:        #ffffff;
+
+  /* Permukaan & garis */
+  --paper:        #f4f8ff;
+  --surface:      #ffffff;
+  --line:         #eceaf9;
+  --line-strong:  #ddd7f5;
+
+  /* Aksen utama */
+  --accent:       #6a4cff;
+  --accent-dark:  #5636e0;
+  --accent-soft:  #efeaff;
+
+  /* Aksen pendukung */
+  --sage:         #159c82;
+  --sage-soft:    #e6fbf5;
+  --gold:         #c79000;
+  --gold-soft:    #fff6d6;
+
+  /* Bentuk & bayangan */
+  --radius:       22px;
+  --radius-sm:    14px;
+  --radius-lg:    30px;
+  --shadow:       0 7px 0 rgba(43,42,74,.10);
+  --shadow-sm:    0 4px 0 rgba(43,42,74,.08);
+  --shadow-glow:  0 0 0 4px rgba(106,76,255,.18);
+
+  /* Tipografi */
+  --font:         'Nunito', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-display: 'Baloo 2', 'Nunito', 'Segoe UI', system-ui, sans-serif;
+}
+

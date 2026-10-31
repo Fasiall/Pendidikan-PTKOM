@@ -1,0 +1,74 @@
+/* --------------------------------------------------------------------------
+   1. ROOT VARIABLES & THEME
+   -------------------------------------------------------------------------- */
+:root {
+  /* Color Palette - Human-grade, harmonious indigo-teal-amber system */
+  --primary: #4F46E5;
+  --primary-hover: #4338CA;
+  --primary-active: #3730A3;
+  --primary-light: #EEF2FF;
+  --primary-shadow: #312E81;
+
+  --accent: #10B981;
+  --accent-hover: #059669;
+  --accent-active: #047857;
+  --accent-light: #ECFDF5;
+  --accent-shadow: #065F46;
+
+  --amber: #F59E0B;
+  --amber-hover: #D97706;
+  --amber-light: #FFFBEB;
+  --amber-shadow: #B45309;
+
+  --rose: #F43F5E;
+  --rose-hover: #E11D48;
+  --rose-light: #FFF1F2;
+  --rose-shadow: #9F1239;
+
+  --sky: #0EA5E9;
+  --sky-hover: #0284C7;
+  --sky-light: #F0F9FF;
+  --sky-shadow: #0369A1;
+
+  /* Neutrals & Surfaces */
+  --ink: #0F172A;
+  --slate: #334155;
+  --muted: #64748B;
+  --subtle: #94A3B8;
+  --border: #E2E8F0;
+  --border-focus: #818CF8;
+  --surface: #FFFFFF;
+  --surface-alt: #F8FAFC;
+  --surface-glass: rgba(255, 255, 255, 0.88);
+  --glass-border: rgba(226, 232, 240, 0.8);
+
+  /* Legacy color aliases for component compatibility */
+  --purple: var(--primary);
+  --blue: var(--sky);
+  --teal: var(--accent);
+  --coral: var(--rose);
+  --yellow: var(--amber);
+  --pink: #EC4899;
+  --white: #FFFFFF;
+  --glass: var(--surface-glass);
+
+  /* Typography */
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Poppins', var(--font-sans);
+
+  /* Elevation & Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+  --shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.07), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.05);
+  --shadow-glow: 0 0 25px rgba(79, 70, 229, 0.2);
+
+  /* Borders & Radii */
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-full: 9999px;
+  --radius: var(--radius-lg);
+}
+

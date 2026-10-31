@@ -1,0 +1,400 @@
+/* ==========================================================================
+   19. FULL WIDTH 100% SIZING & UNIFORM 8PX BORDER RADIUS FOR HOME & MATERI
+   ========================================================================== */
+
+/* Full-width 100% containers edge-to-edge */
+#page-home {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  padding: 0 0 80px 0 !important;
+}
+
+#page-home .home-inner {
+  width: 100% !important;
+  max-width: 1400px !important;
+  margin: 0 auto !important;
+  box-sizing: border-box !important;
+  padding: 28px clamp(32px, 6vw, 96px) 0 !important;
+}
+
+.page-container {
+  width: 100% !important;
+  max-width: 1400px !important;
+  box-sizing: border-box !important;
+  margin: 0 auto !important;
+  padding: 28px clamp(32px, 6vw, 96px) 80px !important;
+}
+
+/* Nav Bar: Moved to navbar.css (single source of truth, loaded last) */
+
+/* Badges & Pills: Strict 8px radius */
+.pill-badge {
+  border-radius: 8px !important;
+}
+
+.materi-subject {
+  border-radius: 8px !important;
+}
+
+.materi-count {
+  border-radius: 8px !important;
+}
+
+/* Hero Container in Home: Centered Single Column */
+.hero-container {
+  width: 100% !important;
+  max-width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+  box-sizing: border-box !important;
+}
+
+.student-action-box {
+  width: 100% !important;
+  max-width: 520px !important;
+  border-radius: 8px !important;
+  box-sizing: border-box !important;
+  margin: 0 auto !important;
+}
+
+.student-action-box #studentName,
+.student-action-box .input-with-icon input,
+#studentName {
+  border-radius: 8px !important;
+}
+
+/* Home Buttons: 8px radius */
+.btn-start,
+#btnStart,
+.btn-materi,
+.btn,
+.btn-3d {
+  border-radius: 8px !important;
+}
+
+/* Speech bubble & mascot */
+.speech-bubble {
+  border-radius: 8px !important;
+}
+
+.mascot-card {
+  border-radius: 8px !important;
+}
+
+/* Stats counter grid: 100% width, 8px radius */
+.home-stats-grid {
+  width: 100% !important;
+  max-width: 100% !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 18px !important;
+  box-sizing: border-box !important;
+}
+
+.stat-card {
+  border-radius: 8px !important;
+}
+
+.stat-icon {
+  border-radius: 8px !important;
+}
+
+/* Feature cards grid: 100% width, 8px radius */
+.home-cards {
+  width: 100% !important;
+  max-width: 100% !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 18px !important;
+  box-sizing: border-box !important;
+}
+
+.mini-card {
+  border-radius: 8px !important;
+}
+
+.mini-card-icon {
+  border-radius: 8px !important;
+}
+
+/* Materi Page & Detail Layout: 100% width */
+.materi-top {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  border-radius: 8px !important;
+}
+
+.materi-top.materi-top-center {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  padding: 8px 0 !important;
+  margin-bottom: 24px !important;
+}
+
+.materi-top.materi-top-center .icon-btn {
+  position: absolute !important;
+  left: 0 !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  z-index: 2;
+}
+
+.materi-top.materi-top-center .materi-title {
+  margin: 0 !important;
+  padding: 0 48px !important;
+  text-align: center !important;
+  width: 100% !important;
+}
+
+.icon-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 8px !important;
+  background: #FFFFFF !important;
+  border: 1px solid var(--border) !important;
+  color: var(--ink) !important;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box !important;
+}
+
+.icon-btn:hover {
+  background: #F1F5F9 !important;
+  border-color: #CBD5E1 !important;
+  color: var(--primary) !important;
+  transform: translateY(-1px);
+}
+
+.icon-btn svg,
+.icon-btn i {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+.materi-filters {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.materi-filter-btn,
+.materi-filters button {
+  border-radius: 8px !important;
+}
+
+/* ================= FILTER DROPDOWN MATERI ================= */
+.materi-filter-dropdown-container {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  margin-bottom: 24px !important;
+  position: relative !important;
+  z-index: 30 !important;
+}
+
+.materi-filter-dropdown {
+  position: relative !important;
+  display: inline-block !important;
+}
+
+.materi-filter-trigger {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  min-width: 130px !important;
+  padding: 9px 16px !important;
+  background: #FFFFFF !important;
+  border: 1.5px solid var(--border, #E2E8F0) !important;
+  border-radius: 8px !important;
+  color: var(--ink, #1E293B) !important;
+  font-family: var(--font-body) !important;
+  font-size: 0.95rem !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+  box-sizing: border-box !important;
+  user-select: none !important;
+}
+
+.materi-filter-trigger:hover {
+  background: #F8FAFC !important;
+  border-color: #CBD5E1 !important;
+  transform: translateY(-1px);
+}
+
+.materi-filter-dropdown.open .materi-filter-trigger {
+  border-color: var(--primary, #4F46E5) !important;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15) !important;
+}
+
+.materi-filter-chevron {
+  width: 18px !important;
+  height: 18px !important;
+  color: var(--text-sub, #64748B) !important;
+  transition: transform 0.2s ease !important;
+  flex-shrink: 0 !important;
+}
+
+.materi-filter-dropdown.open .materi-filter-chevron {
+  transform: rotate(180deg) !important;
+}
+
+.materi-filter-menu {
+  position: absolute !important;
+  top: calc(100% + 6px) !important;
+  left: 0 !important;
+  min-width: 210px !important;
+  background: #FFFFFF !important;
+  border: 1.5px solid var(--border, #E2E8F0) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.12), 0 8px 12px -6px rgba(0, 0, 0, 0.05) !important;
+  padding: 6px !important;
+  z-index: 100 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  animation: dropFade 0.18s ease-out forwards;
+}
+
+.materi-filter-menu.hidden {
+  display: none !important;
+}
+
+@keyframes dropFade {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.materi-filter-menu .materi-filter-item {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  padding: 9px 12px !important;
+  border: none !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: var(--ink, #1E293B) !important;
+  font-family: var(--font-body) !important;
+  font-size: 0.92rem !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  text-align: left !important;
+  transition: background 0.15s ease, color 0.15s ease !important;
+  box-shadow: none !important;
+  transform: none !important;
+  box-sizing: border-box !important;
+}
+
+.materi-filter-menu .materi-filter-item:hover {
+  background: #F1F5F9 !important;
+  color: var(--primary, #4F46E5) !important;
+  transform: none !important;
+}
+
+.materi-filter-menu .materi-filter-item.active {
+  background: #EEF2FF !important;
+  color: var(--primary, #4F46E5) !important;
+  font-weight: 700 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.materi-filter-check {
+  width: 16px !important;
+  height: 16px !important;
+  color: var(--primary, #4F46E5) !important;
+  opacity: 0 !important;
+  transition: opacity 0.15s ease !important;
+  flex-shrink: 0 !important;
+}
+
+.materi-filter-menu .materi-filter-item.active .materi-filter-check {
+  opacity: 1 !important;
+}
+
+.materi-wrap {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.materi-grid {
+  width: 100% !important;
+  max-width: 100% !important;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important;
+  gap: 24px !important;
+  box-sizing: border-box !important;
+}
+
+.materi-card {
+  border-radius: 8px !important;
+}
+
+.materi-thumb {
+  border-radius: 8px 8px 0 0 !important;
+  overflow: hidden !important;
+}
+
+.materi-thumb img {
+  border-radius: 8px 8px 0 0 !important;
+}
+
+.materi-loading,
+.materi-empty {
+  border-radius: 8px !important;
+}
+
+/* Materi Detail Page: 100% width */
+.materi-detail {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Quiz sets wrap inside Materi Detail: 100% width */
+.quiz-sets-wrap {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.quiz-sets-list {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important;
+  gap: 16px !important;
+  box-sizing: border-box !important;
+}
+
+.quiz-set-card {
+  border-radius: 8px !important;
+}
+
+.quiz-set-icon {
+  border-radius: 8px !important;
+}
+
+.quiz-set-go {
+  border-radius: 8px !important;
+}

@@ -1,0 +1,413 @@
+/* --------------------------------------------------------------------------
+   12. LOGIN & TEACHER DASHBOARD
+   -------------------------------------------------------------------------- */
+.login-card {
+  max-width: 440px;
+  width: 100%;
+  margin: 40px auto;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 36px 32px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+  box-sizing: border-box;
+}
+
+/* 1. Header & Ikon Perisai */
+.login-avatar {
+  background: #e6f4f1;
+  color: #0d9488;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  margin: 0 auto 16px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.login-avatar i,
+.login-avatar svg {
+  width: 24px;
+  height: 24px;
+  stroke-width: 2.2px;
+}
+
+/* Google Auth UI Styles */
+.google-avatar-icon {
+  width: 32px;
+  height: 32px;
+  display: block;
+}
+
+.google-auth-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 12px 0 16px 0;
+  width: 100%;
+}
+
+.google-btn-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 48px;
+  width: 100%;
+}
+
+.google-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--primary);
+  background: rgba(79, 70, 229, 0.08);
+  border-radius: 12px;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.auth-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid rgba(79, 70, 229, 0.2);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.google-security-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: #64748b;
+  text-align: center;
+  margin: 12px 0 18px 0;
+}
+
+.google-security-badge i,
+.google-security-badge svg {
+  width: 15px;
+  height: 15px;
+  color: #10b981;
+}
+
+.alt-login-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 14px 0 10px 0;
+  color: #94a3b8;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.alt-login-divider::before,
+.alt-login-divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.alt-login-divider span {
+  padding: 0 12px;
+}
+
+.btn-text-toggle {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.btn-text-toggle:hover {
+  background: #f1f5f9;
+  color: var(--slate);
+}
+
+.btn-text-toggle i,
+.btn-text-toggle svg {
+  width: 15px;
+  height: 15px;
+}
+
+.manual-login-form {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed #e2e8f0;
+  animation: fadeIn 0.25s ease;
+}
+
+/* Dashboard User Profile with Google Avatar */
+.dash-user-profile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.dash-teacher-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid var(--primary);
+  object-fit: cover;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.dash-teacher-email {
+  font-size: 0.84rem;
+  color: var(--muted);
+  margin: 2px 0 0 0;
+}
+
+.login-card h2 {
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--slate);
+  text-align: center;
+  margin: 0 0 6px 0;
+}
+.login-card .login-sub {
+  text-align: center;
+  color: #64748b;
+  font-size: 0.9rem;
+  margin: 0 0 22px 0;
+  line-height: 1.45;
+}
+
+/* 2. Tab Switcher ("Masuk" & "Daftar Akun Baru") */
+.auth-tabs {
+  width: 100%;
+  background: #f1f5f9;
+  padding: 4px;
+  border-radius: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin-bottom: 24px;
+  box-sizing: border-box;
+}
+.auth-tab-btn {
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 10px 14px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #64748b;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+.auth-tab-btn i,
+.auth-tab-btn svg {
+  width: 18px;
+  height: 18px;
+}
+.auth-tab-btn:not(.active):hover {
+  color: #1e293b;
+}
+.auth-tab-btn.active {
+  background: #ffffff;
+  color: #0f172a;
+  font-weight: 700;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+/* 3. Input Fields (Username & Password) */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 18px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.field label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--slate);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.input-wrap {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f8fafc;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+.input-wrap:focus-within {
+  border-color: #10b981;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+}
+.input-wrap .input-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  flex-shrink: 0;
+  transition: color 0.2s ease;
+}
+.input-wrap:focus-within .input-icon {
+  color: #10b981;
+}
+.input-wrap .input-icon i,
+.input-wrap .input-icon svg {
+  width: 18px;
+  height: 18px;
+}
+.input-wrap input {
+  border: none;
+  outline: none;
+  background: transparent;
+  width: 100%;
+  flex: 1;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--slate);
+  padding: 0;
+  margin: 0;
+}
+.input-wrap input::placeholder {
+  color: #94a3b8;
+  font-size: 0.92rem;
+  font-weight: 400;
+}
+
+/* 4. Tombol Mata (Toggle Password) & Tombol Link Registrasi */
+.toggle-pass {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  flex-shrink: 0;
+  transition: color 0.2s ease;
+}
+.toggle-pass:hover {
+  color: #0f172a;
+}
+.toggle-pass i,
+.toggle-pass svg {
+  width: 18px;
+  height: 18px;
+}
+
+.register-link {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #64748b;
+  margin-top: 16px;
+  margin-bottom: 0;
+}
+.link-btn {
+  background: none;
+  border: none;
+  color: #0d9488;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  font-family: inherit;
+  font-size: inherit;
+  transition: color 0.2s ease;
+}
+.link-btn:hover {
+  color: #0f766e;
+}
+
+/* 5. Tombol Utama ("Masuk Sekarang") & Kotak Info Demo */
+.btn-login {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 20px;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 12px;
+  margin-top: 6px;
+  cursor: pointer;
+}
+.btn-login i,
+.btn-login svg {
+  width: 18px;
+  height: 18px;
+}
+
+.demo-hint {
+  background: #f0fdfa;
+  border: 1px solid #ccfbf1;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-top: 20px;
+  margin-bottom: 0;
+  font-size: 0.85rem;
+  color: #0f766e;
+  line-height: 1.5;
+  text-align: center;
+}
+.demo-hint i,
+.demo-hint svg {
+  width: 16px;
+  height: 16px;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
+.form-error {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin: 0 0 14px 0;
+  text-align: center;
+}

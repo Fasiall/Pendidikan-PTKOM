@@ -1,0 +1,148 @@
+/* --------------------------------------------------------------------------
+   5. TACTILE 3D PUSHABLE BUTTON SYSTEM (DUOLINGO/KAHOOT STYLE)
+   -------------------------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.98rem;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.12s ease;
+}
+
+/* Primary 3D Pushable Button Class */
+.btn-3d {
+  border-radius: 16px;
+  padding: 14px 28px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+
+/* Primary CTA: Emerald / Green Tactile Button */
+.btn-start,
+.btn-3d.btn-primary {
+  background: #10B981;
+  color: #FFFFFF;
+  border: 2px solid #059669;
+  box-shadow: 0 6px 0 #047857, 0 10px 18px rgba(16, 185, 129, 0.35);
+  transform: translateY(0);
+}
+.btn-start:hover,
+.btn-3d.btn-primary:hover {
+  background: #34D399;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 0 #047857, 0 14px 22px rgba(16, 185, 129, 0.4);
+}
+.btn-start:active,
+.btn-3d.btn-primary:active {
+  background: #059669;
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 #047857, 0 4px 8px rgba(16, 185, 129, 0.2);
+}
+
+/* Secondary CTA: Indigo Tactile Button */
+.btn-3d.btn-secondary {
+  background: #4F46E5;
+  color: #FFFFFF;
+  border: 2px solid #4338CA;
+  box-shadow: 0 6px 0 #3730A3, 0 10px 18px rgba(79, 70, 229, 0.35);
+  transform: translateY(0);
+}
+.btn-3d.btn-secondary:hover {
+  background: #6366F1;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 0 #3730A3, 0 14px 22px rgba(79, 70, 229, 0.4);
+}
+.btn-3d.btn-secondary:active {
+  background: #4338CA;
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 #3730A3, 0 4px 8px rgba(79, 70, 229, 0.2);
+}
+
+/* Danger CTA: Red Tactile Button */
+.btn-3d.btn-danger {
+  background: #EF4444;
+  color: #FFFFFF;
+  border: 2px solid #DC2626;
+  box-shadow: 0 6px 0 #B91C1C, 0 10px 18px rgba(239, 68, 68, 0.35);
+  transform: translateY(0);
+}
+.btn-3d.btn-danger:hover {
+  background: #F87171;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 0 #B91C1C, 0 14px 22px rgba(239, 68, 68, 0.4);
+}
+.btn-3d.btn-danger:active {
+  background: #DC2626;
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 #B91C1C, 0 4px 8px rgba(239, 68, 68, 0.2);
+}
+
+/* Outline / Subtle 3D Button */
+.btn-3d.btn-outline,
+.btn-materi {
+  background: #FFFFFF;
+  color: #4F46E5;
+  border: 2px solid #C7D2FE;
+  box-shadow: 0 5px 0 #CBD5E1, 0 8px 14px rgba(15, 23, 42, 0.06);
+  transform: translateY(0);
+}
+.btn-3d.btn-outline:hover,
+.btn-materi:hover {
+  background: #EEF2FF;
+  border-color: #818CF8;
+  transform: translateY(-2px);
+  box-shadow: 0 7px 0 #94A3B8, 0 12px 18px rgba(79, 70, 229, 0.15);
+}
+.btn-3d.btn-outline:active,
+.btn-materi:active {
+  background: #E0E7FF;
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 #94A3B8, 0 3px 6px rgba(15, 23, 42, 0.1);
+}
+
+/* Pill & Ghost Variations */
+.btn-ghost {
+  background: transparent;
+  color: var(--muted);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-full);
+  padding: 10px 20px;
+}
+.btn-ghost:hover {
+  color: var(--ink);
+  background: var(--surface-alt);
+  border-color: var(--subtle);
+}
+
+.btn-coral {
+  background: var(--rose);
+  color: #fff;
+  border: 2px solid #E11D48;
+  box-shadow: 0 5px 0 #BE123C;
+  border-radius: 14px;
+  padding: 12px 24px;
+}
+.btn-coral:hover {
+  background: #FB7185;
+  transform: translateY(-2px);
+  box-shadow: 0 7px 0 #BE123C;
+}
+.btn-coral:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 #BE123C;
+}
+
+.btn-mini {
+  padding: 7px 14px;
+  font-size: 0.82rem;
+  border-radius: 10px;
+}
+

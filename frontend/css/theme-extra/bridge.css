@@ -1,0 +1,102 @@
+/* ==========================================================================
+   theme-extra.css — Jembatan antara style.css (SISTEM) dan theme.css (DESAIN)
+   ==========================================================================
+
+   Urutan muat: style.css → theme.css → theme-extra.css
+
+   Bagian 1: Pelurusan Token (Token Reconciliation)
+   ------------------------------------------------
+   theme.css MENANG untuk semua nama bentrok (palet DESAIN).
+   Alias token SISTEM yang tidak ada di DESAIN agar mengikuti palet DESAIN.
+
+   TABEL PEMETAAN TOKEN FINAL:
+   ------------------------------------------------
+   --accent (DESAIN: #6a4cff ungu) MENANG over SISTEM (#10B981 hijau)
+     -> Pemakaian var(--accent*) di style.css: 4 ditemukan, audit manual diperlukan
+     -> Jika niatnya "hijau/benar": ganti ke var(--green)/var(--teal) via override
+     -> Jika niatnya "aksen utama": biarkan ungu (theme.css)
+
+   --sky (DESAIN: #e9f4ff biru muda) MENANG over SISTEM (#0EA5E9 biru tua)
+     -> Pemakaian var(--sky) di style.css: 1 ditemukan, pastikan tidak ada teks/ikon tak terbaca
+
+   --primary* (SISTEM: indigo, 68x dipakai) TIDAK didefinisikan di theme.css
+     -> Alias di bawah memetakan ke palet DESAIN
+
+   Bentrok 19 nama (theme.css menang):
+   --accent, --sky, --shadow, --shadow-sm, --radius*, --ink, --muted,
+   --font-display, --blue, --coral, --pink, --purple, --teal, --yellow,
+   --surface, --white, --shadow-glow
+
+   Alias SISTEM → DESAIN:
+   ------------------------------------------------ */
+
+:root {
+  /* Primary system aliases (SISTEM uses --primary* 68x, theme.css doesn't define them) */
+  --primary: var(--accent);
+  --primary-hover: var(--accent-dark);
+  --primary-light: var(--accent-soft);
+  --primary-shadow: var(--accent-dark);
+  --primary-600: var(--accent);
+  --primary-700: var(--accent-dark);
+
+  /* Amber/Rose aliases used in style.css */
+  --amber: var(--yellow);
+  --amber-500: var(--yellow);
+  --amber-600: var(--yellow-dark);
+  --rose: var(--coral);
+  --rose-500: var(--coral);
+  --rose-600: var(--coral-dark);
+
+  /* Other SISTEM tokens mapped to DESAIN palette */
+  --green: var(--teal);
+  --green-500: var(--teal);
+  --green-600: var(--teal-dark);
+  --red: var(--coral);
+  --red-500: var(--coral);
+  --red-600: var(--coral-dark);
+  --blue: var(--sky);
+  --blue-500: var(--sky);
+  --blue-600: var(--sky-dark);
+  --purple-500: var(--purple);
+  --purple-600: var(--purple-dark);
+  --indigo: var(--accent); /* SISTEM primary was indigo */
+  --indigo-500: var(--accent);
+  --indigo-600: var(--accent-dark);
+
+  /* Surface/background aliases */
+  --background: var(--surface);
+
+  /* Font aliases */
+  --font-display: 'Baloo 2', 'Nunito', sans-serif; /* theme.css should define this */
+  --font-body: 'Nunito', sans-serif;
+
+  /* Radius aliases (theme.css uses --radius-*) */
+
+  /* Shadow aliases */
+  --shadow-md: var(--shadow);
+  --shadow-xl: var(--shadow-glow);
+
+  /* CATATAN: baris seperti `--ink: var(--ink);` (merujuk dirinya sendiri) sudah dihapus.
+     Referensi melingkar membuat variabel menjadi tidak valid sehingga teks jadi hitam,
+     border/radius/bayangan hilang. Nilainya sudah disediakan theme.css. */
+  /* Color/text aliases */
+  --text: var(--ink);
+  --text-muted: var(--muted);
+}
+
+/* ==========================================================================
+   Bagian 2: Override komponen SISTEM yang bentrok dengan theme.css
+   (akan diisi di Fase 2 per komponen)
+   ========================================================================== */
+
+/* ==========================================================================
+   Bagian 3: Gaya untuk kelas SISTEM yang belum tercakup theme.css
+   (akan diisi di Fase 2 per komponen)
+   ========================================================================== */
+
+/* ==========================================================================
+   Bagian 2: Override komponen SISTEM yang bentrok dengan theme.css
+   (diisi per grup komponen Fase 2)
+   ========================================================================== */
+
+/* ==========================================================================

@@ -1,0 +1,38 @@
+/* ---------------------------------- Modal ---------------------------------- */
+.modal-overlay{ background: rgba(43,42,74,.50); }
+.modal-card{
+  background: #fff;
+  border: 3px solid var(--ink);
+  border-radius: 26px;
+  box-shadow: 0 10px 0 rgba(43,42,74,.18);
+  padding: 28px;
+}
+.modal-card h3{ font-family: var(--font-display); font-size: 1.45rem; font-weight: 800; }
+.modal-close{
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  color: var(--ink);
+  width: 32px;
+  height: 32px;
+  font-size: 1rem;
+  font-weight: 800;
+}
+.modal-close:hover{ background: #fff6d8; color: var(--ink); }
+
+/* ------------------------------ Animasi baru ------------------------------ */
+@keyframes kcLetterPop{
+  from{ opacity: 0; transform: translateY(16px) scale(.82) rotate(-5deg); }
+  to  { opacity: 1; transform: translateY(0) scale(1) rotate(0); }
+}
+
+@keyframes kcFloat{
+  0%, 100%{ transform: translateY(0) rotate(-1.5deg); }
+  50%     { transform: translateY(-12px) rotate(1.5deg); }
+}
+
+@keyframes kcStarPop{
+  from{ opacity: 0; transform: scale(.3) rotate(-25deg); }
+  to  { opacity: 1; transform: scale(1) rotate(0); }
+}
+

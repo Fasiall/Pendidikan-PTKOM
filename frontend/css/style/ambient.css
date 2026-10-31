@@ -1,0 +1,119 @@
+/* --------------------------------------------------------------------------
+   3. SUBTLE AMBIENT & VECTOR MOTIF BACKGROUND
+   -------------------------------------------------------------------------- */
+.bg-ambient {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.ambient-shape {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.6;
+}
+
+.ambient-shape-1 {
+  width: 450px;
+  height: 450px;
+  background: rgba(99, 102, 241, 0.15);
+  top: -100px;
+  left: -100px;
+}
+
+.ambient-shape-2 {
+  width: 500px;
+  height: 500px;
+  background: rgba(16, 185, 129, 0.12);
+  bottom: -150px;
+  right: -100px;
+}
+
+.ambient-shape-3 {
+  width: 350px;
+  height: 350px;
+  background: rgba(245, 158, 11, 0.1);
+  top: 40%;
+  left: 60%;
+}
+
+.decor-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.decor-edu {
+  position: absolute;
+  color: #6366F1;
+  opacity: 0.14;
+  font-family: var(--font-display);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.5s ease;
+  animation: floatSlow 12s ease-in-out infinite alternate;
+}
+
+@keyframes floatSlow {
+  0% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(4deg); }
+  100% { transform: translateY(-24px) rotate(-4deg); }
+}
+
+/* Feedback Flash & Audio Toggle */
+.fx-flash {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.25s ease-out;
+}
+.fx-flash.correct {
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, transparent 70%);
+  opacity: 1;
+}
+.fx-flash.wrong {
+  background: radial-gradient(circle, rgba(244, 63, 94, 0.25) 0%, transparent 70%);
+  opacity: 1;
+}
+
+.confetti-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+}
+
+.btn-audio {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 50;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  box-shadow: var(--shadow);
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+.btn-audio:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+

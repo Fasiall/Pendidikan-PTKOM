@@ -1,0 +1,43 @@
+/* ------------------------------- Dasar ---------------------------------- */
+html{ scroll-behavior: smooth; }
+
+body{
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--ink);
+  background-color: var(--paper);
+  background-image:
+    radial-gradient(circle at 8% 2%, rgba(255,201,60,.34), transparent 26%),
+    radial-gradient(circle at 94% 4%, rgba(87,168,255,.28), transparent 30%),
+    radial-gradient(circle at 98% 86%, rgba(46,200,176,.24), transparent 28%),
+    radial-gradient(circle at 4% 92%, rgba(255,122,182,.24), transparent 28%),
+    radial-gradient(rgba(106,76,255,.12) 1.6px, transparent 1.7px);
+  background-size: auto, auto, auto, auto, 28px 28px;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4{
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -.01em;
+  color: var(--ink);
+}
+
+::selection{ background: #ffe9a8; color: var(--ink); }
+
+:focus-visible{ outline: 3px solid var(--accent); outline-offset: 3px; }
+
+/* Dekorasi lama dan elemen yang tidak dipakai tetap disembunyikan */
+.decor-layer,
+.hero-blobs,
+.landscape-hills,
+.mini-card-glow{ display: none !important; }
+
+/* Kilatan benar / salah */
+.fx-flash.ok{ background: rgba(53,201,122,.14); }
+.fx-flash.no{ background: rgba(255,107,107,.16); }
+.fx-flash span{ display: none; }
+.confetti{ border-radius: 3px !important; }
+
