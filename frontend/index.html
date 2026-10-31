@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Kuis Petualangan Ceria - Platform kuis interaktif dan materi belajar untuk siswa">
   <meta name="theme-color" content="#4F46E5">
+  <!-- Aset relatif tetap dimuat dari akar situs walau URL halaman /guru/riwayat/:id -->
+  <base href="/">
   <title>Kuis Petualangan Ceria | Platform Belajar Interaktif</title>
 
   <!-- Ikon tab browser (burung hantu pintar) -->
@@ -79,6 +81,7 @@
     <link rel="stylesheet" href="css/theme-extra/materi-register-continued.css?v=4">
     <link rel="stylesheet" href="css/pages/home-hero.css?v=4">
     <link rel="stylesheet" href="css/pages/home-features.css?v=4">
+    <link rel="stylesheet" href="css/pages/quiz-history.css?v=1">
     <link rel="stylesheet" href="css/navbar.css?v=4">
 
 </head>
@@ -599,6 +602,21 @@
               <input type="number" id="sSetTime" name="set_time_quiz" placeholder="0 untuk tanpa batas waktu" min="0" autocomplete="off">
             </div>
 
+            <div class="field schedule-field">
+              <label for="sSetScheduleDate">Jadwal Akses (opsional)</label>
+              <div class="schedule-grid">
+                <input type="date" id="sSetScheduleDate" aria-label="Tanggal jadwal akses">
+                <input type="time" id="sSetScheduleStart" aria-label="Jam mulai akses WIB">
+                <input type="time" id="sSetScheduleEnd" aria-label="Jam selesai akses WIB">
+              </div>
+              <small class="field-hint">Waktu Indonesia Barat (WIB). Kosongkan jika kuis boleh diakses kapan saja.</small>
+            </div>
+
+            <label class="check-line">
+              <input type="checkbox" id="sSetShuffle" checked>
+              <span>Acak soal</span>
+            </label>
+
             <label class="check-line">
               <input type="checkbox" id="sSetPublish" name="set_publish_quiz" checked>
               <span>Publikasikan untuk siswa</span>
@@ -761,8 +779,8 @@
         <div class="admin-card">
           <div class="admin-card-header">
             <span class="card-kicker">AKTIVITAS SISWA</span>
-            <h4><i data-lucide="history"></i> Riwayat Skor Siswa</h4>
-            <p class="card-sub-desc">Catatan hasil evaluasi dan pengerjaan kuis terbaru oleh siswa.</p>
+            <h4><i data-lucide="history"></i> Riwayat per Kuis</h4>
+            <p class="card-sub-desc">Pilih salah satu kuis untuk melihat ringkasan dan detail pengerjaan siswa.</p>
           </div>
           <!-- Riwayat skor dari database (diisi oleh JavaScript) -->
           <ul class="results-list" id="resultsList"></ul>
@@ -785,24 +803,75 @@
     </div>
   </section>
 
+  <!-- =========================================================
+       HALAMAN RIWAYAT PER KUIS (URL /guru/riwayat/:id)
+  ========================================================== -->
+  <section class="page" id="page-quiz-history" aria-labelledby="historyTitle">
+    <div class="history-shell">
+      <button class="btn btn-ghost history-back" id="btnHistoryBack" type="button">
+        <i data-lucide="arrow-left"></i> <span>Kembali</span>
+      </button>
+
+      <header class="history-header">
+        <span class="card-kicker">RIWAYAT KUIS</span>
+        <h2 id="historyTitle">Riwayat Kuis</h2>
+        <p id="historySubtitle" class="history-subtitle">Memuat data...</p>
+      </header>
+
+      <div class="history-summary" id="historySummary"></div>
+
+      <div class="history-toolbar">
+        <div class="history-search">
+          <i data-lucide="search"></i>
+          <input type="search" id="historySearch" placeholder="Cari nama siswa..." autocomplete="off" aria-label="Cari nama siswa">
+        </div>
+        <select id="historySort" class="history-sort" aria-label="Urutkan riwayat">
+          <option value="date_desc">Terbaru</option>
+          <option value="date_asc">Terlama</option>
+          <option value="score_desc">Skor tertinggi</option>
+          <option value="score_asc">Skor terendah</option>
+        </select>
+      </div>
+
+      <div class="history-table-wrap">
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th scope="col">Nama Siswa</th>
+              <th scope="col">Skor</th>
+              <th scope="col">Benar / Salah</th>
+              <th scope="col">Mulai</th>
+              <th scope="col">Selesai</th>
+              <th scope="col">Durasi</th>
+            </tr>
+          </thead>
+          <tbody id="historyTableBody"></tbody>
+        </table>
+      </div>
+      <p class="history-empty hidden" id="historyEmpty">Siswa tidak ditemukan</p>
+      <div class="history-pagination" id="historyPagination"></div>
+    </div>
+  </section>
+
   <!-- Container Notifikasi Melayang (Toast System) -->
   <div class="toast-container" id="toastContainer" role="region" aria-label="Notifikasi" aria-live="polite"></div>
 
   <!-- File logika utama kuis -->
-  <script src="js/01-dom-refs.js?v=11"></script>
-  <script src="js/02-state.js?v=11"></script>
-  <script src="js/03-api-helpers.js?v=11"></script>
+  <script src="js/01-dom-refs.js?v=12"></script>
+  <script src="js/02-state.js?v=12"></script>
+  <script src="js/03-api-helpers.js?v=12"></script>
   <script src="js/04-navigation.js?v=11"></script>
   <script src="js/05-decorations.js?v=11"></script>
-  <script src="js/06a-quiz-render.js?v=11"></script>
-  <script src="js/06b-quiz-answer.js?v=11"></script>
+  <script src="js/06a-quiz-render.js?v=12"></script>
+  <script src="js/06b-quiz-answer.js?v=12"></script>
   <script src="js/07-animations.js?v=11"></script>
-  <script src="js/08-results.js?v=11"></script>
+  <script src="js/08-results.js?v=12"></script>
   <script src="js/09a-auth.js?v=11"></script>
-  <script src="js/09b-dashboard.js?v=11"></script>
-  <script src="js/10a-admin-materials.js?v=11"></script>
-  <script src="js/10b-admin-questions.js?v=11"></script>
-  <script src="js/11-init.js?v=11"></script>
+  <script src="js/09b-dashboard.js?v=12"></script>
+  <script src="js/10a-admin-materials.js?v=12"></script>
+  <script src="js/10b-admin-questions.js?v=12"></script>
+  <script src="js/12-quiz-history.js?v=1"></script>
+  <script src="js/11-init.js?v=12"></script>
   <script src="home.js?v=1"></script>
 </body>
 </html>

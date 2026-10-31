@@ -6,8 +6,11 @@
  * Mengirim skor akhir ke server (tersimpan di tabel results),
  * lalu menampilkan bintang, skor berjalan, dan pesan motivasi.
  */
-async function showResult() {
+async function showResult(options = {}) {
+  if (quizSubmitting) return;
+  quizSubmitting = true;
   clearInterval(timerInterval);
+  timerInterval = null;
   let finalScore = score;
   let total = questions.length;
 
@@ -21,7 +24,11 @@ async function showResult() {
     finalScore = data.score;
     total = data.total;
     lastScore = finalScore;
+    /* Sesi selesai: refresh tidak lagi memulihkan kuis ini. */
+    sessionStorage.removeItem("kuis.quizActive");
+    sessionStorage.removeItem("kuis.studentName");
   } catch (err) {
+    quizSubmitting = false;
     /* Server bermasalah: hasil tetap tampil, hanya tidak tersimpan */
     lastScore = finalScore;
     showToast("Skor akhir tetap tampil, namun belum tersimpan di server.", "info", "Koneksi Tersendat");

@@ -1,67 +1,126 @@
 /* ==========================================================================
    src/controllers/quiz.controller.js — Alur kuis siswa
 
-   Skor sementara disimpan di SESSION (express-session) milik browser,
-   sementara kunci jawaban tidak pernah dikirim ke klien sehingga siswa
-   tidak bisa membuka tab developer untuk melihat jawaban.
+   Skor sementara dan urutan acak per sesi disimpan di SESSION
+   (express-session) milik browser, sementara kunci jawaban tidak pernah
+   dikirim ke klien.
 
-   Endpoint (publik):
-     POST /api/quiz/start   { materialId? } -> mulai/reset sesi kuis
-     POST /api/quiz/answer  { questionId, choice }
-     POST /api/quiz/submit               -> simpan skor akhir ke database
-     GET  /api/quiz/results              -> 10 skor terakhir (dashboard guru)
+   Endpoint:
+     POST /api/quiz/start    { setId? }   -> mulai sesi (soal & opsi diacak)
+     GET  /api/quiz/session               -> pulihkan sesi setelah refresh
+     POST /api/quiz/answer   { questionId, choice }
+     POST /api/quiz/submit   { studentName }
+     GET  /api/quiz/results               -> 10 skor terakhir (dashboard guru)
+     GET  /api/quiz/leaderboard
    ========================================================================== */
 
 const { getPool } = require("../db/embedded");
 const { ApiError, asyncHandler } = require("../utils/errors");
 const { toInt, sanitizeStudentName } = require("../utils/validate");
 const { toCsv } = require("../utils/csv");
+const {
+  getScheduleStatus,
+  buildScheduleMessage,
+  resolveDeadline
+} = require("../utils/quizSchedule");
 
-/** Ambil soal milik sesi kuis (difilter set soal atau materi). */
-async function fetchSessionQuestions(pool, { setId, materialId }) {
-  if (setId) {
-    const { rows } = await pool.query(
-      "SELECT id FROM questions WHERE quiz_set_id = $1 ORDER BY position, id",
-      [setId]
-    );
-    return rows;
+/** Fisher-Yates: mengacak array secara adil (bukan sort acak). */
+function shuffleArray(items) {
+  const result = items.slice();
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const temp = result[i];
+    result[i] = result[j];
+    result[j] = temp;
   }
-  if (materialId) {
-    const { rows } = await pool.query(
-      "SELECT id FROM questions WHERE material_id = $1 ORDER BY position, id",
-      [materialId]
-    );
-    return rows;
+  return result;
+}
+
+/** Ambil soal lengkap (opsi masih berupa teks) untuk sesi kuis. */
+async function fetchQuestionRows(pool, { setId, materialId }) {
+  const params = [];
+  let where = "";
+  if (setId !== null && setId !== undefined) {
+    params.push(setId);
+    where = "WHERE quiz_set_id = $1";
+  } else if (materialId !== null && materialId !== undefined) {
+    params.push(materialId);
+    where = "WHERE material_id = $1";
   }
-  const { rows } = await pool.query("SELECT id FROM questions ORDER BY position, id");
+
+  const { rows } = await pool.query(
+    `SELECT id, subject, image, question, options
+       FROM questions
+       ${where}
+      ORDER BY position, id`,
+    params
+  );
   return rows;
 }
 
-/** Mulai kuis baru. */
+/**
+ * Bentuk soal untuk siswa. Setiap opsi menjadi { id, text } dengan id =
+ * indeks asli, sehingga penilaian tetap memakai kunci `questions.answer`
+ * meskipun urutan huruf A/B/C/D berubah.
+ */
+function buildPlayerQuestions(rows, shuffle) {
+  /* Fisher-Yates untuk urutan soal, lalu urutan opsi tiap soal. */
+  const orderedRows = shuffle ? shuffleArray(rows) : rows;
+  return orderedRows.map((row) => {
+    const texts = Array.isArray(row.options) ? row.options : [];
+    let options = texts.map((text, index) => ({ id: index, text: String(text) }));
+    if (shuffle) options = shuffleArray(options);
+    return {
+      id: row.id,
+      subject: row.subject || "",
+      image: row.image || "",
+      question: row.question,
+      options
+    };
+  });
+}
+
+/** Mulai kuis baru (selalu membuat urutan acak baru). */
 const start = asyncHandler(async (req, res) => {
   const pool = getPool();
   const body = req.body || {};
 
-  /* --- Tentukan filter: setId lebih prioritas daripada materialId --- */
   const setId =
-    body.setId === undefined || body.setId === null
+    body.setId === undefined || body.setId === null || body.setId === ""
       ? null
       : toInt(body.setId, "setId", { min: 1 });
 
   const materialId =
-    body.materialId === undefined || body.materialId === null
+    body.materialId === undefined || body.materialId === null || body.materialId === ""
       ? null
       : toInt(body.materialId, "materialId", { min: 1 });
 
   let timeLimit = 0;
+  let shuffle = true;
+  let scheduleEnd = null;
+  let setRow = null;
 
   if (setId !== null) {
     const { rows } = await pool.query(
-      "SELECT id, material_id, time_limit FROM quiz_sets WHERE id = $1 AND is_published = TRUE",
+      `SELECT id, material_id, time_limit, shuffle_questions, schedule_start, schedule_end
+         FROM quiz_sets
+        WHERE id = $1 AND is_published = TRUE`,
       [setId]
     );
     if (!rows.length) throw ApiError.notFound("Set soal tidak ditemukan.");
-    timeLimit = rows[0].time_limit;
+
+    setRow = rows[0];
+    timeLimit = Number(setRow.time_limit) || 0;
+    shuffle = setRow.shuffle_questions !== false;
+    scheduleEnd = setRow.schedule_end || null;
+
+    /* Jadwal diperiksa memakai jam server, bukan jam perangkat siswa. */
+    const scheduleStatus = getScheduleStatus(setRow);
+    if (scheduleStatus === "not_open" || scheduleStatus === "ended") {
+      const error = new ApiError(403, buildScheduleMessage(setRow));
+      error.code = scheduleStatus === "not_open" ? "QUIZ_NOT_OPEN" : "QUIZ_ENDED";
+      throw error;
+    }
   } else if (materialId !== null) {
     const { rows } = await pool.query(
       "SELECT id FROM materials WHERE id = $1 AND is_published = TRUE",
@@ -70,12 +129,64 @@ const start = asyncHandler(async (req, res) => {
     if (!rows.length) throw ApiError.notFound("Materi tidak ditemukan.");
   }
 
-  const questions = await fetchSessionQuestions(pool, { setId, materialId });
-  if (!questions.length) throw ApiError.badRequest("Belum ada soal untuk kuis ini.");
+  const rows = await fetchQuestionRows(pool, { setId, materialId });
+  if (!rows.length) throw ApiError.badRequest("Belum ada soal untuk kuis ini.");
 
-  req.session.quiz = { score: 0, results: {}, setId, materialId, startedAt: Date.now() };
+  const playerQuestions = buildPlayerQuestions(rows, shuffle);
+  const startedAt = Date.now();
+  const deadlineAt = resolveDeadline({ startedAt, timeLimit, scheduleEnd });
 
-  res.json({ ok: true, total: questions.length, setId, materialId, timeLimit });
+  req.session.quiz = {
+    score: 0,
+    results: {},
+    setId,
+    materialId,
+    startedAt,
+    deadlineAt,
+    timeLimit,
+    total: playerQuestions.length,
+    questions: playerQuestions
+  };
+
+  res.json({
+    ok: true,
+    total: playerQuestions.length,
+    setId,
+    materialId,
+    timeLimit,
+    shuffle,
+    serverNow: new Date().toISOString(),
+    deadlineAt: deadlineAt === null ? null : new Date(deadlineAt).toISOString(),
+    questions: playerQuestions
+  });
+});
+
+/** Pulihkan sesi kuis yang sedang berjalan (dipakai setelah refresh). */
+const session = asyncHandler(async (req, res) => {
+  const quiz = req.session.quiz;
+  const now = Date.now();
+
+  if (!quiz) {
+    return res.json({ active: false, serverNow: new Date(now).toISOString() });
+  }
+
+  const expired = quiz.deadlineAt !== null && quiz.deadlineAt !== undefined && now >= quiz.deadlineAt;
+
+  res.json({
+    active: true,
+    expired,
+    total: quiz.total,
+    score: quiz.score,
+    questions: quiz.questions,
+    answers: Object.values(quiz.results || {}),
+    timeLimit: quiz.timeLimit,
+    setId: quiz.setId,
+    materialId: quiz.materialId,
+    deadlineAt: quiz.deadlineAt === null || quiz.deadlineAt === undefined
+      ? null
+      : new Date(quiz.deadlineAt).toISOString(),
+    serverNow: new Date(now).toISOString()
+  });
 });
 
 /** Validasi satu jawaban siswa di server. */
@@ -83,18 +194,31 @@ const answer = asyncHandler(async (req, res) => {
   const quiz = req.session.quiz;
   if (!quiz) throw ApiError.badRequest("Sesi kuis belum dimulai. Silakan mulai ulang.");
 
+  /* Waktu efektif habis (timer durasi atau jadwal) -> tolak jawaban baru. */
+  if (quiz.deadlineAt !== null && quiz.deadlineAt !== undefined && Date.now() >= quiz.deadlineAt) {
+    const error = new ApiError(403, "Waktu kuis sudah berakhir.");
+    error.code = "TIME_UP";
+    throw error;
+  }
+
   const pool = getPool();
   const { questionId, choice } = req.body || {};
+  const qid = toInt(questionId, "questionId", { min: 1 });
+
+  /* Soal harus benar-benar bagian dari urutan sesi ini. */
+  const inSession = (quiz.questions || []).some((item) => item.id === qid);
+  if (!inSession) {
+    throw ApiError.badRequest("Soal ini bukan bagian dari kuis yang sedang dikerjakan.");
+  }
 
   const { rows } = await pool.query(
-    "SELECT id, material_id, quiz_set_id, answer, fact FROM questions WHERE id = $1",
-    [toInt(questionId, "questionId", { min: 1 })]
+    "SELECT id, material_id, quiz_set_id, answer, fact, options FROM questions WHERE id = $1",
+    [qid]
   );
   const question = rows[0];
-
   if (!question) throw ApiError.notFound("Soal tidak ditemukan.");
 
-  /* Validasi: soal harus milik set/materi yang sedang dikerjakan */
+  /* Validasi tambahan: soal harus milik set/materi yang sedang dikerjakan. */
   if (quiz.setId !== null && question.quiz_set_id !== quiz.setId) {
     throw ApiError.badRequest("Soal ini bukan bagian dari set soal yang sedang dikerjakan.");
   } else if (quiz.setId === null && quiz.materialId !== null && question.material_id !== quiz.materialId) {
@@ -102,8 +226,9 @@ const answer = asyncHandler(async (req, res) => {
   }
 
   const chosen = Number(choice);
-  if (!Number.isInteger(chosen)) {
-    throw ApiError.badRequest("Field choice harus berupa nomor pilihan (angka).");
+  const optionCount = Array.isArray(question.options) ? question.options.length : 0;
+  if (!Number.isInteger(chosen) || chosen < 0 || chosen >= optionCount) {
+    throw ApiError.badRequest("Field choice harus berupa ID pilihan jawaban yang valid.");
   }
 
   const key = String(question.id);
@@ -113,11 +238,12 @@ const answer = asyncHandler(async (req, res) => {
     return res.json({ ...quiz.results[key], score: quiz.score });
   }
 
-  const correct = chosen === question.answer;
+  /* choice = ID opsi (indeks asli), bukan posisi huruf setelah diacak. */
+  const correct = chosen === Number(question.answer);
   quiz.results[key] = {
     questionId: question.id,
     correct,
-    correctIndex: question.answer,
+    correctIndex: Number(question.answer),
     chosen,
     fact: question.fact
   };
@@ -132,14 +258,20 @@ const submit = asyncHandler(async (req, res) => {
   if (!quiz) throw ApiError.badRequest("Belum ada kuis yang berjalan.");
 
   const pool = getPool();
-  const questions = await fetchSessionQuestions(pool, { setId: quiz.setId, materialId: quiz.materialId });
-  const total = questions.length;
+  const total = quiz.total !== undefined
+    ? quiz.total
+    : (quiz.questions || []).length;
 
   const studentName = sanitizeStudentName((req.body || {}).studentName);
+  const startedAt = quiz.startedAt ? new Date(quiz.startedAt) : null;
+  const finishedAt = new Date();
 
   const { rows } = await pool.query(
-    "INSERT INTO results (material_id, quiz_set_id, student_name, score, total) VALUES ($1, $2, $3, $4, $5) RETURNING id, created_at",
-    [quiz.materialId, quiz.setId, studentName, quiz.score, total]
+    `INSERT INTO results
+       (material_id, quiz_set_id, student_name, score, total, started_at, finished_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
+     RETURNING id, created_at`,
+    [quiz.materialId, quiz.setId, studentName, quiz.score, total, startedAt, finishedAt]
   );
 
   req.session.quiz = null;
@@ -148,7 +280,9 @@ const submit = asyncHandler(async (req, res) => {
     score: quiz.score,
     total,
     studentName,
-    savedAt: rows[0].created_at
+    savedAt: rows[0].created_at,
+    startedAt: startedAt ? startedAt.toISOString() : null,
+    finishedAt: finishedAt.toISOString()
   });
 });
 
@@ -212,4 +346,4 @@ const leaderboard = asyncHandler(async (req, res) => {
   res.json({ leaderboard: rows });
 });
 
-module.exports = { start, answer, submit, results, leaderboard };
+module.exports = { start, session, answer, submit, results, leaderboard };

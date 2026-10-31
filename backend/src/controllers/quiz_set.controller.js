@@ -3,6 +3,7 @@
 
    Publik (siswa):
      GET /api/sets?materialId=X       daftar set soal (published) per materi
+     GET /api/sets/code/:code         cari set + status jadwal (WIB)
 
    Pengajar (JWT wajib):
      GET    /api/sets/manage           semua set soal (termasuk draf)
@@ -15,6 +16,11 @@
 const { getPool } = require("../db/embedded");
 const { ApiError, asyncHandler } = require("../utils/errors");
 const { requireFields, toInt, toBool } = require("../utils/validate");
+const {
+  normalizeSchedule,
+  getScheduleStatus,
+  buildScheduleMessage
+} = require("../utils/quizSchedule");
 
 /* ============================== PUBLIK =================================== */
 
@@ -32,6 +38,13 @@ const list = asyncHandler(async (req, res) => {
   const { rows } = await pool.query(
     `SELECT qs.id, qs.material_id, qs.title, qs.description,
             qs.position, qs.created_at, qs.time_limit,
+            qs.shuffle_questions, qs.schedule_start, qs.schedule_end,
+            CASE
+              WHEN qs.schedule_start IS NULL AND qs.schedule_end IS NULL THEN NULL
+              WHEN NOW() < qs.schedule_start THEN 'not_open'
+              WHEN NOW() > qs.schedule_end THEN 'ended'
+              ELSE 'open'
+            END AS schedule_status,
             m.title AS material_title,
             COUNT(q.id)::int AS question_count
        FROM quiz_sets qs
@@ -46,7 +59,7 @@ const list = asyncHandler(async (req, res) => {
   res.json({ total: rows.length, sets: rows });
 });
 
-/** Ambil set soal berdasarkan kode akses (siswa). */
+/** Ambil set soal berdasarkan kode akses + status jadwal (jam server). */
 const getByCode = asyncHandler(async (req, res) => {
   const pool = getPool();
   const code = String(req.params.code || "").trim().toUpperCase();
@@ -56,8 +69,9 @@ const getByCode = asyncHandler(async (req, res) => {
   }
 
   const { rows } = await pool.query(
-    `SELECT id, title, material_id, time_limit 
-       FROM quiz_sets 
+    `SELECT id, title, material_id, time_limit,
+            shuffle_questions, schedule_start, schedule_end
+       FROM quiz_sets
       WHERE access_code = $1 AND is_published = TRUE`,
     [code]
   );
@@ -66,7 +80,19 @@ const getByCode = asyncHandler(async (req, res) => {
     throw ApiError.notFound("Kode kuis tidak valid atau kuis belum dipublish.");
   }
 
-  res.json({ set: rows[0] });
+  const set = rows[0];
+  const status = getScheduleStatus(set);
+
+  res.json({
+    set,
+    schedule: {
+      status,
+      message: buildScheduleMessage(set),
+      start: set.schedule_start,
+      end: set.schedule_end
+    },
+    serverNow: new Date().toISOString()
+  });
 });
 
 /* ============================= PENGAJAR ================================== */
@@ -86,6 +112,12 @@ const manage = asyncHandler(async (req, res) => {
 
   const { rows } = await pool.query(
     `SELECT qs.*, m.title AS material_title,
+            CASE
+              WHEN qs.schedule_start IS NULL AND qs.schedule_end IS NULL THEN NULL
+              WHEN NOW() < qs.schedule_start THEN 'not_open'
+              WHEN NOW() > qs.schedule_end THEN 'ended'
+              ELSE 'open'
+            END AS schedule_status,
             COUNT(q.id)::int AS question_count
        FROM quiz_sets qs
        LEFT JOIN materials m ON m.id = qs.material_id
@@ -150,12 +182,17 @@ const create = asyncHandler(async (req, res) => {
     materialId = matRows.length ? matRows[0].id : null;
   }
 
+  /* Validasi jadwal akses (opsional, harus lengkap bila diisi). */
+  const schedule = normalizeSchedule(body.scheduleStart, body.scheduleEnd);
+
   /* Generate kode akses 6 karakter */
   const accessCode = Math.random().toString(36).substring(2, 8).toUpperCase();
 
   const { rows } = await pool.query(
-    `INSERT INTO quiz_sets (material_id, title, description, is_published, position, access_code, time_limit, teacher_id)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    `INSERT INTO quiz_sets
+       (material_id, title, description, is_published, position, access_code,
+        time_limit, teacher_id, shuffle_questions, schedule_start, schedule_end)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
      RETURNING *`,
     [
       materialId,
@@ -165,7 +202,10 @@ const create = asyncHandler(async (req, res) => {
       body.position === undefined ? 0 : toInt(body.position, "position"),
       accessCode,
       body.timeLimit === undefined ? 0 : toInt(body.timeLimit, "timeLimit", { min: 0 }),
-      teacherId
+      teacherId,
+      toBool(body.shuffleQuestions, true),
+      schedule.start,
+      schedule.end
     ]
   );
 
@@ -196,9 +236,20 @@ const update = asyncHandler(async (req, res) => {
     ? current.material_id
     : toInt(body.materialId, "materialId", { min: 1 });
 
+  /* Jadwal hanya diubah bila field-nya dikirim (selalu dikirim berpasangan). */
+  let scheduleStart = current.schedule_start;
+  let scheduleEnd = current.schedule_end;
+  if (body.scheduleStart !== undefined || body.scheduleEnd !== undefined) {
+    const schedule = normalizeSchedule(body.scheduleStart, body.scheduleEnd);
+    scheduleStart = schedule.start;
+    scheduleEnd = schedule.end;
+  }
+
   const { rows } = await pool.query(
     `UPDATE quiz_sets
-        SET title = $1, description = $2, is_published = $3, position = $4, time_limit = $6, material_id = $7
+        SET title = $1, description = $2, is_published = $3, position = $4,
+            time_limit = $6, material_id = $7, shuffle_questions = $9,
+            schedule_start = $10, schedule_end = $11
       WHERE id = $5 AND teacher_id = $8
       RETURNING *`,
     [
@@ -217,7 +268,12 @@ const update = asyncHandler(async (req, res) => {
         ? current.time_limit
         : toInt(body.timeLimit, "timeLimit", { min: 0 }),
       materialId,
-      teacherId
+      teacherId,
+      body.shuffleQuestions === undefined
+        ? current.shuffle_questions
+        : toBool(body.shuffleQuestions, true),
+      scheduleStart,
+      scheduleEnd
     ]
   );
 

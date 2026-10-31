@@ -41,6 +41,7 @@ function errorHandler(err, req, res, next) {
 
   res.status(status).json({
     error: message,
+    ...(err instanceof ApiError && err.code ? { code: err.code } : {}),
     ...(err instanceof ApiError && err.details ? { details: err.details } : {}),
     ...(!config.isProduction && status === 500 ? { stack: err.stack } : {})
   });

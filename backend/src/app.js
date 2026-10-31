@@ -60,6 +60,10 @@ function createApp() {
   app.get("/", (req, res) => {
     res.sendFile(path.join(config.frontendDir, "index.html"));
   });
+  /* Halaman riwayat per kuis memakai SPA: URL tetap unik dan bisa dibagikan. */
+  app.get(/^\/guru\/riwayat(?:\/\d+)?\/?$/, (req, res) => {
+    res.sendFile(path.join(config.frontendDir, "index.html"));
+  });
   app.use(express.static(config.frontendDir, { index: false, dotfiles: "ignore" }));
 
   /* ---------------------------- ERROR ------------------------------------ */

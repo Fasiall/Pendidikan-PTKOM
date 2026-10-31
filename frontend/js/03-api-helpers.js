@@ -54,6 +54,7 @@ async function api(path, options = {}) {
   if (!res.ok) {
     const error = new Error((data && data.error) || "Permintaan gagal.");
     error.status = res.status;
+    error.code = data && data.code;
     throw error;
   }
   return data;

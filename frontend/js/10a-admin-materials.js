@@ -255,6 +255,21 @@ function renderSetAdmin() {
       ? '<span class="set-status-pill published"><i data-lucide="globe"></i><span>Publik</span></span>'
       : '<span class="set-status-pill draft"><i data-lucide="lock"></i><span>Draf</span></span>';
 
+    var scheduleLabel = typeof scheduleStatusLabel === "function"
+      ? scheduleStatusLabel(set.schedule_status)
+      : "";
+    var schedulePill = scheduleLabel
+      ? '<span class="set-status-pill schedule-' + set.schedule_status + '"><i data-lucide="calendar-clock"></i><span>' + escapeHtml(scheduleLabel) + '</span></span>'
+      : '';
+
+    var shuffleHtml = set.shuffle_questions
+      ? '<span class="set-meta-pill"><i data-lucide="shuffle"></i><span>Acak Soal</span></span>'
+      : '';
+
+    var scheduleHtml = set.schedule_start && typeof formatScheduleRange === "function"
+      ? '<span class="set-meta-pill"><i data-lucide="calendar-clock"></i><span>' + escapeHtml(formatScheduleRange(set)) + '</span></span>'
+      : '';
+
     var timeHtml = set.time_limit > 0
       ? '<span class="set-meta-pill"><i data-lucide="clock-3"></i><span>' + set.time_limit + ' Menit</span></span>'
       : '';
@@ -277,11 +292,14 @@ function renderSetAdmin() {
           '<div class="set-card-headline">' +
             '<h5 class="set-card-title">' + escapeHtml(set.title) + '</h5>' +
             statusHtml +
+            schedulePill +
           '</div>' +
           descHtml +
           '<div class="set-card-meta">' +
             questionsHtml +
             timeHtml +
+            shuffleHtml +
+            scheduleHtml +
             codeHtml +
           '</div>' +
         '</div>' +
@@ -329,7 +347,11 @@ async function openQuizQuestionsManager(setId) {
   if (mgrSetMeta) {
     mgrSetMeta.textContent =
       (set.time_limit > 0 ? "Batas Waktu: " + set.time_limit + " Menit" : "Tanpa Batas Waktu") +
-      " · Kode Akses: " + (set.access_code || "-");
+      " | Kode Akses: " + (set.access_code || "-") +
+      " | Acak Soal: " + (set.shuffle_questions ? "Ya" : "Tidak") +
+      (set.schedule_start && typeof formatScheduleRange === "function"
+        ? " | Jadwal: " + formatScheduleRange(set)
+        : "");
   }
 
   await loadQuizQuestions(setId);
@@ -430,6 +452,16 @@ function editSet(set) {
   sSetDesc.value = set.description || "";
   sSetTime.value = set.time_limit || "";
   sSetPublish.checked = set.is_published;
+  if (sSetShuffle) sSetShuffle.checked = set.shuffle_questions !== false;
+  if (sSetScheduleDate) {
+    sSetScheduleDate.value = typeof toWibDateInput === "function" ? toWibDateInput(set.schedule_start) : "";
+  }
+  if (sSetScheduleStart) {
+    sSetScheduleStart.value = typeof toWibTimeInput === "function" ? toWibTimeInput(set.schedule_start) : "";
+  }
+  if (sSetScheduleEnd) {
+    sSetScheduleEnd.value = typeof toWibTimeInput === "function" ? toWibTimeInput(set.schedule_end) : "";
+  }
   btnCancelSet.hidden = false;
   showFormError(setError, "");
   switchTab("tabSetSoal");
@@ -443,6 +475,10 @@ function resetSetForm() {
   setForm.reset();
   sSetTime.value = "";
   sSetPublish.checked = true;
+  if (sSetShuffle) sSetShuffle.checked = true;
+  if (sSetScheduleDate) sSetScheduleDate.value = "";
+  if (sSetScheduleStart) sSetScheduleStart.value = "";
+  if (sSetScheduleEnd) sSetScheduleEnd.value = "";
   btnCancelSet.hidden = true;
   showFormError(setError, "");
 }

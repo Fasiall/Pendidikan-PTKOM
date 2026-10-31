@@ -18,3 +18,20 @@ let editingMateriId = null;
 let editingSetId    = null;
 let editingSoalId   = null;
 let activeManagerSetId = null;
+/* Status sesi kuis (acak, jawaban tersimpan, hitung mundur server) */
+let quizDeadlineAt = null;
+let quizTickAnchor = 0;
+let quizTickStartRemainingMs = 0;
+let quizAnswers = {};
+let quizSubmitting = false;
+
+/* Status halaman riwayat per kuis */
+let quizHistoryState = {
+  setId: null,
+  page: 1,
+  pageSize: 10,
+  search: "",
+  sort: "date_desc",
+  requestId: 0
+};
+let historySearchTimer = null;

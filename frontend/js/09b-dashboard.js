@@ -268,38 +268,23 @@ async function renderDashboard() {
       statAvgScore.textContent = "-";
     }
 
-    /* Daftar soal */
-    questionList.innerHTML = "";
-    data.questions.forEach((q, index) => {
-      const li = document.createElement("li");
-      li.style.animationDelay = (index * 0.06) + "s";
-      li.innerHTML =
-        '<span class="ql-num">' + (index + 1) + "</span>" +
-        "<div><span class=\"ql-subj\">" + q.subject + "</span>" +
-        '<p class="ql-text">' + q.question + "</p></div>";
-      questionList.appendChild(li);
-    });
-
-    /* Riwayat skor siswa (10 terakhir) */
-    resultsList.innerHTML = "";
-    if (!data.results.length) {
-      resultsList.innerHTML =
-        '<li class="empty-note">Belum ada skor yang tersimpan. Ajak siswa bermain! 🎈</li>';
-    } else {
-      data.results.forEach((r, index) => {
+    /* Daftar soal (elemen ini sudah tidak ada di markup; lewati jika kosong) */
+    if (questionList) {
+      questionList.innerHTML = "";
+      data.questions.forEach((q, index) => {
         const li = document.createElement("li");
         li.style.animationDelay = (index * 0.06) + "s";
-        const waktu = new Date(r.created_at).toLocaleString("id-ID", {
-          timeZone: "Asia/Jakarta",
-          weekday: "long", day: "numeric", month: "long", year: "numeric",
-          hour: "2-digit", minute: "2-digit", second: "2-digit"
-        }) + " WIB";
         li.innerHTML =
-          '<span class="ql-num">🏅</span>' +
-          "<div><strong>" + (r.student_name || "Siswa") + " — " + r.score + "/" + r.total + " benar</strong>" +
-          '<p class="ql-text">' + (r.material_title || "Semua materi") + " • " + waktu + "</p></div>";
-        resultsList.appendChild(li);
+          '<span class="ql-num">' + (index + 1) + "</span>" +
+          "<div><span class=\"ql-subj\">" + q.subject + "</span>" +
+          '<p class="ql-text">' + q.question + "</p></div>";
+        questionList.appendChild(li);
       });
+    }
+
+    /* Tab Riwayat: daftar kuis milik guru (detail dibuka di halaman terpisah). */
+    if (typeof loadQuizHistoryList === "function") {
+      await loadQuizHistoryList();
     }
 
     /* Muat data form admin (materi & soal) */

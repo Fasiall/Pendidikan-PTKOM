@@ -128,3 +128,19 @@ const sSetPublish   = $("#sSetPublish");
 const btnCancelSet  = $("#btnCancelSet");
 const setAdminList  = $("#setAdminList");
 const setCount      = $("#setCount");
+/* Elemen acak soal & jadwal akses pada form set soal */
+const sSetShuffle       = $("#sSetShuffle");
+const sSetScheduleDate  = $("#sSetScheduleDate");
+const sSetScheduleStart = $("#sSetScheduleStart");
+const sSetScheduleEnd   = $("#sSetScheduleEnd");
+
+/* Elemen halaman riwayat per kuis */
+const historyTitle      = $("#historyTitle");
+const historySubtitle   = $("#historySubtitle");
+const historySummary    = $("#historySummary");
+const historySearch     = $("#historySearch");
+const historySort       = $("#historySort");
+const historyTableBody  = $("#historyTableBody");
+const historyEmpty      = $("#historyEmpty");
+const historyPagination = $("#historyPagination");
+const btnHistoryBack    = $("#btnHistoryBack");

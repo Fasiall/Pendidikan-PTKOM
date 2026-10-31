@@ -3,7 +3,7 @@
 /* =============== (11) INISIALISASI PROGRAM ============================ */
 
 /** Mempersiapkan halaman saat dokumen selesai dimuat. */
-function init() {
+async function init() {
   splitTitle();
   createDecorations();
 
@@ -98,6 +98,11 @@ function init() {
     bindAdminEvents();
   }
 
+  /* Event halaman riwayat per kuis */
+  if (typeof bindQuizHistoryEvents === "function") {
+    bindQuizHistoryEvents();
+  }
+
   /* Form login guru */
   if (loginForm) {
     loginForm.addEventListener("submit", handleLogin);
@@ -176,7 +181,29 @@ function init() {
     }
   }
 
-  handleHashRoute();
+  /* Routing URL khusus (/guru/riwayat...) lalu pemulihan sesi kuis. */
+  const routeHandled = typeof handleAppRoute === "function" ? await handleAppRoute() : false;
+  if (!routeHandled) {
+    const restored = typeof restoreQuizSession === "function"
+      ? await restoreQuizSession()
+      : false;
+    if (!restored) handleHashRoute();
+  }
+
+  window.addEventListener("popstate", async () => {
+    const handled = typeof handleAppRoute === "function" ? await handleAppRoute() : false;
+    if (handled) return;
+    const active = document.querySelector(".page.active");
+    if (active && active.id === "page-quiz-history") {
+      if (getToken()) {
+        showPage("page-dashboard");
+        switchTab("tabRiwayat");
+      } else {
+        showPage("page-home");
+      }
+    }
+  });
+
   window.addEventListener("hashchange", handleHashRoute);
 
   /* Tombol logout (ada di halaman dashboard) */

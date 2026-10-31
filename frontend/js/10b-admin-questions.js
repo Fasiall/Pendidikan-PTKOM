@@ -60,11 +60,22 @@ function bindAdminEvents() {
     setForm.addEventListener("submit", async (event) => {
       event.preventDefault();
 
+      let scheduleInfo;
+      try {
+        scheduleInfo = readScheduleForm();
+      } catch (scheduleErr) {
+        showFormError(setError, scheduleErr.message);
+        return;
+      }
+
       const payload = {
         title: sSetTitle.value.trim(),
         description: sSetDesc.value.trim(),
         timeLimit: sSetTime.value ? Number(sSetTime.value) : 0,
-        is_published: sSetPublish.checked
+        is_published: sSetPublish.checked,
+        shuffleQuestions: sSetShuffle ? sSetShuffle.checked : true,
+        scheduleStart: scheduleInfo.start,
+        scheduleEnd: scheduleInfo.end
       };
 
       if (sSetMaterial && sSetMaterial.value) {
@@ -91,6 +102,10 @@ function bindAdminEvents() {
             body: JSON.stringify(payload)
           });
           showToast("Set kuis baru berhasil dibuat dan siap digunakan.", "success", "Set Kuis Dibuat");
+        }
+
+        if (scheduleInfo && scheduleInfo.isPast) {
+          showToast("Jadwal akses yang dipilih sudah lewat. Periksa kembali tanggal dan jamnya.", "warning", "Jadwal Sudah Lewat");
         }
 
         resetSetForm();

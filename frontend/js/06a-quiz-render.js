@@ -170,6 +170,19 @@ async function handleJoinCodeSubmit() {
       throw new Error("Set kuis tidak ditemukan.");
     }
 
+    /* Jadwal akses diperiksa server (WIB), bukan jam perangkat siswa. */
+    const schedule = data.schedule || {};
+    if (schedule.status && schedule.status !== "open") {
+      if (error) {
+        error.innerHTML = '<i data-lucide="clock-alert"></i><span>' + escapeHtml(schedule.message || "Kuis belum dapat diakses.") + '</span>';
+        error.classList.add("show");
+        if (window.lucide && typeof lucide.createIcons === "function") {
+          lucide.createIcons({ root: error });
+        }
+      }
+      return;
+    }
+
     hideSetModal();
     startQuiz(data.set.id);
   } catch (err) {

@@ -40,6 +40,7 @@ const materiController = require("../controllers/materi.controller");
 const quizSetController = require("../controllers/quiz_set.controller");
 const questionController = require("../controllers/question.controller");
 const quizController = require("../controllers/quiz.controller");
+const quizHistoryController = require("../controllers/quiz_history.controller");
 const teacherController = require("../controllers/teacher.controller");
 
 const router = express.Router();
@@ -93,6 +94,7 @@ router.patch("/questions/:id/answer", authenticate(), questionController.setAnsw
 router.delete("/questions/:id", authenticate(), questionController.remove);
 
 /* ------------------------------ KUIS ------------------------------------ */
+router.get("/quiz/session", quizController.session);
 router.post("/quiz/start", quizController.start);
 router.post("/quiz/answer", quizController.answer);
 router.post("/quiz/submit", quizController.submit);
@@ -101,5 +103,7 @@ router.get("/quiz/leaderboard", quizController.leaderboard);
 
 /* --------------------------- DASHBOARD GURU ----------------------------- */
 router.get("/teacher/stats", authenticate(), teacherController.stats);
+router.get("/teacher/quiz-history", authenticate(), quizHistoryController.listSets);
+router.get("/teacher/quiz-history/:id", authenticate(), quizHistoryController.detail);
 
 module.exports = router;
