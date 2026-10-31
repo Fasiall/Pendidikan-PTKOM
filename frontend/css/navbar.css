@@ -10,7 +10,8 @@ body {
 }
 
 body .home-nav {
-  position: relative !important;
+  position: sticky !important;
+  top: 14px !important;
   z-index: 1000 !important;
   display: grid !important;
   grid-template-columns: 1fr auto 1fr !important;
