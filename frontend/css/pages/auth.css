@@ -342,6 +342,139 @@ body.auth-page .auth-card .btn-login:disabled:hover {
   box-shadow: 0 3px 0 var(--a-ink);
 }
 
+/* ---------- Google Sign-In & Divider ---------- */
+body.auth-page .google-auth-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 4px 0 14px;
+  width: 100%;
+}
+body.auth-page .google-btn-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 44px;
+  width: 100%;
+}
+body.auth-page .google-offline-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  font-size: 0.82rem;
+  color: var(--a-muted);
+  background: #f7f6fc;
+  border: 1px dashed var(--a-line);
+  border-radius: 12px;
+  text-align: center;
+}
+body.auth-page .google-offline-note svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+body.auth-page .google-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--a-accent);
+  background: #eef2ff;
+  border-radius: 12px;
+  width: 100%;
+  margin-top: 8px;
+}
+body.auth-page .auth-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid rgba(106, 76, 255, 0.2);
+  border-top-color: var(--a-accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+body.auth-page .auth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 14px 0 18px;
+  color: var(--a-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+body.auth-page .auth-divider::before,
+body.auth-page .auth-divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 2px solid var(--a-line);
+}
+body.auth-page .auth-divider span {
+  padding: 0 12px;
+}
+
+/* ---------- Form Verifikasi OTP ---------- */
+body.auth-page .otp-badge-icon {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 14px;
+  display: grid;
+  place-items: center;
+  background: #eef2ff;
+  border: 3px solid var(--a-accent);
+  border-radius: 50%;
+  color: var(--a-accent);
+  box-shadow: 0 4px 0 rgba(43,42,74,.12);
+}
+body.auth-page .otp-badge-icon svg {
+  width: 34px;
+  height: 34px;
+}
+
+body.auth-page .otp-email-text {
+  color: var(--a-accent);
+  font-weight: 800;
+  word-break: break-all;
+}
+
+body.auth-page .otp-input-wrap input {
+  font-size: 1.85rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 14px !important;
+  text-align: center !important;
+  font-family: monospace, monospace !important;
+  padding: 12px 14px !important;
+}
+
+body.auth-page .field-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: var(--a-muted);
+  font-weight: 600;
+  text-align: center;
+}
+
+body.auth-page .otp-resend-wrapper {
+  margin: 16px 0 0;
+  text-align: center;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--a-muted);
+}
+body.auth-page .otp-resend-wrapper .link-btn {
+  font-size: 0.9rem;
+}
+
 /* ---------- Layar kecil ---------- */
 @media (max-width: 480px) {
   body.auth-page .auth-stage { padding-top: 64px; }

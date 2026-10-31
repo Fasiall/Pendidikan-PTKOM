@@ -149,6 +149,20 @@ async function init() {
   if (linkToRegister) linkToRegister.addEventListener("click", () => switchAuthTab("register"));
   if (linkToLogin) linkToLogin.addEventListener("click", () => switchAuthTab("login"));
 
+  /* Event form verifikasi OTP */
+  const otpFormEl = $("#otpForm");
+  if (otpFormEl) {
+    otpFormEl.addEventListener("submit", handleVerifyOtp);
+  }
+  const btnResendOtpEl = $("#btnResendOtp");
+  if (btnResendOtpEl) {
+    btnResendOtpEl.addEventListener("click", handleResendOtp);
+  }
+  const btnCancelOtpEl = $("#btnCancelOtp");
+  if (btnCancelOtpEl) {
+    btnCancelOtpEl.addEventListener("click", cancelOtpVerification);
+  }
+
   /* Event listener modal login pop-up Kreator Soal */
   const btnCloseModalLogin = $("#btnCloseModalLogin");
   if (btnCloseModalLogin) {

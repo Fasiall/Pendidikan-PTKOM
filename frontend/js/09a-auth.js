@@ -120,12 +120,16 @@ async function handleGoogleCredentialResponse(response) {
 
     saveToken(data.token);
 
-    closeLoginModal();
+    if (typeof closeLoginModal === "function") closeLoginModal();
     const teacherName = data.teacher?.fullName || data.teacher?.username || "Pengajar";
     showToast("Selamat datang di Kreator Soal, " + escapeHtml(teacherName) + "!", "success", "Berhasil Masuk");
 
-    await renderDashboard();
-    showPage("page-dashboard");
+    if (document.getElementById("page-dashboard")) {
+      await renderDashboard();
+      showPage("page-dashboard");
+    } else {
+      setTimeout(() => { window.location.href = "index.html#dashboard"; }, 900);
+    }
   } catch (err) {
     showLoginError(err.message || "Login Google gagal, silakan coba lagi.");
     showToast(err.message || "Gagal masuk dengan Google", "error", "Login Gagal");
@@ -169,7 +173,7 @@ async function handleLogin(event) {
     // Reset failed attempts on successful login
     resetLoginAttempts(usernameOrEmail);
 
-    closeLoginModal();
+    if (typeof closeLoginModal === "function") closeLoginModal();
     loginError.classList.remove("show");
     loginError.innerHTML = "";
     loginForm.reset();
@@ -184,6 +188,11 @@ async function handleLogin(event) {
       setTimeout(() => { window.location.href = "index.html#dashboard"; }, 900);
     }
   } catch (err) {
+    if (err.data && err.data.needsVerification) {
+      showToast(err.message || "Email akun belum diverifikasi. Kode baru telah dikirim.", "warning", "Verifikasi Diperlukan");
+      showOtpVerification(err.data.email || usernameOrEmail);
+      return;
+    }
     // Record failed attempt
     recordFailedLogin(usernameOrEmail);
     const attempts = getFailedLoginAttempts(usernameOrEmail);
@@ -267,4 +276,187 @@ function checkPasswordStrength(password) {
   };
   const passed = Object.values(checks).filter(Boolean).length;
   return { checks, passed, total: 4, valid: passed === 4 };
+}
+
+/* ==========================================================================
+   ALUR VERIFIKASI EMAIL (OTP)
+   ========================================================================== */
+
+let currentOtpEmail = "";
+let otpCountdownInterval = null;
+
+/** Tampilkan antarmuka pengisian kode OTP verifikasi email */
+function showOtpVerification(email, resendSeconds = 60) {
+  currentOtpEmail = email;
+
+  const loginFormEl = document.getElementById("loginForm");
+  const registerFormEl = document.getElementById("registerForm");
+  const authTabsEl = document.getElementById("authTabs") || document.querySelector(".auth-tabs");
+  const googleWrapperEl = document.getElementById("googleAuthWrapper");
+  const authDividerEl = document.getElementById("authDivider");
+  const otpFormEl = document.getElementById("otpForm");
+  const emailTargetEl = document.getElementById("otpEmailTarget");
+  const otpInputEl = document.getElementById("otpInput");
+  const otpErrorEl = document.getElementById("otpError");
+
+  if (loginFormEl) loginFormEl.style.display = "none";
+  if (registerFormEl) registerFormEl.style.display = "none";
+  if (authTabsEl) authTabsEl.style.display = "none";
+  if (googleWrapperEl) googleWrapperEl.style.display = "none";
+  if (authDividerEl) authDividerEl.style.display = "none";
+
+  if (emailTargetEl) emailTargetEl.textContent = email;
+  if (otpInputEl) {
+    otpInputEl.value = "";
+    setTimeout(() => otpInputEl.focus(), 150);
+  }
+  if (otpErrorEl) {
+    otpErrorEl.classList.remove("show");
+    otpErrorEl.innerHTML = "";
+  }
+
+  if (otpFormEl) {
+    otpFormEl.style.display = "block";
+  }
+
+  startOtpCountdown(resendSeconds);
+
+  if (window.lucide && typeof window.lucide.createIcons === "function") {
+    window.lucide.createIcons();
+  }
+}
+
+/** Hitung mundur tombol kirim ulang kode */
+function startOtpCountdown(seconds = 60) {
+  if (otpCountdownInterval) clearInterval(otpCountdownInterval);
+
+  let remaining = seconds;
+  const countdownEl = document.getElementById("resendCountdown");
+  const countdownTextEl = document.getElementById("resendCountdownText");
+  const btnResend = document.getElementById("btnResendOtp");
+
+  if (countdownTextEl) countdownTextEl.style.display = "inline";
+  if (btnResend) btnResend.style.display = "none";
+  if (countdownEl) countdownEl.textContent = remaining;
+
+  otpCountdownInterval = setInterval(() => {
+    remaining--;
+    if (countdownEl) countdownEl.textContent = remaining;
+    if (remaining <= 0) {
+      clearInterval(otpCountdownInterval);
+      if (countdownTextEl) countdownTextEl.style.display = "none";
+      if (btnResend) {
+        btnResend.style.display = "inline-block";
+        btnResend.disabled = false;
+        btnResend.textContent = "Kirim Ulang Kode Verifikasi";
+      }
+    }
+  }, 1000);
+}
+
+/** Tampilkan pesan error pada form verifikasi OTP */
+function showOtpError(msg) {
+  const otpErrorEl = document.getElementById("otpError");
+  if (!otpErrorEl) return;
+  otpErrorEl.innerHTML = '<i data-lucide="alert-circle"></i><span>' + escapeHtml(msg) + '</span>';
+  otpErrorEl.classList.add("show");
+  if (window.lucide && typeof window.lucide.createIcons === "function") {
+    lucide.createIcons({ root: otpErrorEl });
+  }
+}
+
+/** Kirim kode verifikasi ke server */
+async function handleVerifyOtp(event) {
+  if (event) event.preventDefault();
+
+  const otpInputEl = document.getElementById("otpInput");
+  const otp = otpInputEl ? otpInputEl.value.trim() : "";
+  const otpFormEl = document.getElementById("otpForm");
+
+  if (!otp || otp.length !== 6 || !/^\d{6}$/.test(otp)) {
+    showOtpError("Masukkan 6 digit angka kode verifikasi.");
+    if (otpFormEl) shakeForm(otpFormEl);
+    return;
+  }
+
+  const btnSubmit = document.getElementById("btnSubmitOtp");
+  if (btnSubmit) {
+    btnSubmit.disabled = true;
+    btnSubmit.textContent = "Memverifikasi...";
+  }
+
+  try {
+    const data = await api("/api/auth/verify-otp", {
+      method: "POST",
+      body: JSON.stringify({
+        email: currentOtpEmail,
+        otp
+      })
+    });
+
+    saveToken(data.token);
+    if (otpCountdownInterval) clearInterval(otpCountdownInterval);
+
+    showToast("Email berhasil diverifikasi! Selamat datang, " + escapeHtml(data.teacher?.fullName || data.teacher?.username || "Pengajar") + "!", "success", "Verifikasi Berhasil");
+
+    const pageDashboard = document.getElementById("page-dashboard");
+    if (pageDashboard) {
+      await renderDashboard();
+      showPage("page-dashboard");
+    } else {
+      setTimeout(() => {
+        window.location.href = "index.html#dashboard";
+      }, 900);
+    }
+  } catch (err) {
+    showOtpError(err.message || "Kode verifikasi salah atau telah kadaluarsa.");
+    if (otpFormEl) shakeForm(otpFormEl);
+  } finally {
+    if (btnSubmit) {
+      btnSubmit.disabled = false;
+      btnSubmit.textContent = "Verifikasi Akun";
+    }
+  }
+}
+
+/** Kirim ulang kode verifikasi ke email */
+async function handleResendOtp() {
+  const btnResend = document.getElementById("btnResendOtp");
+  if (btnResend) {
+    btnResend.disabled = true;
+    btnResend.textContent = "Mengirim...";
+  }
+
+  try {
+    const data = await api("/api/auth/resend-otp", {
+      method: "POST",
+      body: JSON.stringify({ email: currentOtpEmail })
+    });
+
+    showToast("Kode verifikasi baru telah dikirimkan ke email Anda.", "info", "Kode Terkirim");
+    startOtpCountdown(data.resendAvailableIn || 60);
+  } catch (err) {
+    showOtpError(err.message || "Gagal mengirim ulang kode verifikasi.");
+  }
+}
+
+/** Batalkan verifikasi dan kembali ke form masuk */
+function cancelOtpVerification() {
+  if (otpCountdownInterval) clearInterval(otpCountdownInterval);
+  const otpFormEl = document.getElementById("otpForm");
+  const authTabsEl = document.getElementById("authTabs") || document.querySelector(".auth-tabs");
+  const googleWrapperEl = document.getElementById("googleAuthWrapper");
+  const authDividerEl = document.getElementById("authDivider");
+
+  if (otpFormEl) otpFormEl.style.display = "none";
+  if (authTabsEl) authTabsEl.style.display = "flex";
+  if (googleWrapperEl) googleWrapperEl.style.display = "flex";
+  if (authDividerEl) authDividerEl.style.display = "flex";
+
+  if (typeof switchAuthTab === "function") {
+    switchAuthTab("login");
+  } else {
+    const loginFormEl = document.getElementById("loginForm");
+    if (loginFormEl) loginFormEl.style.display = "block";
+  }
 }

@@ -56,6 +56,8 @@ router.get(
 /* ------------------------------- AUTH ----------------------------------- */
 router.post("/auth/login", authController.login);
 router.post("/auth/register", authController.register);
+router.post("/auth/verify-otp", authController.verifyOtp);
+router.post("/auth/resend-otp", authController.resendOtp);
 router.get("/auth/google/client-id", authController.getGoogleClientId);
 router.post("/auth/google", authController.googleLogin);
 router.get("/auth/me", authenticate(), authController.me);
