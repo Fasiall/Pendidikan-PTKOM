@@ -135,9 +135,6 @@ async function init() {
     updatePasswordStrengthUI("");
   }
 
-  /* Inisialisasi awal Google Sign-In */
-  initGoogleSignIn();
-
   /* Tab switcher auth guru (Login / Daftar) */
   const tabBtnLogin = $("#tabBtnLogin");
   const tabBtnRegister = $("#tabBtnRegister");

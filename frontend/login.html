@@ -76,8 +76,6 @@
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@0.294.0"></script>
-  <!-- Google Identity Services (GIS) -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <!-- Bila sudah login, langsung ke dashboard -->
   <script>
@@ -119,17 +117,6 @@
         <button type="button" class="auth-tab-btn active" id="tabBtnLogin" role="tab" aria-selected="true">Masuk</button>
         <button type="button" class="auth-tab-btn" id="tabBtnRegister" role="tab" aria-selected="false">Daftar akun</button>
       </div>
-
-      <!-- Tombol Google Sign In -->
-      <div class="google-auth-wrapper" id="googleAuthWrapper">
-        <div class="google-btn-container" id="googleBtnContainer"></div>
-        <div class="google-loading hidden" id="googleAuthLoading">
-          <div class="auth-spinner"></div>
-          <span>Menghubungkan akun Google...</span>
-        </div>
-      </div>
-
-      <div class="auth-divider" id="authDivider"><span>atau masuk secara manual</span></div>
 
       <!-- ============ FORM MASUK ============ -->
       <form id="loginForm" novalidate>

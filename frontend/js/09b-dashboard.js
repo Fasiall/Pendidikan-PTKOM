@@ -152,13 +152,9 @@ function switchAuthTab(mode) {
   const avatar = $("#authAvatar");
   const otpFormEl = document.getElementById("otpForm");
   const authTabsEl = document.getElementById("authTabs") || document.querySelector(".auth-tabs");
-  const googleWrapperEl = document.getElementById("googleAuthWrapper");
-  const authDividerEl = document.getElementById("authDivider");
 
   if (otpFormEl) otpFormEl.style.display = "none";
   if (authTabsEl) authTabsEl.style.display = "flex";
-  if (googleWrapperEl) googleWrapperEl.style.display = "flex";
-  if (authDividerEl) authDividerEl.style.display = "flex";
 
   if (!tabLogin || !tabRegister || !formLogin || !formRegister) return;
 

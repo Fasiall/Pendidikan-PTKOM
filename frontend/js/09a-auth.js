@@ -2,144 +2,6 @@
 
 /* =============== (9) LOGIN & DASHBOARD GURU =========================== */
 
-let googleClientId = "";
-let googleClientInitialized = false;
-
-/** Inisialisasi Google Identity Services (GIS) untuk Login Pengajar */
-function initGoogleSignIn() {
-  const container = document.getElementById("googleBtnContainer");
-  if (!container) return;
-
-  // Tunggu pustaka GIS siap bila dimuat secara asynchronous
-  if (typeof google === "undefined" || !google.accounts || !google.accounts.id) {
-    let attempts = 0;
-    const interval = setInterval(() => {
-      attempts++;
-      if (typeof google !== "undefined" && google.accounts && google.accounts.id) {
-        clearInterval(interval);
-        setupGoogleButton();
-      } else if (attempts >= 30) {
-        clearInterval(interval);
-        if (container && (!googleClientId || !container.querySelector("iframe"))) {
-          container.innerHTML = `
-            <div class="google-offline-note">
-              <i data-lucide="wifi-off"></i>
-              <span>Layanan Google Identity belum dapat dimuat. Silakan gunakan login manual.</span>
-            </div>
-          `;
-          if (window.lucide && typeof window.lucide.createIcons === "function") {
-            window.lucide.createIcons();
-          }
-        }
-      }
-    }, 150);
-    return;
-  }
-
-  setupGoogleButton();
-}
-
-async function setupGoogleButton() {
-  const container = document.getElementById("googleBtnContainer");
-  if (!container) return;
-
-  try {
-    if (!googleClientId) {
-      try {
-        const res = await api("/api/auth/google/client-id");
-        if (res && (res.clientId || (res.data && res.data.clientId))) {
-          googleClientId = res.clientId || (res.data && res.data.clientId);
-        }
-      } catch (fetchErr) {
-        console.warn("[Google Auth] Gagal mengambil Client ID:", fetchErr);
-      }
-    }
-
-    if (!googleClientId) {
-      container.innerHTML = `
-        <div class="google-offline-note">
-          <i data-lucide="info"></i>
-          <span>Google Client ID belum dikonfigurasi di server. Silakan masuk manual.</span>
-        </div>
-      `;
-      const manualForm = $("#loginForm");
-      const btnToggle = $("#btnToggleManualLogin");
-      if (manualForm) manualForm.style.display = "block";
-      if (btnToggle) btnToggle.classList.add("active");
-      if (window.lucide && typeof window.lucide.createIcons === "function") {
-        window.lucide.createIcons();
-      }
-      return;
-    }
-
-    if (!googleClientInitialized && typeof google !== "undefined" && google.accounts?.id) {
-      google.accounts.id.initialize({
-        client_id: googleClientId,
-        callback: handleGoogleCredentialResponse,
-        auto_select: false,
-        cancel_on_tap_outside: true
-      });
-      googleClientInitialized = true;
-    }
-
-    if (typeof google !== "undefined" && google.accounts?.id) {
-      container.innerHTML = "";
-      google.accounts.id.renderButton(container, {
-        type: "standard",
-        theme: "outline",
-        size: "large",
-        text: "continue_with",
-        shape: "pill",
-        logo_alignment: "left",
-        width: 320
-      });
-    }
-  } catch (err) {
-    console.error("[Google Auth Error]", err);
-  }
-}
-
-/** Callback respons kredensial dari Google Identity Services */
-async function handleGoogleCredentialResponse(response) {
-  if (!response || !response.credential) {
-    showLoginError("Gagal menerima kredensial dari akun Google.");
-    return;
-  }
-
-  const loadingEl = $("#googleAuthLoading");
-  if (loadingEl) loadingEl.classList.remove("hidden");
-  if (loginError) loginError.classList.remove("show");
-
-  try {
-    showToast("Sedang memverifikasi kredensial Google...", "info", "Menghubungkan Akun");
-
-    const data = await api("/api/auth/google", {
-      method: "POST",
-      body: JSON.stringify({ credential: response.credential })
-    });
-
-    saveToken(data.token);
-
-    if (typeof closeLoginModal === "function") closeLoginModal();
-    const teacherName = data.teacher?.fullName || data.teacher?.username || "Pengajar";
-    showToast("Selamat datang di Kreator Soal, " + escapeHtml(teacherName) + "!", "success", "Berhasil Masuk");
-
-    if (document.getElementById("page-dashboard")) {
-      await renderDashboard();
-      showPage("page-dashboard");
-    } else {
-      setTimeout(() => { window.location.href = "index.html#dashboard"; }, 900);
-    }
-  } catch (err) {
-    showLoginError(err.message || "Login Google gagal, silakan coba lagi.");
-    showToast(err.message || "Gagal masuk dengan Google", "error", "Login Gagal");
-  } finally {
-    if (loadingEl) loadingEl.classList.add("hidden");
-  }
-}
-
-window.handleGoogleCredentialResponse = handleGoogleCredentialResponse;
-
 /** Validasi login ke server: benar -> dashboard, salah -> efek getar. */
 async function handleLogin(event) {
   event.preventDefault();
@@ -292,8 +154,6 @@ function showOtpVerification(email, resendSeconds = 60) {
   const loginFormEl = document.getElementById("loginForm");
   const registerFormEl = document.getElementById("registerForm");
   const authTabsEl = document.getElementById("authTabs") || document.querySelector(".auth-tabs");
-  const googleWrapperEl = document.getElementById("googleAuthWrapper");
-  const authDividerEl = document.getElementById("authDivider");
   const otpFormEl = document.getElementById("otpForm");
   const emailTargetEl = document.getElementById("otpEmailTarget");
   const otpInputEl = document.getElementById("otpInput");
@@ -302,8 +162,6 @@ function showOtpVerification(email, resendSeconds = 60) {
   if (loginFormEl) loginFormEl.style.display = "none";
   if (registerFormEl) registerFormEl.style.display = "none";
   if (authTabsEl) authTabsEl.style.display = "none";
-  if (googleWrapperEl) googleWrapperEl.style.display = "none";
-  if (authDividerEl) authDividerEl.style.display = "none";
 
   if (emailTargetEl) emailTargetEl.textContent = email;
   if (otpInputEl) {
@@ -445,13 +303,9 @@ function cancelOtpVerification() {
   if (otpCountdownInterval) clearInterval(otpCountdownInterval);
   const otpFormEl = document.getElementById("otpForm");
   const authTabsEl = document.getElementById("authTabs") || document.querySelector(".auth-tabs");
-  const googleWrapperEl = document.getElementById("googleAuthWrapper");
-  const authDividerEl = document.getElementById("authDivider");
 
   if (otpFormEl) otpFormEl.style.display = "none";
   if (authTabsEl) authTabsEl.style.display = "flex";
-  if (googleWrapperEl) googleWrapperEl.style.display = "flex";
-  if (authDividerEl) authDividerEl.style.display = "flex";
 
   if (typeof switchAuthTab === "function") {
     switchAuthTab("login");

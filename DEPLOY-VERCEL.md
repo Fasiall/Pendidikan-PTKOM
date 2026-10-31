@@ -93,7 +93,6 @@ diseret langsung tanpa Git dan tanpa CLI.
    | `JWT_SECRET` | string acak 64 karakter | Ya |
    | `SESSION_SECRET` | string acak 64 karakter lain | Ya |
    | `NODE_ENV` | `production` | Ya |
-   | `GOOGLE_CLIENT_ID` | OAuth Client ID Google dari Google Cloud Console | Opsional (untuk Google Sign-In) |
    | `SMTP_HOST` | Host SMTP (cth: `smtp.gmail.com` atau `smtp.resend.com`) | Opsional (untuk kirim OTP asli) |
    | `SMTP_PORT` | Port SMTP (cth: `587` atau `465`) | Opsional |
    | `SMTP_USER` | Email / username SMTP | Opsional |

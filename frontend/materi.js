@@ -615,9 +615,6 @@ async function loadQuizSets(materialId) {
 
 /* ==================== MODAL LOGIN KREATOR SOAL ==================== */
 
-let googleClientId = null;
-let googleClientInitialized = false;
-
 function escapeHtml(str) {
   if (!str) return "";
   const div = document.createElement("div");
@@ -659,38 +656,6 @@ function clearLoginError() {
   loginError.innerHTML = "";
 }
 
-function initGoogleSignIn() {
-  const container = document.getElementById("googleBtnContainer");
-  if (!container) return;
-
-  if (typeof google === "undefined" || !google.accounts || !google.accounts.id) {
-    let attempts = 0;
-    const interval = setInterval(() => {
-      attempts++;
-      if (typeof google !== "undefined" && google.accounts && google.accounts.id) {
-        clearInterval(interval);
-        setupGoogleButton();
-      } else if (attempts >= 30) {
-        clearInterval(interval);
-        if (container && (!googleClientId || !container.querySelector("iframe"))) {
-          container.innerHTML = `
-            <div class="google-offline-note">
-              <i data-lucide="wifi-off"></i>
-              <span>Layanan Google Identity belum dapat dimuat. Silakan gunakan login manual.</span>
-            </div>
-          `;
-          if (window.lucide && typeof window.lucide.createIcons === "function") {
-            window.lucide.createIcons();
-          }
-        }
-      }
-    }, 150);
-    return;
-  }
-
-  setupGoogleButton();
-}
-
 function openLoginModal() {
   const modal = document.getElementById("modalLogin");
   if (!modal) return;
@@ -701,10 +666,6 @@ function openLoginModal() {
   document.body.classList.add("login-modal-open");
 
   clearLoginError();
-
-  if (typeof initGoogleSignIn === "function") {
-    initGoogleSignIn();
-  }
 
   if (window.lucide && typeof window.lucide.createIcons === "function") {
     window.lucide.createIcons();
@@ -728,103 +689,6 @@ function closeLoginModal() {
 
   clearLoginError();
 }
-
-async function setupGoogleButton() {
-  const container = document.getElementById("googleBtnContainer");
-  if (!container) return;
-
-  try {
-    if (!googleClientId) {
-      try {
-        const res = await api("/api/auth/google/client-id");
-        if (res && (res.clientId || (res.data && res.data.clientId))) {
-          googleClientId = res.clientId || (res.data && res.data.clientId);
-        }
-      } catch (fetchErr) {
-        console.warn("[Google Auth] Gagal mengambil Client ID:", fetchErr);
-      }
-    }
-
-    if (!googleClientId) {
-      container.innerHTML = `
-        <div class="google-offline-note">
-          <i data-lucide="info"></i>
-          <span>Google Client ID belum dikonfigurasi di server. Silakan masuk manual.</span>
-        </div>
-      `;
-      const manualForm = document.getElementById("loginForm");
-      const btnToggle = document.getElementById("btnToggleManualLogin");
-      if (manualForm) manualForm.style.display = "block";
-      if (btnToggle) btnToggle.classList.add("active");
-      if (window.lucide && typeof window.lucide.createIcons === "function") {
-        window.lucide.createIcons();
-      }
-      return;
-    }
-
-    if (!googleClientInitialized && typeof google !== "undefined" && google.accounts?.id) {
-      google.accounts.id.initialize({
-        client_id: googleClientId,
-        callback: handleGoogleCredentialResponse,
-        auto_select: false,
-        cancel_on_tap_outside: true
-      });
-      googleClientInitialized = true;
-    }
-
-    if (typeof google !== "undefined" && google.accounts?.id) {
-      container.innerHTML = "";
-      google.accounts.id.renderButton(container, {
-        type: "standard",
-        theme: "outline",
-        size: "large",
-        text: "continue_with",
-        shape: "pill",
-        logo_alignment: "left",
-        width: 320
-      });
-    }
-  } catch (err) {
-    console.error("[Google Auth Error]", err);
-  }
-}
-
-async function handleGoogleCredentialResponse(response) {
-  if (!response || !response.credential) {
-    showLoginError("Gagal menerima kredensial dari akun Google.");
-    return;
-  }
-
-  const loadingEl = document.getElementById("googleAuthLoading");
-  if (loadingEl) loadingEl.classList.remove("hidden");
-  clearLoginError();
-
-  try {
-    showToast("Sedang memverifikasi kredensial Google...", "info", "Menghubungkan Akun");
-
-    const data = await api("/api/auth/google", {
-      method: "POST",
-      body: JSON.stringify({ credential: response.credential })
-    });
-
-    localStorage.setItem("kuis.token", data.token);
-    closeLoginModal();
-
-    const teacherName = data.teacher?.fullName || data.teacher?.username || "Pengajar";
-    showToast("Selamat datang di Kreator Soal, " + escapeHtml(teacherName) + "!", "success", "Berhasil Masuk");
-
-    setTimeout(() => {
-      window.location.href = "index.html#page-dashboard";
-    }, 400);
-  } catch (err) {
-    showLoginError(err.message || "Login Google gagal, silakan coba lagi.");
-    showToast(err.message || "Gagal masuk dengan Google", "error", "Login Gagal");
-  } finally {
-    if (loadingEl) loadingEl.classList.add("hidden");
-  }
-}
-
-window.handleGoogleCredentialResponse = handleGoogleCredentialResponse;
 
 async function handleLogin(event) {
   event.preventDefault();
@@ -968,5 +832,4 @@ document.addEventListener("DOMContentLoaded", () => {
   loadMaterials();
   loadMaterialDetail();
   initLoginModal();
-  initGoogleSignIn();
 });

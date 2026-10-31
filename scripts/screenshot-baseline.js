@@ -94,13 +94,11 @@ const PAGES = [
     await page.route('**/api/questions', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) }));
     await page.route('**/api/materials', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) }));
     await page.route('**/api/quiz/leaderboard*', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) }));
-    await page.route('**/api/auth/google/client-id', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({clientId: 'test'}) }));
   }},
   { name: 'beranda-popup-kode-kuis', url: '/index.html', waitFor: '#page-home', clearStorage: true, setup: async (page) => {
     await page.route('**/api/questions', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) }));
     await page.route('**/api/materials', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) }));
     await page.route('**/api/quiz/leaderboard*', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) }));
-    await page.route('**/api/auth/google/client-id', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({clientId: 'test'}) }));
   }, action: async (page) => {
     await page.fill('#studentName', 'Test Siswa');
     await page.click('#btnStart');
@@ -111,7 +109,6 @@ const PAGES = [
     await page.route('**/api/questions', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) }));
     await page.route('**/api/materials', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) }));
     await page.route('**/api/quiz/leaderboard*', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) }));
-    await page.route('**/api/auth/google/client-id', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({clientId: 'test'}) }));
   }, action: async (page) => {
     await page.fill('#studentName', 'Test Siswa');
     await page.evaluate(() => {
@@ -128,7 +125,6 @@ const PAGES = [
     await page.route('**/api/questions', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) }));
     await page.route('**/api/materials', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) }));
     await page.route('**/api/quiz/leaderboard*', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) }));
-    await page.route('**/api/auth/google/client-id', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({clientId: 'test'}) }));
   }, action: async (page) => {
     await page.fill('#studentName', 'Test Siswa');
     await page.click('#btnStart');
