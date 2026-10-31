@@ -3,7 +3,7 @@
 /* =============== (9b) KELOLA MATERI & SOAL (ADMIN) ==================== */
 
 /** Beralih antar tab dashboard (Materi / Soal / Riwayat). */
-function switchTab(tabId) { document.querySelectorAll(".home-nav .nav-link[data-dash-tab]").forEach((l) => l.classList.toggle("active", l.dataset.dashTab === tabId));
+function switchTab(tabId) { document.querySelectorAll(".home-nav .nav-link[data-dash-tab]").forEach((l) => { const act = l.dataset.dashTab === tabId; l.classList.toggle("active", act); if (act && l.scrollIntoView) l.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" }); });
   document.querySelectorAll(".dash-tab").forEach((tab) => {
     tab.classList.toggle("active", tab.dataset.tab === tabId); document.querySelectorAll(".home-nav .nav-link[data-dash-tab]").forEach((l) => l.classList.toggle("active", l.dataset.dashTab === tabId));
   });

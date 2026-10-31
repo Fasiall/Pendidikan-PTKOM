@@ -26,6 +26,8 @@
   box-sizing: border-box;
   padding: 24px clamp(20px, 3.5vw, 40px) 0;
 }
+@media (max-width: 768px) { #page-dashboard .dash-shell { zoom: 1; }
+}
 
 /* Header Profil Pengajar Modern */
 #page-dashboard .dash-head {
