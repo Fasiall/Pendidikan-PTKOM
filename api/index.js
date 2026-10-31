@@ -11,10 +11,11 @@
 const { createApp } = require("../backend/src/app");
 const { startDatabase } = require("../backend/src/db/embedded");
 const { migrate } = require("../backend/src/db/migrate");
+const { seed } = require("../backend/src/db/seed");
 
 let appPromise = null;
 
-/** Siapkan koneksi database + migrasi + Express (sekali saja per instance). */
+/** Siapkan koneksi database + migrasi + data awal + Express (sekali saja per instance). */
 function getApp() {
   if (!appPromise) {
     appPromise = (async () => {
@@ -25,6 +26,7 @@ function getApp() {
       }
       const pool = await startDatabase();
       await migrate(pool);
+      await seed(pool);
       return createApp({ pool });
     })().catch((err) => {
       appPromise = null; // biar percobaan berikutnya bisa mencoba lagi

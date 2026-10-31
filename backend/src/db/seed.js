@@ -21,8 +21,8 @@ function svgThumb(emoji, color) {
   return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
 }
 
-async function seed() {
-  const pool = getPool();
+async function seed(poolArg) {
+  const pool = poolArg || getPool();
 
   /* --------------------------- 1. Akun guru ---------------------------- */
   const { rows: teacherRows } = await pool.query(

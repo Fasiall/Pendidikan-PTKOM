@@ -36,6 +36,10 @@ module.exports = {
   frontendDir: path.join(ROOT, "..", "frontend"),
 
   db: {
+    /* Bila DATABASE_URL diisi (mis. Neon di Vercel), PostgreSQL embedded dilewati. */
+    useExternal: Boolean(env("DATABASE_URL")),
+    url: env("DATABASE_URL"),
+
     host: env("PG_HOST", "localhost"),
     port: Number(env("PG_PORT", 5432)),
     user: env("PG_USER", "postgres"),
