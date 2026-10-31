@@ -1,0 +1,400 @@
+/* ==========================================================================
+   UI/UX Set Soal Cards & Modern Controls
+   ========================================================================== */
+
+#page-dashboard .set-card-item {
+  background: #FFFFFF;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+#page-dashboard .set-card-item:hover {
+  border-color: #A5B4FC;
+  background-color: #FAFAFF;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px -4px rgba(79, 70, 229, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+}
+
+#page-dashboard .set-card-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  width: 100%;
+}
+
+#page-dashboard .set-card-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
+  border: 1px solid #C7D2FE;
+  color: #4F46E5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+#page-dashboard .set-card-thumb svg {
+  width: 22px;
+  height: 22px;
+  stroke-width: 2px;
+}
+
+#page-dashboard .set-card-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#page-dashboard .set-card-headline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+#page-dashboard .set-card-title {
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0;
+  line-height: 1.35;
+}
+
+#page-dashboard .set-card-desc {
+  font-size: 0.82rem;
+  color: #64748B;
+  margin: 0 0 8px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 500px;
+  line-height: 1.4;
+}
+
+#page-dashboard .set-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Meta Pills (Status, Soal, Durasi) - Unified Style */
+#page-dashboard .set-meta-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  color: #475569;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+#page-dashboard .set-meta-pill svg {
+  width: 13px;
+  height: 13px;
+  color: #64748B;
+  stroke-width: 2px;
+}
+
+/* Status variants using meta-pill base */
+#page-dashboard .set-meta-pill.set-status-pill.published {
+  background: #ECFDF5;
+  border-color: #A7F3D0;
+  color: #059669;
+}
+#page-dashboard .set-meta-pill.set-status-pill.draft {
+  background: #FFFBEB;
+  border-color: #FDE68A;
+  color: #D97706;
+}
+#page-dashboard .set-meta-pill.set-status-pill svg {
+  width: 12px;
+  height: 12px;
+  stroke-width: 2.2px;
+}
+
+/* Code row - separate line below meta pills */
+#page-dashboard .set-card-meta.set-code-row {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed #E2E8F0;
+}
+
+/* Kode Kuis Badge & Copy Button */
+#page-dashboard .set-code-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #F5F3FF;
+  border: 1px solid #DDD6FE;
+  padding: 2px 6px 2px 9px;
+  border-radius: 8px;
+  color: #5B21B6;
+  font-size: 0.78rem;
+}
+
+#page-dashboard .set-code-badge .set-code-icon {
+  width: 13px;
+  height: 13px;
+  color: #7C3AED;
+  stroke-width: 2.2px;
+}
+
+#page-dashboard .set-code-badge .set-code-lbl {
+  font-weight: 600;
+  color: #6D28D9;
+}
+
+#page-dashboard .set-code-badge .set-code-val {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.86rem;
+  font-weight: 800;
+  color: #4C1D95;
+  letter-spacing: 1px;
+  background: #EDE9FE;
+  padding: 1px 6px;
+  border-radius: 5px;
+}
+
+#page-dashboard .btn-copy-code {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #6D28D9;
+  background: #FFFFFF;
+  border: 1px solid #C4B5FD;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(109, 40, 217, 0.08);
+  transition: all 0.15s ease;
+}
+
+#page-dashboard .btn-copy-code svg {
+  width: 12px;
+  height: 12px;
+  stroke-width: 2.2px;
+}
+
+#page-dashboard .btn-copy-code:hover {
+  background: #7C3AED;
+  color: #FFFFFF;
+  border-color: #7C3AED;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(124, 58, 237, 0.25);
+}
+
+#page-dashboard .btn-copy-code.copied {
+  background: #059669 !important;
+  color: #FFFFFF !important;
+  border-color: #059669 !important;
+}
+
+/* Action Controls (Manage Questions + Action Buttons) - Bottom Row */
+#page-dashboard .set-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px solid #F1F5F9;
+  flex-wrap: wrap;
+}
+
+#page-dashboard .btn-manage-q {
+  background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%);
+  border: 1px solid #4338CA;
+  color: #FFFFFF;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 7px 13px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(79, 70, 229, 0.2);
+  flex-shrink: 0;
+}
+
+#page-dashboard .btn-manage-q svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2.2px;
+}
+
+#page-dashboard .btn-manage-q .set-q-count-badge {
+  background: rgba(255, 255, 255, 0.22);
+  color: #FFFFFF;
+  padding: 1px 6px;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+#page-dashboard .btn-manage-q:hover {
+  background: linear-gradient(135deg, #4338CA 0%, #3730A3 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
+}
+
+#page-dashboard .set-action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+#page-dashboard .action-btn-ui {
+  background: #FFFFFF;
+  border: 1.5px solid #E2E8F0;
+  color: #475569;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  padding: 0;
+}
+
+#page-dashboard .action-btn-ui svg {
+  width: 15px;
+  height: 15px;
+  stroke-width: 2px;
+  transition: all 0.15s ease;
+}
+
+#page-dashboard .action-btn-ui:hover {
+  background: #F8FAFC;
+  border-color: #94A3B8;
+  color: #0F172A;
+  transform: translateY(-1px);
+}
+
+#page-dashboard .action-btn-ui.edit:hover {
+  background: #EEF2FF;
+  border-color: #818CF8;
+  color: #4F46E5;
+}
+
+#page-dashboard .action-btn-ui.danger:hover {
+  background: #FEF2F2;
+  border-color: #F87171;
+  color: #EF4444;
+}
+
+/* Empty State Modern */
+#page-dashboard .set-empty-card {
+  background: #FFFFFF;
+  border: 2px dashed #CBD5E1;
+  border-radius: 16px;
+  padding: 40px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #64748B;
+  list-style: none;
+}
+
+#page-dashboard .set-empty-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: #EEF2FF;
+  color: #4F46E5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+#page-dashboard .set-empty-icon svg {
+  width: 24px;
+  height: 24px;
+  stroke-width: 2px;
+}
+
+#page-dashboard .set-empty-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1E293B;
+  margin: 0;
+}
+
+#page-dashboard .set-empty-desc {
+  font-size: 0.85rem;
+  color: #64748B;
+  max-width: 320px;
+  margin: 0;
+  line-height: 1.45;
+}
+
+@media (max-width: 380px) {
+  #page-dashboard .set-card-meta {
+    gap: 6px;
+  }
+  #page-dashboard .set-meta-pill {
+    font-size: 0.72rem;
+    padding: 2px 7px;
+  }
+  #page-dashboard .set-card-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  #page-dashboard .set-action-buttons {
+    justify-content: flex-end;
+  }
+}
+
+/* Legacy Admin List Fallbacks */
+#page-dashboard .admin-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+#page-dashboard .admin-actions .icon-mini {
+  background: #F8FAFC;
+  border: 1.5px solid #E2E8F0;
+  color: #475569;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 15px;
+}

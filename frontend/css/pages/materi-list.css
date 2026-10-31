@@ -1,0 +1,400 @@
+/* ==========================================================================
+   materi-list.css — Tampilan daftar materi (materi.html)
+   Memakai class "mlist-*" khusus halaman ini, sehingga tidak bentrok dengan
+   aturan lama (.materi-top, .materi-card, dll.) yang banyak memakai !important
+   dan tetap dipakai oleh halaman detail materi.
+   ========================================================================== */
+
+/* Screen-reader only utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ------------------------------ Header kartu ------------------------------ */
+.mlist-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0 0 24px;
+  padding: 20px 22px 22px;
+  background: #fff;
+  border: 3px solid var(--ink);
+  border-radius: 28px;
+  box-shadow: 0 7px 0 rgba(43, 42, 74, .12);
+}
+
+.mlist-back {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  margin-top: 2px;
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  color: var(--ink);
+  text-decoration: none;
+  box-shadow: 0 2px 0 rgba(43, 42, 74, .14);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.mlist-back:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 0 rgba(43, 42, 74, .14);
+}
+
+.mlist-back svg,
+.mlist-back i {
+  width: 18px;
+  height: 18px;
+}
+
+.mlist-head-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.mlist-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  background: #fff6d8;
+  color: #6b4a00;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  box-shadow: 0 2px 0 rgba(43, 42, 74, .12);
+}
+
+.mlist-title {
+  margin: 8px 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 3.6vw, 2.7rem);
+  font-weight: 800;
+  letter-spacing: -.01em;
+  line-height: 1.15;
+  color: var(--ink);
+  text-align: left;
+}
+
+.mlist-count {
+  flex: 0 0 auto;
+  padding: 6px 13px;
+  background: #e9f4ff;
+  color: #1f5fa8;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  font-size: .78rem;
+  font-weight: 800;
+  white-space: nowrap;
+  box-shadow: 0 2px 0 rgba(43, 42, 74, .12);
+}
+
+/* --------------------------------- Grid ---------------------------------- */
+.mlist-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0 22px;
+}
+
+/* ---------------------------------- Kartu -------------------------------- */
+.mlist-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #fff;
+  border: 3px solid var(--ink);
+  border-radius: 26px;
+  box-shadow: 0 7px 0 rgba(43, 42, 74, .12);
+  color: var(--ink);
+  text-decoration: none;
+  text-align: left;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+
+.mlist-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 0 rgba(43, 42, 74, .12);
+}
+
+.mlist-thumb {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1.84;
+  border-bottom: 3px solid var(--ink);
+}
+
+.mlist-emoji {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 76px;
+  height: 76px;
+  background: rgba(255, 255, 255, .72);
+  border-radius: 50%;
+  font-size: 2.4rem;
+  line-height: 1;
+}
+
+.mlist-subject {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 3px 10px;
+  background: #fff6d8;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  color: var(--ink);
+  font-size: .62rem;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  box-shadow: 0 2px 0 rgba(43, 42, 74, .14);
+}
+
+.mlist-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 7px;
+  padding: 16px 18px 18px;
+}
+
+.mlist-body h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.12rem;
+  font-weight: 800;
+  line-height: 1.3;
+  color: var(--ink);
+}
+
+.mlist-body p {
+  margin: 0 0 8px;
+  font-size: .84rem;
+  font-weight: 600;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.mlist-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 11px;
+  border-top: 2px dashed #e7e3f8;
+  font-size: .74rem;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.mlist-go {
+  padding: 3px 13px;
+  background: var(--accent, #6c4bff);
+  border-radius: 999px;
+  color: #fff;
+  font-weight: 800;
+  box-shadow: 0 2px 0 rgba(43, 42, 74, .18);
+}
+
+/* ============================ Filter & Search Row =========================== */
+.materi-filter-search-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+/* --- Dropdown Filter (existing styles enhanced) --- */
+.materi-filter-dropdown {
+  flex: 0 0 auto;
+}
+
+.materi-filter-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #fff;
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--ink);
+  cursor: pointer;
+  box-shadow: 0 3px 0 rgba(43, 42, 74, .12);
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+
+.materi-filter-trigger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 rgba(43, 42, 74, .12);
+}
+
+.materi-filter-trigger:focus-visible {
+  outline: 3px solid var(--accent, #6c4bff);
+  outline-offset: 2px;
+}
+
+.materi-filter-chevron {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  transition: transform .2s ease;
+}
+
+.materi-filter-dropdown.open .materi-filter-chevron {
+  transform: rotate(180deg);
+}
+
+.materi-filter-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 200px;
+  background: #fff;
+  border: 3px solid var(--ink);
+  border-radius: 16px;
+  box-shadow: 0 8px 0 rgba(43, 42, 74, .14);
+  overflow: hidden;
+  z-index: 100;
+}
+
+.materi-filter-menu.hidden {
+  display: none;
+}
+
+.materi-filter-item,
+.materi-filter-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 14px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #f0eef8;
+  font-family: var(--font-body);
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.materi-filter-item:last-child,
+.materi-filter-btn:last-child {
+  border-bottom: none;
+}
+
+.materi-filter-item:hover,
+.materi-filter-btn:hover {
+  background: #f8f6ff;
+}
+
+.materi-filter-item.active,
+.materi-filter-btn.active {
+  background: #f0ecff;
+  color: var(--accent, #6c4bff);
+}
+
+.materi-filter-check {
+  width: 16px;
+  height: 16px;
+  color: var(--accent, #6c4bff);
+  flex-shrink: 0;
+}
+
+.materi-filter-item:not(.active) .materi-filter-check,
+.materi-filter-btn:not(.active) .materi-filter-check {
+  opacity: 0;
+}
+
+/* --- Search Input --- */
+.materi-search-wrapper {
+  flex: 1;
+  min-width: 200px;
+  max-width: 480px;
+}
+
+.materi-search-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.materi-search-icon {
+  position: absolute;
+  left: 14px;
+  width: 18px;
+  height: 18px;
+  color: var(--muted);
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.materi-search-input {
+  width: 100%;
+  padding: 10px 44px 10px 42px;
+  background: #fff;
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--ink);
+  box-shadow: 0 3px 0 rgba(43, 42, 74, .12);
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.materi-search-input::placeholder {
+  color: var(--muted);
+  opacity: 0.7;
+}
+
+.materi-search-input:focus {
+  outline: none;
+  border-color: var(--accent, #6c4bff);
+  box-shadow: 0 3px 0 rgba(43, 42, 74, .12), 0 0 0 3px rgba(108, 75, 255, .15);
+}
+
+.materi-search-clear {
+  position: absolute;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background-color .15s ease, color .15s ease;
+}

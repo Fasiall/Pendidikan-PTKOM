@@ -1,0 +1,140 @@
+.answer-btn:hover:not(:disabled) {
+  border-color: #818CF8;
+  background: #F8FAFC;
+  transform: translateY(-3px);
+  box-shadow: 0 9px 0 #94A3B8;
+}
+.answer-btn:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 3px 0 #94A3B8;
+}
+
+.answer-key {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: #F1F5F9;
+  border: 2px solid #CBD5E1;
+  color: #475569;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+/* Animasi Tombol saat Jawaban Benar */
+.answer-btn.correct {
+  background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%) !important;
+  border-color: #10B981 !important;
+  color: #065F46 !important;
+  box-shadow: 0 5px 0 #059669 !important;
+  animation: answerPulseGreen 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.answer-btn.correct .answer-key {
+  background: #10B981 !important;
+  border-color: #059669 !important;
+  color: #FFFFFF !important;
+  transform: scale(1.1);
+}
+
+@keyframes answerPulseGreen {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
+/* Animasi Tombol saat Jawaban Salah */
+.answer-btn.wrong {
+  background: linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 100%) !important;
+  border-color: #F43F5E !important;
+  color: #9F1239 !important;
+  box-shadow: 0 5px 0 #E11D48 !important;
+  animation: answerShakeRed 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+.answer-btn.wrong .answer-key {
+  background: #F43F5E !important;
+  border-color: #E11D48 !important;
+  color: #FFFFFF !important;
+}
+
+@keyframes answerShakeRed {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+/* Kotak Umpan Balik (Feedback) */
+.feedback {
+  margin-top: 24px;
+  padding: 0;
+  border-radius: 20px;
+  font-size: 1.02rem;
+  line-height: 1.55;
+  transition: all 0.35s ease;
+  overflow: hidden;
+  opacity: 0;
+  max-height: 0;
+  text-align: left;
+}
+.feedback.ok, .feedback.no {
+  padding: 20px 24px;
+  opacity: 1;
+  max-height: 280px;
+  animation: feedbackSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.feedback.ok {
+  background: linear-gradient(135deg, #ECFDF5 0%, #F0FDF4 100%);
+  border: 2px solid #86EFAC;
+  color: #14532D;
+  box-shadow: 0 8px 24px -6px rgba(16, 185, 129, 0.18);
+}
+.feedback.no {
+  background: linear-gradient(135deg, #FFF1F2 0%, #FFF5F5 100%);
+  border: 2px solid #FECDD3;
+  color: #881337;
+  box-shadow: 0 8px 24px -6px rgba(244, 63, 94, 0.18);
+}
+.feedback b {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  margin-bottom: 6px;
+}
+
+@keyframes feedbackSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Tombol Lanjut Soal */
+.btn-next {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  padding: 18px 32px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin-top: 20px;
+  border-radius: 20px;
+  animation: nextBtnBounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes nextBtnBounce {
+  0% { opacity: 0; transform: translateY(16px) scale(0.96); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+

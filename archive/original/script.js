@@ -92,6 +92,7 @@ const soalForm      = $("#soalForm");
 const soalFormTitle = $("#soalFormTitle");
 const soalError     = $("#soalError");
 const qQuestion     = $("#qQuestion");
+const adEmoji       = $("#adEmoji");
 const adSubject     = $("#adSubject");
 const qMaterial     = $("#qMaterial");
 const qFact         = $("#qFact");
@@ -1682,252 +1683,129 @@ function shakeForm(element) {
 
 /** Mengisi dashboard guru: statistik, daftar soal, dan riwayat skor. */
 async function renderDashboard() {
-  /* Ambil profil guru yang login untuk menyapa di header dashboard */
   try {
-    const meData = await api("/api/auth/me");
-    const teacherNameEl = $("#dashTeacherName");
-    const teacherEmailEl = $("#dashTeacherEmail");
-    const teacherAvatarEl = $("#dashTeacherAvatar");
-    const teacherAvatarFallbackEl = $("#dashTeacherAvatarFallback");
-    const teacherInitialsEl = $("#dashTeacherInitials");
+    /* Ambil profil guru yang login untuk menyapa di header dashboard */
+    try {
+      const meData = await api("/api/auth/me");
+      const teacherNameEl = $("#dashTeacherName");
+      const teacherEmailEl = $("#dashTeacherEmail");
+      const teacherAvatarEl = $("#dashTeacherAvatar");
+      const teacherAvatarFallbackEl = $("#dashTeacherAvatarFallback");
+      const teacherInitialsEl = $("#dashTeacherInitials");
 
-    if (meData && meData.teacher) {
-      const fullName = meData.teacher.fullName || meData.teacher.username || "Guru";
-      if (teacherNameEl) {
-        teacherNameEl.textContent = fullName;
-      }
-      if (teacherEmailEl && meData.teacher.email) {
-        teacherEmailEl.textContent = meData.teacher.email + " • Pengajar";
-      }
-      if (teacherInitialsEl) {
-        const parts = fullName.trim().split(/\s+/).filter(Boolean);
-        const initials = parts.length >= 2
-          ? (parts[0][0] + parts[1][0]).toUpperCase()
-          : fullName.slice(0, 2).toUpperCase();
-        teacherInitialsEl.textContent = initials || "G";
-      }
-      if (teacherAvatarEl) {
-        if (meData.teacher.avatarUrl) {
-          teacherAvatarEl.referrerPolicy = "no-referrer";
-          teacherAvatarEl.onload = () => {
-            teacherAvatarEl.classList.remove("hidden");
-            if (teacherAvatarFallbackEl) teacherAvatarFallbackEl.classList.add("hidden");
-          };
-          teacherAvatarEl.onerror = () => {
+      if (meData && meData.teacher) {
+        const fullName = meData.teacher.fullName || meData.teacher.username || "Guru";
+        if (teacherNameEl) {
+          teacherNameEl.textContent = fullName;
+        }
+        if (teacherEmailEl && meData.teacher.email) {
+          teacherEmailEl.textContent = meData.teacher.email + " • Pengajar";
+        }
+        if (teacherInitialsEl) {
+          const parts = fullName.trim().split(/\s+/).filter(Boolean);
+          const initials = parts.length >= 2
+            ? (parts[0][0] + parts[1][0]).toUpperCase()
+            : fullName.slice(0, 2).toUpperCase();
+          teacherInitialsEl.textContent = initials || "G";
+        }
+        if (teacherAvatarEl) {
+          if (meData.teacher.avatarUrl) {
+            teacherAvatarEl.referrerPolicy = "no-referrer";
+            teacherAvatarEl.onload = () => {
+              teacherAvatarEl.classList.remove("hidden");
+              if (teacherAvatarFallbackEl) teacherAvatarFallbackEl.classList.add("hidden");
+            };
+            teacherAvatarEl.onerror = () => {
+              teacherAvatarEl.classList.add("hidden");
+              if (teacherAvatarFallbackEl) teacherAvatarFallbackEl.classList.remove("hidden");
+            };
+            teacherAvatarEl.src = meData.teacher.avatarUrl;
+          } else {
             teacherAvatarEl.classList.add("hidden");
             if (teacherAvatarFallbackEl) teacherAvatarFallbackEl.classList.remove("hidden");
-          };
-          teacherAvatarEl.src = meData.teacher.avatarUrl;
-        } else {
-          teacherAvatarEl.classList.add("hidden");
-          if (teacherAvatarFallbackEl) teacherAvatarFallbackEl.classList.remove("hidden");
+          }
         }
       }
-    }
-  } catch (err) {
-    console.warn("Gagal memuat profil pengajar:", err);
-  }
+    } catch (_) { /* abaikan jika gagal memuat profil */ }
 
-  /* Ambil statistik dashboard (termasuk soal, set, dan riwayat) */
-  let data;
-  try {
-    data = await api("/api/teacher/stats");
-  } catch (err) {
-    console.error("Gagal memuat statistik dashboard:", err, err?.message, err?.status, err?.stack);
-    if (err.status === 401) {
-      clearToken();
-      showPage("page-home");
-      openLoginModal();
-      showLoginError("Sesi berakhir, silakan login lagi.");
-      return;
-    }
-    showToast("Gagal memuat statistik dashboard.", "error", "Gagal Memuat Data");
-    return;
-  }
+    const data = await api("/api/teacher/stats");
 
-  /* Isi statistik */
-  try {
     statMaterials.textContent = data.totalMaterials ?? 0;
-    statTotal.textContent = data.totalQuestions ?? 0;
-    statTopics.textContent = data.topics ?? 0;
-  } catch (err) {
-    console.warn("Gagal mengisi statistik:", err);
-  }
+    statTotal.textContent = data.totalQuestions;
+    statTopics.textContent = data.topics;
 
-  /* Hitung rata-rata nilai dari riwayat (data.results sudah dari /api/teacher/stats) */
-  try {
-    const history = data.results || [];
-    if (history && history.length > 0) {
-      const percentages = history
-        .filter(h => h.total && h.total > 0 && h.score !== undefined)
-        .map(h => (h.score / h.total) * 100);
-      if (percentages.length > 0) {
-        const avgPercentage = percentages.reduce((sum, p) => sum + p, 0) / percentages.length;
-        statAvgScore.textContent = avgPercentage.toFixed(1);
+    // Ambil riwayat kuis siswa untuk menghitung rata-rata nilai (persentase per record)
+    try {
+      const historyData = await api("/api/teacher/student-history");
+      // Handle both possible response structures: {history: [...]} or [...]
+      const history = historyData.history || historyData;
+      if (history && history.length > 0) {
+        // Hitung rata-rata persentase: (score/total)*100 per record, lalu rata-ratakan
+        const percentages = history
+          .filter(h => h.total && h.total > 0)
+          .map(h => (h.score / h.total) * 100);
+        if (percentages.length > 0) {
+          const avgPercentage = percentages.reduce((sum, p) => sum + p, 0) / percentages.length;
+          statAvgScore.textContent = avgPercentage.toFixed(1);
+        } else {
+          statAvgScore.textContent = "-";
+        }
       } else {
         statAvgScore.textContent = "-";
       }
-    } else {
+    } catch (err) {
+      console.warn("Gagal memuat riwayat siswa:", err);
       statAvgScore.textContent = "-";
     }
-  } catch (err) {
-    console.warn("Gagal menghitung rata-rata nilai:", err);
-    statAvgScore.textContent = "-";
-  }
 
-  /* Daftar soal */
-  try {
+    /* Daftar soal */
     questionList.innerHTML = "";
-    const questions = data.questions || [];
-    questions.forEach((q, index) => {
+    data.questions.forEach((q, index) => {
       const li = document.createElement("li");
       li.style.animationDelay = (index * 0.06) + "s";
       li.innerHTML =
         '<span class="ql-num">' + (index + 1) + "</span>" +
-        "<div><span class=\"ql-subj\">" + (q.subject || "Umum") + "</span>" +
-        '<p class="ql-text">' + (q.question || "") + "</p></div>";
+        "<div><span class=\"ql-subj\">" + q.subject + "</span>" +
+        '<p class="ql-text">' + q.question + "</p></div>";
       questionList.appendChild(li);
     });
-  } catch (err) {
-    console.warn("Gagal merender daftar soal:", err);
-  }
 
-  /* Riwayat skor siswa - grouped by quiz */
-  try {
+    /* Riwayat skor siswa (10 terakhir) */
     resultsList.innerHTML = "";
-    const results = data.results || [];
-    if (!results.length) {
+    if (!data.results.length) {
       resultsList.innerHTML =
         '<li class="empty-note">Belum ada skor yang tersimpan. Ajak siswa bermain! 🎈</li>';
     } else {
-      // Group results by quiz_set_id
-      const quizGroups = new Map();
-      results.forEach((r) => {
-        const quizId = r.quiz_set_id || "general";
-        const quizTitle = r.quiz_set_title || "Kuis Umum (tanpa kode)";
-        if (!quizGroups.has(quizId)) {
-          quizGroups.set(quizId, {
-            id: quizId,
-            title: quizTitle,
-            accessCode: r.access_code || "-",
-            attempts: [],
-            latestAttempt: r.created_at
-          });
-        }
-        const group = quizGroups.get(quizId);
-        group.attempts.push(r);
-        if (r.created_at > group.latestAttempt) {
-          group.latestAttempt = r.created_at;
-        }
-      });
-
-      // Convert to array and sort by latest attempt (descending)
-      const sortedQuizzes = Array.from(quizGroups.values()).sort((a, b) =>
-        new Date(b.latestAttempt) - new Date(a.latestAttempt)
-      );
-
-      // Render quiz cards
-      sortedQuizzes.forEach((quiz, qIndex) => {
+      data.results.forEach((r, index) => {
         const li = document.createElement("li");
-        li.className = "quiz-group-card";
-        li.style.animationDelay = (qIndex * 0.06) + "s";
-        li.dataset.quizId = quiz.id;
-
-        // Calculate average score percentage
-        const totalScore = quiz.attempts.reduce((sum, a) => sum + (a.score || 0) / (a.total || 1) * 100, 0);
-        const avgScore = quiz.attempts.length > 0 ? Math.round(totalScore / quiz.attempts.length * 10) / 10 : 0;
-
-        // Format latest attempt time
-        let latestWaktu = "-";
-        if (quiz.latestAttempt) {
-          try {
-            latestWaktu = new Date(quiz.latestAttempt).toLocaleString("id-ID", {
-              timeZone: "Asia/Jakarta",
-              weekday: "short", day: "numeric", month: "short", year: "numeric",
-              hour: "2-digit", minute: "2-digit"
-            }) + " WIB";
-          } catch (_) { /* abaikan error format tanggal */ }
-        }
-
+        li.style.animationDelay = (index * 0.06) + "s";
+        const waktu = new Date(r.created_at).toLocaleString("id-ID", {
+          timeZone: "Asia/Jakarta",
+          weekday: "long", day: "numeric", month: "long", year: "numeric",
+          hour: "2-digit", minute: "2-digit", second: "2-digit"
+        }) + " WIB";
         li.innerHTML =
-          '<div class="quiz-group-header">' +
-            '<span class="quiz-group-icon"><i data-lucide="list-checks"></i></span>' +
-            '<div class="quiz-group-info">' +
-              '<strong class="quiz-group-title">' + escapeHtml(quiz.title) + '</strong>' +
-              '<p class="quiz-group-meta">' +
-                '<span class="quiz-group-avg">Rata-rata: ' + avgScore + '%</span>' +
-                '<span class="quiz-group-count">' + quiz.attempts.length + ' percobaan</span>' +
-                '<span class="quiz-group-code">Kode: ' + escapeHtml(quiz.accessCode) + '</span>' +
-              '</p>' +
-            '</div>' +
-            '<span class="quiz-group-latest">' + latestWaktu + '</span>' +
-            '<i data-lucide="chevron-down" class="quiz-group-toggle"></i>' +
-          '</div>' +
-          '<ul class="quiz-group-attempts hidden"></ul>';
+          '<span class="ql-num">🏅</span>' +
+          "<div><strong>" + (r.student_name || "Siswa") + " — " + r.score + "/" + r.total + " benar</strong>" +
+          '<p class="ql-text">' + (r.material_title || "Semua materi") + " • " + waktu + "</p></div>";
         resultsList.appendChild(li);
       });
-
-      // Add click handlers for quiz group cards
-      resultsList.querySelectorAll(".quiz-group-card").forEach((card) => {
-        const header = card.querySelector(".quiz-group-header");
-        const attemptsList = card.querySelector(".quiz-group-attempts");
-        const toggle = card.querySelector(".quiz-group-toggle");
-        const quizId = card.dataset.quizId;
-        const quiz = quizGroups.get(quizId);
-
-        header.addEventListener("click", () => {
-          const isExpanded = !attemptsList.classList.contains("hidden");
-          if (isExpanded) {
-            attemptsList.classList.add("hidden");
-            if (toggle) toggle.style.transform = "rotate(0deg)";
-          } else {
-            // Render attempts for this quiz
-            attemptsList.innerHTML = "";
-            quiz.attempts.forEach((r, aIndex) => {
-              const li = document.createElement("li");
-              li.style.animationDelay = (aIndex * 0.04) + "s";
-              let waktu = "-";
-              if (r.created_at) {
-                try {
-                  waktu = new Date(r.created_at).toLocaleString("id-ID", {
-                    timeZone: "Asia/Jakarta",
-                    weekday: "long", day: "numeric", month: "long", year: "numeric",
-                    hour: "2-digit", minute: "2-digit", second: "2-digit"
-                  }) + " WIB";
-                } catch (_) { /* abaikan error format tanggal */ }
-              }
-              const percent = r.total > 0 ? Math.round(r.score / r.total * 100) : 0;
-              li.innerHTML =
-                '<span class="ql-num">🏅</span>' +
-                "<div><strong>" + escapeHtml(r.student_name || "Siswa") + " — " + (r.score ?? 0) + "/" + (r.total ?? 0) + " benar (" + percent + "%)</strong>" +
-                '<p class="ql-text">' + (r.material_title || "Semua materi") + " • " + waktu + "</p></div>";
-              attemptsList.appendChild(li);
-            });
-            attemptsList.classList.remove("hidden");
-            if (toggle) toggle.style.transform = "rotate(180deg)";
-            if (window.lucide && typeof window.lucide.createIcons === "function") {
-              window.lucide.createIcons({ root: attemptsList });
-            }
-          }
-        });
-      });
-
-      if (window.lucide && typeof window.lucide.createIcons === "function") {
-        window.lucide.createIcons({ root: resultsList });
-      }
     }
-  } catch (err) {
-    console.warn("Gagal merender riwayat siswa:", err);
-  }
 
-  /* Muat data form admin (materi & soal) */
-  try {
+    /* Muat data form admin (materi & soal) */
     await loadAdminData();
     if (window.lucide && typeof window.lucide.createIcons === "function") {
       window.lucide.createIcons();
     }
   } catch (err) {
-    console.warn("Gagal memuat data admin:", err);
+    if (err.status === 401) {
+      clearToken();
+      showPage("page-home");
+      openLoginModal();
+      showLoginError("Sesi berakhir, silakan login lagi.");
+    } else {
+      showToast("Gagal memuat profil pengajar. Silakan muat ulang halaman.", "error", "Gagal Memuat Data");
+    }
   }
 }
 
@@ -1963,37 +1841,27 @@ function showFormError(box, message) {
 
 /** Ambil semua materi + soal (endpoint khusus pengajar, butuh token). */
 async function loadAdminData() {
-  /* Materi */
   try {
-    const materiData = await api("/api/materials/manage");
+    const [materiData, setData, soalData] = await Promise.all([
+      api("/api/materials/manage"),
+      api("/api/sets/manage"),
+      api("/api/questions/manage")
+    ]);
+
     materiList = materiData.materials || [];
-    if (materiAdminList && materiCount) renderMateriAdmin();
-    fillMaterialSelect();
-    fillSetMaterialSelect();
-  } catch (err) {
-    console.warn("Gagal memuat data materi:", err);
-  }
-
-  /* Set soal */
-  try {
-    const setData = await api("/api/sets/manage");
     setList = setData.sets || [];
+    if (materiAdminList && materiCount) renderMateriAdmin();
     renderSetAdmin();
-    fillSetSelect();
-  } catch (err) {
-    console.warn("Gagal memuat data set soal:", err);
-  }
-
-  /* Bank soal */
-  try {
-    const soalData = await api("/api/questions/manage");
     renderSoalAdmin(soalData.questions || []);
+    fillMaterialSelect();
+    fillSetSelect();
+    fillSetMaterialSelect();
+    if (window.lucide && typeof lucide.createIcons === "function") {
+      lucide.createIcons();
+    }
   } catch (err) {
-    console.warn("Gagal memuat bank soal:", err);
-  }
-
-  if (window.lucide && typeof lucide.createIcons === "function") {
-    lucide.createIcons();
+    if (err.status === 401) return; // biarkan renderDashboard yang menangani
+    showToast("Gagal memuat data dashboard pengajar.", "error", "Gagal Memuat Data");
   }
 }
 
@@ -2129,6 +1997,7 @@ function editSoal(question) {
 
   setSelectedCorrectRadio(question.answer ?? 0);
 
+  adEmoji.value = question.image || "❓";
   adSubject.value = question.subject || "";
   qMaterial.value = question.material_id || "";
   if (qSet) qSet.value = question.quiz_set_id || "";
@@ -2150,6 +2019,7 @@ function resetSoalForm() {
     if (inp) inp.value = "";
   });
   setSelectedCorrectRadio(0);
+  adEmoji.value = "❓";
   btnCancelSoal.hidden = true;
   showFormError(soalError, "");
 }
@@ -2190,17 +2060,14 @@ function renderSetAdmin() {
         '</div>'
       : '';
 
-    // Status pill (Publik/Draf) - using unified meta-pill style
     var statusHtml = set.is_published
-      ? '<span class="set-meta-pill set-status-pill published"><i data-lucide="globe"></i><span>Publik</span></span>'
-      : '<span class="set-meta-pill set-status-pill draft"><i data-lucide="lock"></i><span>Draf</span></span>';
+      ? '<span class="set-status-pill published"><i data-lucide="globe"></i><span>Publik</span></span>'
+      : '<span class="set-status-pill draft"><i data-lucide="lock"></i><span>Draf</span></span>';
 
-    // Time pill - format as "2M" instead of "2 Menit"
     var timeHtml = set.time_limit > 0
-      ? '<span class="set-meta-pill"><i data-lucide="clock-3"></i><span>' + set.time_limit + 'M</span></span>'
+      ? '<span class="set-meta-pill"><i data-lucide="clock-3"></i><span>' + set.time_limit + ' Menit</span></span>'
       : '';
 
-    // Questions pill
     var questionsHtml = '<span class="set-meta-pill"><i data-lucide="help-circle"></i><span>' + set.question_count + ' Soal</span></span>';
 
     var descHtml = set.description
@@ -2218,32 +2085,32 @@ function renderSetAdmin() {
         '<div class="set-card-body">' +
           '<div class="set-card-headline">' +
             '<h5 class="set-card-title">' + escapeHtml(set.title) + '</h5>' +
+            statusHtml +
           '</div>' +
           descHtml +
           '<div class="set-card-meta">' +
-            statusHtml +
             questionsHtml +
             timeHtml +
+            codeHtml +
           '</div>' +
-          (codeHtml ? '<div class="set-card-meta set-code-row">' + codeHtml + '</div>' : '') +
-          '<div class="set-card-actions">' +
-            '<button class="btn-manage-q" type="button" title="Kelola butir soal dan kunci jawaban kuis ini" data-action="manage-questions" data-id="' + set.id + '">' +
-              '<i data-lucide="sliders-horizontal"></i>' +
-              '<span>Atur Soal</span>' +
-              '<span class="set-q-count-badge">' + set.question_count + '</span>' +
-            '</button>' +
-            '<div class="set-action-buttons">' +
-              '<button class="action-btn-ui edit" type="button" title="Ubah nama & pengaturan set kuis" data-action="edit-set" data-id="' + set.id + '">' +
-                '<i data-lucide="pen-line"></i>' +
-              '</button>' +
-              '<button class="action-btn-ui" type="button" title="' + toggleTitle + '" data-action="toggle-set" data-id="' + set.id + '">' +
-                '<i data-lucide="' + toggleIcon + '"></i>' +
-              '</button>' +
-              '<button class="action-btn-ui danger" type="button" title="Hapus set kuis" data-action="delete-set" data-id="' + set.id + '">' +
-                '<i data-lucide="trash-2"></i>' +
-              '</button>' +
-            '</div>' +
-          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="set-card-actions">' +
+        '<button class="btn-manage-q" type="button" title="Kelola butir soal dan kunci jawaban kuis ini" data-action="manage-questions" data-id="' + set.id + '">' +
+          '<i data-lucide="sliders-horizontal"></i>' +
+          '<span>Atur Soal</span>' +
+          '<span class="set-q-count-badge">' + set.question_count + '</span>' +
+        '</button>' +
+        '<div class="set-action-buttons">' +
+          '<button class="action-btn-ui edit" type="button" title="Ubah nama & pengaturan set kuis" data-action="edit-set" data-id="' + set.id + '">' +
+            '<i data-lucide="pen-line"></i>' +
+          '</button>' +
+          '<button class="action-btn-ui" type="button" title="' + toggleTitle + '" data-action="toggle-set" data-id="' + set.id + '">' +
+            '<i data-lucide="' + toggleIcon + '"></i>' +
+          '</button>' +
+          '<button class="action-btn-ui danger" type="button" title="Hapus set kuis" data-action="delete-set" data-id="' + set.id + '">' +
+            '<i data-lucide="trash-2"></i>' +
+          '</button>' +
         '</div>' +
       '</div>';
 
@@ -2782,7 +2649,7 @@ function bindAdminEvents() {
         question: qQuestion.value.trim(),
         options,
         answer: selectedRadio,
-        image: "❓",
+        image: adEmoji.value.trim() || "❓",
         subject: adSubject.value.trim(),
         fact: qFact.value.trim(),
         materialId: qMaterial.value ? Number(qMaterial.value) : null,

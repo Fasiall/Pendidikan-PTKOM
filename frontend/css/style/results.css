@@ -1,0 +1,124 @@
+/* --------------------------------------------------------------------------
+   10. RESULTS CARD (HALAMAN HASIL KUIS)
+   -------------------------------------------------------------------------- */
+.result-card {
+  max-width: 620px;
+  margin: 24px auto;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 2px solid rgba(226, 232, 240, 0.95);
+  border-radius: 28px;
+  padding: 48px 38px;
+  box-shadow: 0 25px 60px -12px rgba(79, 70, 229, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.9);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.result-badge-top {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 18px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+  border: 3px solid #F59E0B;
+  color: #B45309;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  box-shadow: 0 10px 24px rgba(245, 158, 11, 0.28);
+}
+.result-badge-top i,
+.result-badge-top svg {
+  width: 36px;
+  height: 36px;
+}
+
+.result-title {
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+  font-weight: 900;
+  margin: 0 0 12px;
+  color: #1E293B;
+  letter-spacing: -0.02em;
+}
+
+/* Baris Bintang Penilaian */
+.star-row {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 26px;
+}
+.star-row .star {
+  font-size: 2.5rem;
+  filter: grayscale(1) opacity(0.35);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: inline-block;
+}
+.star-row .star.earned {
+  filter: none;
+  animation: starPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes starPop {
+  0% { transform: scale(0) rotate(-45deg); opacity: 0; }
+  70% { transform: scale(1.3) rotate(10deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+/* Lingkaran Skor */
+.score-circle,
+.score-circle-modern {
+  width: 170px;
+  height: 170px;
+  margin: 0 auto 24px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 12px 30px rgba(79, 70, 229, 0.15);
+  position: relative;
+  background: #FFFBEB;
+  border: 5px solid #FDE68A;
+  transition: background 0.6s ease;
+}
+.score-circle strong,
+.score-circle-modern strong {
+  font-family: var(--font-display);
+  font-size: 3.4rem;
+  font-weight: 900;
+  color: #4F46E5;
+  line-height: 1;
+}
+.score-circle small,
+.score-circle-modern span {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+}
+
+/* Pesan Motivasi */
+.motivation {
+  font-family: inherit;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #334155;
+  margin: 0 0 32px;
+  line-height: 1.5;
+}
+
+.result-btns {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+

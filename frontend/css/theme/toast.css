@@ -1,0 +1,12 @@
+/* ---------------------------------- Toast ---------------------------------- */
+.toast{
+  background: var(--ink);
+  color: #fff;
+  border: 2px solid var(--yellow);
+  border-radius: 16px;
+  box-shadow: 0 6px 0 rgba(43,42,74,.24);
+  font-family: var(--font);
+  font-size: .88rem;
+  font-weight: 700;
+}
+

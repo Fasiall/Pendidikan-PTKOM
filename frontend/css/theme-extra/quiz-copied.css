@@ -1,0 +1,27 @@
+.copied {
+  /* Copied toast state */
+  animation: flashGreen .5s ease;
+}
+@keyframes flashGreen {
+  0%, 100% { background: transparent; }
+  50% { background: rgba(53,201,122,.2); }
+}
+
+.is-invalid {
+  border-color: var(--coral) !important;
+  box-shadow: 0 0 0 3px rgba(255,107,107,.2) !important;
+}
+
+.login-modal-open {
+  /* Handled by body.login-modal-open above */
+}
+
+/* Toast leaving animation */
+.toast-leaving {
+  animation: toastLeave .3s ease forwards;
+}
+@keyframes toastLeave {
+  to { opacity: 0; transform: translateX(100px); }
+}
+
+/* ==========================================================================

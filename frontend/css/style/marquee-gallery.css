@@ -1,0 +1,102 @@
+/* ==========================================================================
+   GALERI FOTO MARQUEE — Infinite Auto-Scrolling Slider
+   ========================================================================== */
+
+.gallery-section {
+  margin: 48px 0 32px;
+  text-align: center;
+  overflow: hidden;
+  /* Break out of .home-inner padding to go full-width edge-to-edge */
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.gallery-title {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--ink);
+  margin-bottom: 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.gallery-title i[data-lucide] {
+  width: 28px;
+  height: 28px;
+  color: var(--primary);
+}
+
+/* Conteneur masquant les débordements */
+.gallery-marquee {
+  width: 100%;
+  overflow: hidden;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+/* Piste défilante */
+.gallery-track {
+  display: flex;
+  gap: 20px;
+  width: max-content;
+  animation: marqueeScroll 30s linear infinite;
+}
+
+.gallery-track:hover {
+  animation-play-state: paused;
+}
+
+/* Images uniformes */
+.gallery-track img {
+  width: 320px;
+  height: 210px;
+  object-fit: cover;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.10), 0 2px 6px rgba(15, 23, 42, 0.06);
+  flex-shrink: 0;
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+}
+
+.gallery-track img:hover {
+  transform: scale(1.04);
+  box-shadow: 0 12px 32px rgba(79, 70, 229, 0.18), 0 4px 10px rgba(15, 23, 42, 0.08);
+}
+
+/* Keyframes défilement infini */
+@keyframes marqueeScroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* Responsive — images plus petites sur mobile */
+@media (max-width: 768px) {
+  .gallery-title {
+    font-size: 1.25rem;
+  }
+  .gallery-track img {
+    width: 220px;
+    height: 150px;
+  }
+}
+
+@media (max-width: 480px) {
+  .gallery-section {
+    margin: 32px 0 20px;
+  }
+  .gallery-title {
+    font-size: 1.1rem;
+  }
+  .gallery-track img {
+    width: 180px;
+    height: 125px;
+    border-radius: 12px;
+  }
+  .gallery-track {
+    gap: 14px;
+  }
+}
+

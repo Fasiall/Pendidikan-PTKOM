@@ -1,0 +1,22 @@
+{
+  "version": "2.0",
+  "description": "JavaScript load order. Phase B re-split with acorn at statement boundaries.",
+  "loadOrder": [
+    "js/01-dom-refs.js",
+    "js/02-state.js",
+    "js/03-api-helpers.js",
+    "js/04-navigation.js",
+    "js/05-decorations.js",
+    "js/06a-quiz-render.js",
+    "js/06b-quiz-answer.js",
+    "js/07-animations.js",
+    "js/08-results.js",
+    "js/09a-auth.js",
+    "js/09b-dashboard.js",
+    "js/10a-admin-materials.js",
+    "js/10b-admin-questions.js",
+    "js/11-init.js"
+  ],
+  "originalFile": "script.js",
+  "entryPoint": "js/11-init.js"
+}

@@ -1,0 +1,109 @@
+.manual-login-form .input-icon svg,
+.manual-login-form .input-icon i {
+  width: 16px;
+  height: 16px;
+}
+.manual-login-form .toggle-pass {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--subtle);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  border-radius: 6px;
+  transition: color 0.15s ease;
+}
+.manual-login-form .toggle-pass:hover {
+  color: var(--primary);
+}
+
+.btn-login-submit {
+  width: 100%;
+  margin-top: 6px;
+  padding: 13px 20px;
+  font-size: 0.98rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.demo-account-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--amber-light);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: var(--radius-sm);
+  font-size: 0.84rem;
+  color: var(--slate);
+  text-align: center;
+  margin-top: 4px;
+}
+.demo-account-hint i,
+.demo-account-hint svg {
+  width: 16px;
+  height: 16px;
+  color: var(--amber);
+  flex-shrink: 0;
+}
+.demo-account-hint strong {
+  color: var(--ink);
+}
+
+.auth-register-prompt {
+  text-align: center;
+  font-size: 0.86rem;
+  color: var(--muted);
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.auth-register-prompt .register-link {
+  color: var(--primary);
+  font-weight: 700;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.auth-register-prompt .register-link:hover {
+  text-decoration: underline;
+}
+
+.login-footer-action {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.btn-back-home {
+  background: transparent;
+  border: none;
+  color: var(--slate);
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: var(--radius-full);
+  transition: all 0.2s ease;
+}
+.btn-back-home:hover {
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--primary);
+  transform: translateX(-2px);
+}
+

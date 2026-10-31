@@ -1,0 +1,349 @@
+/* ==========================================================================
+   16. STUDIO SOAL & BANK SOAL PENGAJAR (SELARAS EDTECH & BERANDA)
+   ========================================================================== */
+
+#tabSoal {
+  animation: fadeIn 0.3s ease;
+}
+
+#tabSoal .admin-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 24px;
+}
+@media (max-width: 900px) {
+  #tabSoal .admin-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Form Penyusun Soal */
+#tabSoal .editor-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 2px solid rgba(226, 232, 240, 0.95);
+  border-radius: 22px;
+  padding: 30px;
+  box-shadow: 0 16px 36px -10px rgba(79, 70, 229, 0.07);
+}
+
+#tabSoal .field label {
+  font-family: var(--font-sans);
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #334155;
+  display: block;
+  margin-bottom: 7px;
+}
+#tabSoal .req-star {
+  color: #EF4444;
+  font-weight: 800;
+}
+
+#tabSoal input[type="text"],
+#tabSoal input[type="number"],
+#tabSoal select,
+#tabSoal textarea {
+  background-color: #FFFFFF;
+  border: 2px solid #E2E8F0;
+  border-radius: 14px;
+  color: #1E293B;
+  font-family: inherit;
+  font-size: 0.96rem;
+  padding: 11px 16px;
+  outline: none;
+  transition: all 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+#tabSoal input[type="text"]:focus,
+#tabSoal input[type="number"]:focus,
+#tabSoal select:focus,
+#tabSoal textarea:focus {
+  border-color: #6366F1;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+  background: #FFFFFF;
+}
+
+/* Container Pilihan Jawaban Visual & Kunci Jawaban */
+#tabSoal .options-creator-container {
+  margin: 20px 0 24px;
+  background: #F8FAFC;
+  border: 2px dashed #CBD5E1;
+  border-radius: 18px;
+  padding: 20px;
+}
+#tabSoal .options-creator-header {
+  margin-bottom: 14px;
+}
+#tabSoal .options-creator-header .field-label-bold {
+  font-family: var(--font-display);
+  font-size: 0.96rem;
+  font-weight: 800;
+  color: #1E293B;
+  display: block;
+  margin-bottom: 4px;
+}
+#tabSoal .options-creator-header .field-hint {
+  font-size: 0.84rem;
+  color: #64748B;
+  display: block;
+  margin: 0;
+}
+
+#tabSoal .options-creator-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+#tabSoal .option-create-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background-color: #FFFFFF;
+  border: 2px solid #E2E8F0;
+  border-radius: 16px;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+#tabSoal .option-create-item:hover {
+  border-color: #A5B4FC;
+  transform: translateY(-1px);
+}
+#tabSoal .option-create-item.is-correct {
+  border-color: #10B981 !important;
+  background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%) !important;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.18) !important;
+}
+
+#tabSoal .opt-radio-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+#tabSoal .opt-radio-wrapper input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #CBD5E1;
+  border-radius: 50%;
+  outline: none;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+  margin: 0;
+  background-color: #FFFFFF;
+}
+#tabSoal .opt-radio-wrapper input[type="radio"]:checked {
+  border-color: #10B981;
+  background-color: #10B981;
+}
+#tabSoal .opt-radio-wrapper input[type="radio"]:checked::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #FFFFFF;
+}
+
+#tabSoal .opt-badge-letter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background-color: #F1F5F9;
+  border: 1.5px solid #CBD5E1;
+  color: #475569;
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+  font-weight: 800;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+#tabSoal .option-create-item.is-correct .opt-badge-letter {
+  background-color: #10B981;
+  border-color: #059669;
+  color: #FFFFFF;
+}
+
+#tabSoal .opt-input-text {
+  flex: 1;
+  border: none !important;
+  background: transparent !important;
+  padding: 6px 10px !important;
+  font-family: inherit !important;
+  font-size: 0.95rem !important;
+  font-weight: 600 !important;
+  color: #1E293B !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+#tabSoal .opt-correct-status {
+  display: none;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #065F46;
+  background: #A7F3D0;
+  border: 1px solid #6EE7B7;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+#tabSoal .opt-correct-status i,
+#tabSoal .opt-correct-status svg {
+  width: 14px;
+  height: 14px;
+  color: #059669;
+}
+#tabSoal .option-create-item.is-correct .opt-correct-status {
+  display: inline-flex;
+}
+
+/* Baris input tambahan */
+#tabSoal .admin-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+@media (max-width: 640px) {
+  #tabSoal .admin-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Bank Soal List */
+#tabSoal .admin-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+#tabSoal .admin-list li {
+  background: #FFFFFF;
+  border: 2px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.03);
+}
+#tabSoal .admin-list li:hover {
+  border-color: #818CF8;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px -4px rgba(79, 70, 229, 0.1);
+}
+
+#tabSoal .admin-thumb {
+  background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
+  border: 1.5px solid #C7D2FE;
+  border-radius: 14px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+#tabSoal .admin-info {
+  flex: 1;
+  min-width: 0;
+}
+#tabSoal .admin-info strong {
+  font-family: inherit;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #1E293B;
+  display: block;
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+#tabSoal .admin-info small {
+  color: #64748B;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+#tabSoal .admin-info .tag {
+  background: #EEF2FF;
+  color: #4F46E5;
+  border: 1px solid #C7D2FE;
+  font-size: 0.76rem;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  letter-spacing: 0.3px;
+}
+
+#tabSoal .admin-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+#tabSoal .admin-actions .icon-mini {
+  background: #F8FAFC;
+  border: 1.5px solid #E2E8F0;
+  color: #475569;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 15px;
+}
+#tabSoal .admin-actions .icon-mini:hover {
+  background: #EEF2FF;
+  border-color: #818CF8;
+  color: #4F46E5;
+  transform: translateY(-1px);
+}
+#tabSoal .admin-actions .icon-mini.danger:hover {
+  background: #FFF1F2;
+  border-color: #FECDD3;
+  color: #E11D48;
+}
+#tabSoal .admin-actions .icon-mini svg,
+#tabSoal .admin-actions .icon-mini i {
+  width: 16px;
+  height: 16px;
+}
+
+#tabSoal .admin-empty {
+  background: #F8FAFC;
+  border: 2px dashed #CBD5E1;
+  border-radius: 18px;
+  padding: 36px 24px;
+  text-align: center;
+  color: #64748B;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+

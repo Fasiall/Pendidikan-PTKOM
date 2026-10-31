@@ -1,0 +1,158 @@
+   GRUP 1: Navbar/header, Tombol, Badge
+   ========================================================================== */
+
+/* ---- Navbar (home-nav) - Moved to navbar.css (single source of truth, loaded last) ---- */
+
+/* ---- Tombol (Buttons) - Resep DESAIN: 3D pushable dengan ink border ---- */
+/* Base button - DESAIN recipe */
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 2px solid var(--ink);
+  border-radius: 16px;
+  padding: 13px 24px;
+  font-family: var(--font);
+  font-size: .98rem;
+  font-weight: 800;
+  letter-spacing: .01em;
+  color: #fff;
+  background: var(--accent);
+  box-shadow: 0 5px 0 var(--ink);
+  overflow: visible;
+  transform: translateY(0);
+  transition: transform .14s ease, box-shadow .14s ease,
+              background .18s ease, color .18s ease, border-color .18s ease;
+}
+.btn::before { content: none; }
+.btn:hover {
+  background: var(--accent-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 7px 0 var(--ink);
+  filter: none;
+}
+.btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 var(--ink);
+}
+.btn:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 5px 0 var(--ink);
+}
+
+/* Primary CTA: kuning cerah (DESAIN .btn-start) */
+.btn-3d.btn-primary,
+.btn-start {
+  background: var(--yellow);
+  color: var(--ink);
+  font-size: 1.05rem;
+  padding: 15px 28px;
+}
+.btn-3d.btn-primary:hover,
+.btn-start:hover { background: #ffd65e; }
+
+/* Secondary CTA: putih dengan garis tebal (DESAIN .btn-ghost) */
+.btn-3d.btn-secondary {
+  background: #fff;
+  color: var(--ink);
+  border-color: var(--ink);
+  box-shadow: 0 5px 0 rgba(43,42,74,.16);
+}
+.btn-3d.btn-secondary:hover {
+  background: #f7f4ff;
+  color: var(--accent);
+  box-shadow: 0 7px 0 rgba(43,42,74,.16);
+}
+
+/* Outline / Materi button: putih dengan ink border (DESAIN .btn-materi) */
+.btn-3d.btn-outline,
+.btn-materi {
+  background: #fff !important;
+  color: var(--ink) !important;
+  border: 2px solid var(--ink) !important;
+  padding: 14px 24px;
+  border-radius: 16px;
+  font-size: 1rem;
+  font-weight: 800;
+  box-shadow: 0 5px 0 rgba(43,42,74,.16);
+}
+.btn-3d.btn-outline:hover,
+.btn-materi:hover {
+  background: var(--sage-soft) !important;
+  color: var(--ink) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 7px 0 rgba(43,42,74,.16);
+}
+
+/* Small button variant (DESAIN .btn-small) */
+.btn-small,
+.btn-mini,
+.btn-xs {
+  padding: 10px 16px;
+  font-size: .86rem;
+  border-radius: 13px;
+}
+
+/* Circular icon button (DESAIN .icon-btn) */
+.icon-btn {
+  width: 44px; height: 44px; min-width: 44px;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--ink);
+  font-size: 1.15rem;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 3px 0 rgba(43,42,74,.18);
+  transition: transform .14s ease, background .18s ease, box-shadow .14s ease;
+}
+.icon-btn:hover {
+  background: #fff6d8;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 rgba(43,42,74,.18);
+}
+.icon-btn:active { transform: translateY(1px); box-shadow: 0 1px 0 rgba(43,42,74,.18); }
+
+/* ---- Badge (DESAIN .pill-badge) ---- */
+.badge-pill,
+.badge-primary,
+.pill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff6d8;
+  color: #6b4a00;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  padding: 7px 16px;
+  font-family: var(--font);
+  font-size: .78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  box-shadow: 0 3px 0 rgba(43,42,74,.16);
+}
+.badge-soft {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: .76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  background: var(--accent-soft);
+  color: var(--accent);
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 2px solid var(--ink);
+  box-shadow: 0 3px 0 rgba(43,42,74,.16);
+}
+.badge-soft i,
+.badge-soft svg { width: 12px; height: 12px; }
+
+/* ==========================================================================

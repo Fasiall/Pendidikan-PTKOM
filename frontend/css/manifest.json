@@ -1,0 +1,90 @@
+{
+  "version": "2.0",
+  "description": "CSS cascade order. Phase A: simplified names, all style pieces in css/style/.",
+  "originalFileOrder": [
+    {
+      "file": "style.css",
+      "parts": [
+        "style/header.css",
+        "style/root-vars.css",
+        "style/reset.css",
+        "style/ambient.css",
+        "style/navbar-deprecated.css",
+        "style/buttons.css",
+        "style/page-shells.css",
+        "style/hero.css",
+        "style/stats-cards.css",
+        "style/quiz-layout.css",
+        "style/quiz-feedback.css",
+        "style/results.css",
+        "style/modals.css",
+        "style/auth-dashboard.css",
+        "style/auth-dashboard-forms.css",
+        "style/materi-catalog.css",
+        "style/materi-content.css",
+        "style/responsive.css",
+        "style/quiz-editor.css",
+        "style/question-studio.css",
+        "style/creator-login-modal.css",
+        "style/creator-login-form.css",
+        "style/dashboard-creator.css",
+        "style/dashboard-forms.css",
+        "style/quiz-cards.css",
+        "style/quiz-controls.css",
+        "style/quiz-results-admin.css",
+        "style/fullwidth-sizing.css",
+        "style/footer-toast-radius.css",
+        "style/marquee-gallery.css"
+      ]
+    },
+    {
+      "file": "theme.css",
+      "parts": [
+        "theme/base.css",
+        "theme/page.css",
+        "theme/buttons.css",
+        "theme/nav.css",
+        "theme/home.css",
+        "theme/quiz.css",
+        "theme/results.css",
+        "theme/dashboard.css",
+        "theme/materi.css",
+        "theme/toast.css",
+        "theme/modal.css",
+        "theme/responsive.css"
+      ]
+    },
+    {
+      "file": "theme-extra.css",
+      "parts": [
+        "theme-extra/bridge.css",
+        "theme-extra/navbar-buttons-badge.css",
+        "theme-extra/hero-mascot.css",
+        "theme-extra/modal-sticker.css",
+        "theme-extra/quiz-screen.css",
+        "theme-extra/quiz-copied.css",
+        "theme-extra/results-leaderboard.css",
+        "theme-extra/marquee.css",
+        "theme-extra/dashboard-shell.css",
+        "theme-extra/dashboard-panels.css",
+        "theme-extra/toast-multi.css",
+        "theme-extra/materi-register.css",
+        "theme-extra/materi-register-continued.css"
+      ]
+    }
+  ],
+  "pageOverrides": {
+    "index.html": [
+      "pages/home-hero.css",
+      "pages/home-features.css"
+    ],
+    "login.html": "pages/auth.css",
+    "materi.html": [
+      "pages/materi-list.css",
+      "pages/materi-list-search.css"
+    ],
+    "materi-detail.html": null,
+    "register.html": "pages/auth.css"
+  },
+  "alwaysLast": "navbar.css"
+}

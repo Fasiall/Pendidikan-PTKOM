@@ -1,0 +1,403 @@
+/* --------------------------------------------------------------------------
+   13. MATERI & STUDY MATERIAL CATALOG
+   -------------------------------------------------------------------------- */
+.materi-top {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding: 12px 0;
+}
+.materi-top .materi-count {
+  margin-left: auto;
+}
+.materi-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+  font-weight: 900;
+  margin: 6px 0 0;
+  color: var(--ink);
+}
+
+.materi-wrap {
+  min-height: 380px;
+  margin-bottom: 40px;
+}
+
+.materi-loading,
+.materi-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted);
+  font-weight: 600;
+  background: var(--surface);
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-xl);
+  margin: 20px 0;
+}
+
+.materi-loading-icon,
+.materi-empty-icon {
+  margin-bottom: 12px;
+}
+
+.materi-empty p,
+.materi-loading p {
+  color: var(--text-sub);
+  margin-bottom: 16px;
+  font-size: 1rem;
+}
+
+.materi-filters {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 4px 2px 14px 2px;
+  margin-bottom: 24px;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+.materi-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-full);
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-sub);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+.materi-filter-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateY(-2px);
+}
+.materi-filter-btn.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.25);
+}
+
+.materi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.materi-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: var(--shadow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.materi-card:hover {
+  transform: translateY(-6px);
+  border-color: #818CF8;
+  box-shadow: var(--shadow-lg);
+}
+
+.materi-thumb {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: #EEF2FF;
+  overflow: hidden;
+}
+.materi-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.materi-subject {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--primary);
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-sm);
+}
+
+.materi-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+.materi-body h2 {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin: 0;
+  line-height: 1.4;
+  color: var(--ink);
+}
+.materi-body p {
+  font-size: 0.9rem;
+  color: var(--muted);
+  font-weight: 500;
+  line-height: 1.5;
+  margin: 0;
+  flex: 1;
+}
+.materi-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--primary);
+  border-top: 1px dashed var(--border);
+  padding-top: 14px;
+  margin-top: 8px;
+}
+
+/* Detail Materi View */
+.materi-detail {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+  overflow: hidden;
+  padding: 40px 44px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Header Lead & Summary Card (Ganti Foto Hero dengan Ringkasan Elegan & Bersih) */
+.materi-lead-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 22px;
+  background: linear-gradient(135deg, #F0F4FF 0%, #FAF5FF 100%);
+  border: 1.5px solid #E0E7FF;
+  border-radius: var(--radius-lg);
+  padding: 24px 28px;
+  margin-bottom: 36px;
+  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.05);
+}
+
+.materi-lead-badge-wrap {
+  flex-shrink: 0;
+}
+
+.materi-lead-emoji {
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+  background: #FFFFFF;
+  border: 2px solid #E2E8F0;
+  border-radius: 18px;
+  font-size: 2.2rem;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.12);
+  user-select: none;
+}
+
+.materi-lead-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.materi-lead-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--primary);
+  margin-bottom: 6px;
+}
+
+.materi-lead-tag i {
+  color: #F59E0B;
+}
+
+.materi-lead-summary,
+.materi-summary {
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.7;
+  color: #1E293B;
+  margin: 0;
+}
+
+/* Konten Materi (Typography, Table, List, Callout yang Rapi) */
+.materi-content {
+  margin: 0 0 36px 0;
+  font-size: 1.05rem;
+  line-height: 1.85;
+  color: #334155;
+}
+
+.materi-content h2 {
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 2.5vw, 1.85rem);
+  font-weight: 900;
+  color: var(--ink);
+  margin: 32px 0 16px 0;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #F1F5F9;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  letter-spacing: -0.02em;
+}
+
+.materi-content h2:first-child {
+  margin-top: 0;
+}
+
+.materi-content h3 {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #3730A3;
+  margin: 28px 0 14px 0;
+  position: relative;
+  padding-left: 14px;
+  letter-spacing: -0.01em;
+}
+
+.materi-content h3::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 3px;
+  bottom: 3px;
+  width: 4px;
+  background: var(--primary);
+  border-radius: 4px;
+}
+
+.materi-content p {
+  margin: 0 0 18px 0;
+  line-height: 1.85;
+  color: #334155;
+}
+
+/* Tabel Materi Elegan, Rapih & Modern */
+.materi-content table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 22px 0 28px 0;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1.5px solid #E2E8F0;
+  font-size: 0.98rem;
+  background: #FFFFFF;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03);
+  display: table;
+}
+
+.materi-content th,
+.materi-content td {
+  padding: 14px 20px;
+  text-align: left;
+  border-bottom: 1px solid #E2E8F0;
+  vertical-align: middle;
+}
+
+.materi-content th {
+  background: linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%);
+  font-weight: 800;
+  color: #1E293B;
+  font-size: 0.92rem;
+  letter-spacing: 0.3px;
+  border-bottom: 2px solid #CBD5E1;
+}
+
+.materi-content tr:last-child td {
+  border-bottom: none;
+}
+
+.materi-content tbody tr:nth-child(even) td {
+  background: #F8FAFC;
+}
+
+.materi-content tbody tr:hover td {
+  background: #EEF2FF;
+  transition: background 0.15s ease;
+}
+
+.materi-content td strong {
+  color: #1E293B;
+}
+
+/* Daftar Poin & Langkah-langkah (Lists) */
+.materi-content ul,
+.materi-content ol {
+  padding-left: 0;
+  margin: 16px 0 24px 0;
+  list-style: none;
+}
+
+.materi-content ul li {
+  position: relative;
+  padding-left: 28px;
+  margin-bottom: 10px;
+  line-height: 1.8;
+  color: #334155;
+}
+
+.materi-content ul li::before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  top: 11px;
+  width: 7px;
+  height: 7px;
+  background: var(--primary);
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px #EEF2FF;
+}
+
+.materi-content ol {
+  counter-reset: custom-ol;
+}
+
+.materi-content ol li {
+  counter-increment: custom-ol;
+  position: relative;
+  padding-left: 36px;
+  margin-bottom: 12px;
+  line-height: 1.8;
+  color: #334155;
+}
+
+.materi-content ol li::before {
+  content: counter(custom-ol);
+  position: absolute;
+  left: 0;
+  top: 3px;
+  width: 24px;
+  height: 24px;
+  background: var(--primary);
+  color: #FFFFFF;
+  font-weight: 800;
+  font-size: 0.8rem;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 2px 6px rgba(79, 70, 229, 0.25);
+}

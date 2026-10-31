@@ -1,0 +1,282 @@
+/* ==========================================================================
+   15. PENGATURAN SOAL & KUNCI JAWABAN KUIS (TEACHER-SCOPED)
+   ========================================================================== */
+
+/* Tombol aksi 'Atur Soal' di daftar set soal */
+.btn-manage-q {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--primary-light);
+  color: var(--primary);
+  border: 1.5px solid rgba(79, 70, 229, 0.25);
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.btn-manage-q:hover {
+  background: var(--primary);
+  color: #FFFFFF;
+  border-color: var(--primary);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);
+}
+.btn-manage-q i,
+.btn-manage-q svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Panel Atur Soal Kuis (Muncul di bawah / samping kuis) */
+.quiz-questions-panel {
+  margin-top: 24px;
+  background: #FFFFFF;
+  border: 2px solid #C7D2FE;
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.08);
+  animation: fadeIn 0.3s ease;
+}
+
+.quiz-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding-bottom: 20px;
+  border-bottom: 2px dashed #E2E8F0;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.quiz-panel-title-area h3 {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--ink);
+  margin: 6px 0 4px;
+}
+.mgr-meta {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #64748B;
+  margin: 0;
+}
+.panel-header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.badge-soft {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: #EEF2FF;
+  color: var(--primary);
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+.badge-soft i,
+.badge-soft svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* Daftar Soal dalam Panel Pengaturan */
+.quiz-questions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.mgr-empty-state {
+  text-align: center;
+  padding: 36px 20px;
+  background: #F8FAFC;
+  border-radius: 16px;
+  border: 2px dashed #CBD5E1;
+}
+.mgr-empty-state strong {
+  display: block;
+  font-size: 1.05rem;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.mgr-empty-state p {
+  font-size: 0.9rem;
+  color: #64748B;
+  margin-bottom: 16px;
+}
+
+/* Kartu Soal di Panel Pengaturan */
+.mgr-question-card {
+  background: #FAFAFD;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 18px 20px;
+  transition: all 0.2s ease;
+}
+.mgr-question-card:hover {
+  border-color: #CBD5E1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+.mgr-q-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.mgr-q-badge {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #475569;
+  background: #E2E8F0;
+  padding: 3px 10px;
+  border-radius: 8px;
+}
+.mgr-q-actions {
+  display: flex;
+  gap: 6px;
+}
+.btn-xs {
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid #CBD5E1;
+  background: #FFFFFF;
+  color: #334155;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+}
+.btn-xs:hover {
+  background: #F1F5F9;
+  color: var(--ink);
+}
+.btn-xs.btn-danger:hover {
+  background: #FFF1F2;
+  border-color: #FECDD3;
+  color: #E11D48;
+}
+
+.mgr-q-text {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 14px;
+  line-height: 1.5;
+}
+
+/* Grid Opsi Jawaban dalam Kartu */
+.mgr-options-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.mgr-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1.5px solid #E2E8F0;
+  background: #FFFFFF;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #334155;
+  transition: all 0.2s ease;
+}
+.mgr-option-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+.mgr-option-letter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #F1F5F9;
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #475569;
+  flex-shrink: 0;
+}
+.mgr-option-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Opsi yang Merupakan Jawaban Benar */
+.mgr-option.is-correct {
+  border-color: #10B981;
+  background: #ECFDF5;
+  color: #065F46;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.12);
+}
+.mgr-option.is-correct .mgr-option-letter {
+  background: #10B981;
+  color: #FFFFFF;
+}
+.mgr-correct-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: #059669;
+  background: #D1FAE5;
+  padding: 3px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Tombol Jadikan Jawaban Benar */
+.btn-set-correct {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748B;
+  background: transparent;
+  border: 1px dashed #CBD5E1;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+.btn-set-correct:hover {
+  background: #ECFDF5;
+  border-color: #10B981;
+  color: #059669;
+  transform: scale(1.03);
+}
+
+.mgr-q-fact {
+  display: block;
+  font-size: 0.84rem;
+  color: #64748B;
+  background: #F1F5F9;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+

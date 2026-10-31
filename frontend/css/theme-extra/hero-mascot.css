@@ -1,0 +1,303 @@
+   GRUP 2: Hero + Maskot Burung Hantu (Sticker Card Style)
+   ========================================================================== */
+
+/* Hide legacy decorative elements per DESAIN theme.css */
+.hero-blobs,
+.landscape-hills,
+.mini-card-glow { display: none !important; }
+
+/* Hero inner area - DESAIN uses grid layout */
+.home-inner {
+  display: grid;
+  grid-template-areas:
+    "badge"
+    "title"
+    "sub"
+    "mascot"
+    "actions"
+    "stats"
+    "cards"
+    "footer";
+  gap: 0;
+  align-items: start;
+  text-align: center;
+}
+
+/* Badge wrapper */
+.badge-wrapper {
+  grid-area: badge;
+  margin: 0 0 18px;
+  text-align: center;
+}
+
+/* Main title - DESAIN recipe */
+.main-title {
+  grid-area: title;
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 4.2vw, 3.5rem);
+  font-weight: 800;
+  line-height: 1.06;
+  letter-spacing: -.02em;
+  margin: 0 0 18px;
+  color: var(--ink);
+  text-align: center;
+  max-width: 100%;
+}
+
+/* Subtitle */
+.home-sub,
+.hero-subtitle {
+  grid-area: sub;
+  max-width: 50ch;
+  margin: 0 auto 26px;
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1.7;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* Mascot wrap - Sticker card style (DESAIN recipe) */
+.mascot-wrap,
+.hero-mascot-center {
+  grid-area: mascot;
+  align-self: center;
+  position: relative;
+  margin: 0 auto 24px;
+  padding: 30px 26px 26px;
+  background:
+    radial-gradient(circle at 78% 16%, rgba(255,201,60,.38), transparent 42%),
+    linear-gradient(180deg, #eef6ff 0%, #f6f0ff 100%);
+  border: 3px solid var(--ink);
+  border-radius: 34px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  box-shadow: 0 9px 0 rgba(43,42,74,.13);
+  overflow: visible;
+}
+
+.mascot-wrap::after,
+.hero-mascot-center::after { content: none; display: none; }
+
+/* Mascot SVG */
+.mascot,
+.mascot-svg {
+  width: min(280px, 85%);
+  height: auto;
+  display: block;
+  animation: kcFloat 4.5s ease-in-out infinite;
+}
+
+/* Speech bubble */
+.speech,
+.speech-bubble {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+  order: 2;
+  margin: 4px 0 0;
+  padding: 8px 16px;
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  color: var(--ink);
+  font-size: .86rem;
+  font-weight: 800;
+  box-shadow: 0 3px 0 rgba(43,42,74,.16);
+  animation: none;
+}
+
+.speech::after {
+  content: "";
+  display: block;
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 10px solid #fff;
+  filter: drop-shadow(0 2px 0 rgba(43,42,74,.16));
+}
+
+/* Mascot shadow */
+.mascot-shadow {
+  position: absolute;
+  bottom: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 18px;
+  background: radial-gradient(ellipse at center, rgba(43,42,74,.18) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* Mascot card inner (SISTEM structure) */
+.mascot-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+/* Floating animation for mascot */
+@keyframes kcFloat {
+  0%, 100% { transform: translateY(0) rotate(-1.5deg); }
+  50%      { transform: translateY(-12px) rotate(1.5deg); }
+}
+
+/* Hero actions */
+.hero-actions-center,
+.hero-actions {
+  grid-area: actions;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+/* Home stats - DESAIN recipe */
+.home-stats,
+.home-stats-grid {
+  grid-area: stats;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 32px;
+  width: 100%;
+  max-width: 720px;
+}
+
+.home-stat-item,
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 12px;
+  background: #fff;
+  border: 2px solid var(--line-strong);
+  border-radius: 22px;
+  box-shadow: 0 4px 0 rgba(43,42,74,.08);
+}
+
+.home-stat-num,
+.stat-number {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--ink);
+  line-height: 1.1;
+}
+
+.home-stat-label,
+.stat-label {
+  margin-top: 4px;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.home-stat-divider { display: none; }
+
+/* Stat icons */
+.stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 8px;
+}
+.stat-icon-indigo { background: var(--accent-soft); color: var(--accent); }
+.stat-icon-emerald { background: var(--sage-soft); color: var(--sage); }
+.stat-icon-amber { background: var(--gold-soft); color: var(--gold); }
+
+/* Home cards - DESAIN recipe */
+.home-cards {
+  grid-area: cards;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 32px;
+  width: 100%;
+  max-width: 920px;
+}
+
+.mini-card {
+  background: #fff;
+  border: 2px solid var(--line);
+  border-radius: 22px;
+  padding: 24px 20px;
+  text-align: center;
+  box-shadow: 0 5px 0 rgba(43,42,74,.08);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.mini-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 9px 0 rgba(43,42,74,.12);
+}
+.mini-card::before {
+  content: "";
+  display: block;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 16px;
+  background: var(--accent-soft);
+  border: 2px solid var(--ink);
+  border-radius: 16px;
+}
+.mini-card h3 {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--ink);
+  margin: 0 0 8px;
+}
+.mini-card p {
+  margin: 0;
+  font-size: .86rem;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+/* Mini card icons */
+.mini-card-icon {
+  display: none; /* Hidden since ::before creates the icon area */
+}
+
+/* Gallery section - will be styled in Group 6 */
+.gallery-section {
+  grid-area: gallery;
+  margin-top: 40px;
+}
+.gallery-title {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 800;
+  text-align: center;
+  margin: 0 0 20px;
+  color: var(--ink);
+}
+.gallery-title i { margin-right: 8px; color: var(--accent); }
+
+/* Home footer */
+.home-footer {
+  grid-area: footer;
+  margin-top: 48px;
+  text-align: center;
+  font-size: .82rem;
+  color: var(--muted);
+}
+
+/* ==========================================================================

@@ -1,0 +1,124 @@
+/* --------------------------------------------------------------------------
+   14. RESPONSIVE DESIGN (TABLET & MOBILE BREAKPOINTS)
+   -------------------------------------------------------------------------- */
+@media (max-width: 960px) {
+  .hero-container {
+    gap: 20px;
+  }
+  .admin-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .page,
+  .page-container {
+    padding: 18px 16px 60px;
+  }
+  /* Navbar responsive styles moved to navbar.css (single source of truth) */
+  .home-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .home-cards {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .hero-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+  .btn-start,
+  #btnStart,
+  .btn-materi {
+    width: 100%;
+    flex: none;
+  }
+  .answers {
+    grid-template-columns: 1fr;
+  }
+  .dash-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .materi-detail {
+    padding: 24px 20px;
+    border-radius: var(--radius-lg);
+  }
+  .materi-lead-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 18px 20px;
+    margin-bottom: 24px;
+  }
+  .materi-lead-emoji {
+    width: 50px;
+    height: 50px;
+    font-size: 1.8rem;
+    border-radius: 14px;
+  }
+  .materi-content {
+    margin: 0 0 24px 0;
+    font-size: 0.98rem;
+  }
+  .materi-content table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .materi-content th,
+  .materi-content td {
+    padding: 10px 14px;
+    font-size: 0.9rem;
+  }
+  .quiz-sets-wrap {
+    margin: 0;
+    padding-top: 24px;
+  }
+  .quiz-set-card {
+    padding: 14px 16px;
+  }
+}
+
+@media (max-width: 580px) {
+  /* Navbar responsive styles moved to navbar.css (single source of truth) */
+}
+
+@media (max-width: 480px) {
+  .page,
+  .page-container {
+    padding: 14px 10px 50px;
+  }
+  .student-action-box {
+    padding: 18px 16px;
+    border-radius: 16px;
+  }
+  .main-title {
+    font-size: 1.85rem;
+  }
+  .mascot-svg {
+    width: 170px;
+    height: 160px;
+  }
+  .speech-bubble {
+    font-size: 0.82rem;
+    padding: 8px 14px;
+  }
+  .question-card {
+    padding: 24px 18px;
+  }
+  .modal-card {
+    padding: 24px 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+

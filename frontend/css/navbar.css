@@ -1,0 +1,189 @@
+/* ==========================================================================
+   navbar.css — Navbar Kapsul (Pill-shaped) untuk semua halaman
+   Sumber kebenana tunggal untuk header.home-nav
+   Dimuat PALING AKHIR setelah style.css, theme.css, theme-extra.css
+   ========================================================================== */
+
+/* ------------------------------ NAVBAR (pill) ---------------------------- */
+body {
+  padding-top: 14px;
+}
+
+body .home-nav {
+  position: relative !important;
+  z-index: 1000 !important;
+  display: grid !important;
+  grid-template-columns: 1fr auto 1fr !important;
+  align-items: center !important;
+  gap: 12px !important;
+  width: min(1060px, calc(100% - 32px)) !important;
+  max-width: none !important;
+  margin: 0 auto !important;
+  padding: 8px 12px 8px 12px !important;
+  background: #ffffff !important;
+  border: 2px solid var(--ink) !important;
+  border-radius: 26px !important;
+  box-shadow: 0 5px 0 rgba(43, 42, 74, 0.14) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+body .home-nav .nav-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  justify-self: start;
+  text-decoration: none;
+  color: var(--ink);
+}
+
+body .home-nav .nav-brand-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px !important;
+  border: 2px solid var(--ink);
+  background: linear-gradient(145deg, #7b5cff 0%, #5636e0 100%);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+  box-shadow: 0 3px 0 rgba(43, 42, 74, 0.25);
+}
+
+body .home-nav .nav-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.08rem;
+  color: var(--ink);
+  background: none;
+  -webkit-text-fill-color: currentColor;
+}
+
+body .home-nav .nav-menu {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  justify-self: center;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+body .home-nav .nav-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 999px !important;
+  background: transparent;
+  box-shadow: none;
+  color: var(--muted);
+  font-family: var(--font);
+  font-weight: 800;
+  font-size: 0.92rem;
+  line-height: 1.2;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+body .home-nav .nav-link:hover {
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+  transform: none;
+}
+body .home-nav .nav-menu .nav-link.active,
+body .home-nav .nav-menu .nav-link.active:hover {
+  background: var(--accent) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+
+body .home-nav .nav-cta {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 18px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: #fff3c4;
+  color: var(--ink);
+  font-family: var(--font);
+  font-weight: 800;
+  font-size: 0.9rem;
+  line-height: 1.2;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 3px 0 rgba(43, 42, 74, 0.18);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+body .home-nav .nav-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 rgba(43, 42, 74, 0.18);
+}
+body .home-nav .nav-cta:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 rgba(43, 42, 74, 0.18);
+}
+
+body .home-nav a:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Body class when login modal is open - dipindah dari theme-extra.css */
+body.login-modal-open .home-nav {
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* ------------------------------- RESPONSIF ------------------------------- */
+@media (max-width: 640px) {
+  body {
+    padding-top: 10px;
+  }
+  body .home-nav {
+    grid-template-columns: auto 1fr auto !important;
+    gap: 6px !important;
+    width: calc(100% - 20px) !important;
+    margin: 0 auto !important;
+    padding: 6px 8px !important;
+    border-radius: 22px !important;
+  }
+  /* tiga item selalu satu baris: brand | menu | Area guru */
+  body .home-nav .nav-brand { grid-column: 1; grid-row: 1; order: 0 !important; }
+  body .home-nav .nav-menu  { grid-column: 2; grid-row: 1; order: 0 !important; min-width: 0; width: auto !important; justify-content: center; gap: 2px; }
+  body .home-nav .nav-cta   { grid-column: 3; grid-row: 1; order: 0 !important; }
+  body .home-nav .nav-title {
+    display: none;
+  }
+  body .home-nav .nav-link {
+    padding: 6px 9px;
+    font-size: 0.8rem;
+  }
+  body .home-nav .nav-cta {
+    padding: 7px 11px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 380px) {
+  body .home-nav .nav-link {
+    padding: 6px 7px;
+    font-size: 0.76rem;
+  }
+  body .home-nav .nav-cta {
+    padding: 6px 9px;
+    font-size: 0.76rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}

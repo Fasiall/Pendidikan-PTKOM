@@ -1,0 +1,404 @@
+/* ==========================================================================
+   home.css — Tampilan BERANDA (index.html #page-home)
+   Navbar styles dipindah ke navbar.css (single source of truth)
+   Dimuat PALING AKHIR (setelah style.css, theme.css, theme-extra.css, navbar.css).
+
+   Kenapa file ini ada:
+   Beranda sebelumnya berantakan karena tiga lapisan CSS saling bertabrakan:
+     - theme.css      : .home-inner = grid 2 kolom + grid-area (untuk markup DESAIN)
+     - theme-extra.css: .home-inner = grid 1 kolom, tetapi kolom dari theme.css tetap ada
+     - style.css (bag. 19): memaksa #page-home / .hero-container / .home-cards
+                            dengan !important
+   Akibatnya seluruh isi hero terjepit di kolom ±90px lebar.
+   File ini mendefinisikan ulang layout beranda secara utuh dan terisolasi
+   (semua selektor diawali `body #page-home`), sehingga
+   halaman lain (materi, dashboard, kuis) tidak terpengaruh.
+
+   !important hanya dipakai pada properti yang juga di-!important oleh
+   style.css bagian 19 (layout, radius, grid), supaya bisa ditimpa.
+   ========================================================================== */
+
+/* --------------------------- KERANGKA HALAMAN ---------------------------- */
+html {
+  scroll-behavior: smooth;
+}
+
+body #page-home {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 24px 56px !important;
+  box-sizing: border-box !important;
+}
+
+body #page-home .hero-blobs {
+  display: none !important;
+}
+
+body #page-home .home-inner {
+  display: block !important;
+  grid-template-columns: none !important;
+  grid-template-areas: none !important;
+  width: 100% !important;
+  max-width: 1060px !important;
+  margin: 0 auto !important;
+  padding: 36px 0 0 !important;
+  text-align: left !important;
+  box-sizing: border-box !important;
+}
+
+/* --------------------------------- HERO ---------------------------------- */
+body #page-home .hero-container {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr) !important;
+  align-items: center !important;
+  justify-items: stretch !important;
+  gap: 40px !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 24px 0 8px !important;
+  text-align: left !important;
+  flex-direction: row !important;
+}
+
+body #page-home .hero-content {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 0 !important;
+  min-width: 0;
+  grid-area: auto !important;
+  text-align: left !important;
+}
+
+body #page-home .badge-wrapper {
+  grid-area: auto !important;
+  margin: 0 0 18px !important;
+  text-align: left !important;
+}
+
+body #page-home .pill-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 14px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px !important;
+  background: #fff3c4;
+  color: #6b4a00;
+  font-family: var(--font);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.2;
+  box-shadow: 0 3px 0 rgba(43, 42, 74, 0.12);
+}
+
+/* Judul: kata tidak boleh terpotong; warna per kata */
+body #page-home .main-title {
+  grid-area: auto !important;
+  margin: 0 0 16px !important;
+  font-family: var(--font-display);
+  font-size: clamp(2.3rem, 5.2vw, 3.5rem);
+  font-weight: 800;
+  line-height: 1.04;
+  letter-spacing: 0;
+  text-align: left;
+  color: var(--ink);
+  text-shadow: none;
+}
+body #page-home .main-title .t-word {
+  display: inline-block;
+  white-space: nowrap;
+}
+body #page-home .main-title .t-letter {
+  display: inline-block;
+  text-shadow: 0 3px 0 rgba(43, 42, 74, 0.1);
+}
+body #page-home .main-title .tw-kuis { color: var(--accent); }
+body #page-home .main-title .tw-petualangan { color: var(--ink); }
+body #page-home .main-title .tw-ceria { color: #ff5c8a; }
+
+body #page-home .hero-subtitle {
+  grid-area: auto !important;
+  max-width: 42ch;
+  margin: 0 0 24px !important;
+  font-size: 1.02rem;
+  font-weight: 600;
+  line-height: 1.65;
+  color: var(--muted);
+  text-align: left;
+}
+
+/* Kotak input nama + tombol (tanpa kartu, menyatu dengan latar) */
+body #page-home .student-action-box {
+  width: 100% !important;
+  max-width: 440px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  text-align: left !important;
+}
+
+body #page-home .student-input-group {
+  margin: 0 0 14px;
+}
+
+body #page-home .student-label {
+  display: block;
+  margin: 0 0 8px;
+  font-family: var(--font);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+body #page-home .input-with-icon {
+  position: relative;
+  display: block;
+}
+
+body #page-home #studentName {
+  display: block;
+  width: 100%;
+  height: 50px;
+  padding: 0 16px !important;
+  border: 2px solid var(--ink) !important;
+  border-radius: 14px !important;
+  background: #fff !important;
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 1rem;
+  font-weight: 600;
+  box-shadow: 0 3px 0 rgba(43, 42, 74, 0.12) !important;
+  box-sizing: border-box;
+}
+body #page-home #studentName::placeholder {
+  color: #9a98b8;
+  font-weight: 600;
+}
+body #page-home #studentName:focus {
+  outline: 3px solid rgba(106, 76, 255, 0.28);
+  outline-offset: 2px;
+}
+body #page-home #studentName.is-invalid {
+  border-color: #e0475b !important;
+}
+
+body #page-home .student-name-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 0;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #d03550;
+}
+body #page-home .student-name-error.hidden {
+  display: none;
+}
+
+body #page-home .hero-actions {
+  display: flex !important;
+  flex-wrap: wrap;
+  justify-content: flex-start !important;
+  align-items: center;
+  gap: 12px;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+body #page-home .hero-actions .btn {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 22px;
+  border: 2px solid var(--ink) !important;
+  border-radius: 14px !important;
+  font-family: var(--font);
+  font-size: 0.98rem;
+  font-weight: 800;
+  line-height: 1.1;
+  text-decoration: none;
+  color: var(--ink) !important;
+  box-shadow: 0 4px 0 rgba(43, 42, 74, 0.22) !important;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+body #page-home .hero-actions .btn-start {
+  background: var(--yellow) !important;
+}
+body #page-home .hero-actions .btn-materi {
+  background: #fff !important;
+}
+body #page-home .hero-actions .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 rgba(43, 42, 74, 0.22) !important;
+}
+body #page-home .hero-actions .btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 rgba(43, 42, 74, 0.22) !important;
+}
+body #page-home .hero-actions .btn:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+body #page-home .hero-actions .btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+/* ------------------------------ MASKOT (kanan) --------------------------- */
+body #page-home .hero-mascot-center {
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+  grid-area: auto !important;
+  width: auto !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  min-width: 0;
+  background: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+body #page-home .mascot-card {
+  position: relative !important;
+  width: min(100%, 268px) !important;
+  max-width: 268px !important;
+  margin: 0 !important;
+  padding: 22px 18px 62px !important;
+  border: 2px solid var(--ink) !important;
+  border-radius: 28px !important;
+  background:
+    radial-gradient(circle at 78% 18%, rgba(255, 201, 60, 0.45), transparent 46%),
+    linear-gradient(180deg, #ffffff 0%, #f1ecff 100%) !important;
+  box-shadow: 0 8px 0 rgba(43, 42, 74, 0.16) !important;
+  box-sizing: border-box !important;
+  display: block !important;
+  overflow: visible;
+}
+
+body #page-home .mascot-card .mascot-svg {
+  display: block;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto;
+  margin: 0 auto;
+}
+
+body #page-home .mascot-card .mascot-shadow {
+  display: none !important;
+}
+
+body #page-home .mascot-card .speech-bubble {
+  position: absolute !important;
+  top: auto !important;
+  right: auto !important;
+  left: 50% !important;
+  bottom: 14px !important;
+  transform: translateX(-50%) !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: max-content !important;
+  max-width: calc(100% - 20px) !important;
+  margin: 0 !important;
+  padding: 7px 16px !important;
+  border: 2px solid var(--ink) !important;
+  border-radius: 999px !important;
+  background: #fff !important;
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 0.86rem;
+  font-weight: 800;
+  line-height: 1.25;
+  text-align: center;
+  white-space: nowrap;
+  box-shadow: 0 3px 0 rgba(43, 42, 74, 0.12) !important;
+  animation: none !important;
+}
+body #page-home .mascot-card .speech-bubble::before {
+  content: "" !important;
+  position: absolute !important;
+  top: -8px !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: 12px !important;
+  height: 12px !important;
+  margin-left: -6px !important;
+  background: #fff !important;
+  border: 0 !important;
+  border-left: 2px solid var(--ink) !important;
+  border-top: 2px solid var(--ink) !important;
+  border-radius: 3px 0 0 0 !important;
+  transform: rotate(45deg) !important;
+}
+body #page-home .mascot-card .speech-bubble::after {
+  content: none !important;
+}
+
+/* ------------------------------ ANGKA RINGKAS ---------------------------- */
+body #page-home .home-stats-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 16px !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 28px 0 0 !important;
+  padding: 0 !important;
+  grid-area: auto !important;
+}
+
+body #page-home .home-stats-grid .stat-card {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 82px;
+  padding: 16px 12px !important;
+  border: 2px solid var(--ink) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 5px 0 rgba(43, 42, 74, 0.12) !important;
+  text-align: center;
+  transform: none;
+}
+body #page-home .home-stats-grid .stat-card::before,
+body #page-home .home-stats-grid .stat-card::after {
+  content: none !important;
+}
+body #page-home .home-stats-grid .stat-card-soal { background: #fff3d1 !important; }
+body #page-home .home-stats-grid .stat-card-mapel { background: #e6f2ff !important; }
+body #page-home .home-stats-grid .stat-card-siswa { background: #ffe8f1 !important; }
+
+body #page-home .home-stats-grid .stat-number {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--ink);
+}
+body #page-home .home-stats-grid .stat-label {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
