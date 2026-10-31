@@ -97,6 +97,9 @@ body .home-nav .nav-link:hover {
   color: var(--accent-dark);
   transform: none;
 }
+body .home-nav .nav-link.nav-teacher-only { display: none !important; }
+body .home-nav.is-teacher-nav .nav-link.nav-teacher-only { display: inline-flex !important; }
+body .home-nav.is-teacher-nav .nav-link.nav-student-only { display: none !important; }
 body .home-nav .nav-menu .nav-link.active,
 body .home-nav .nav-menu .nav-link.active:hover {
   background: var(--accent) !important;

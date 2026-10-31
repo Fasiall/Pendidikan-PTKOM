@@ -3,9 +3,9 @@
 /* =============== (9b) KELOLA MATERI & SOAL (ADMIN) ==================== */
 
 /** Beralih antar tab dashboard (Materi / Soal / Riwayat). */
-function switchTab(tabId) {
+function switchTab(tabId) { document.querySelectorAll(".home-nav .nav-link[data-dash-tab]").forEach((l) => l.classList.toggle("active", l.dataset.dashTab === tabId));
   document.querySelectorAll(".dash-tab").forEach((tab) => {
-    tab.classList.toggle("active", tab.dataset.tab === tabId);
+    tab.classList.toggle("active", tab.dataset.tab === tabId); document.querySelectorAll(".home-nav .nav-link[data-dash-tab]").forEach((l) => l.classList.toggle("active", l.dataset.dashTab === tabId));
   });
   document.querySelectorAll(".tab-panel").forEach((panel) => {
     panel.classList.toggle("active", panel.id === tabId);
@@ -189,11 +189,11 @@ function editSoal(question) {
   setSelectedCorrectRadio(question.answer ?? 0);
 
   if (adEmoji) adEmoji.value = question.image || "❓";
-  if (adSubject) adSubject.value = question.subject || "";
-  if (qMaterial) qMaterial.value = question.material_id || "";
-  if (qSet) qSet.value = question.quiz_set_id || "";
-  if (qFact) qFact.value = question.fact || "";
-  if (btnCancelSoal) btnCancelSoal.hidden = false;
+  adSubject.value = question.subject || "";
+  fillMaterialSelect(); fillSetSelect(); if (qMaterial) qMaterial.value = question.material_id ? String(question.material_id) : "";
+  if (qSet) qSet.value = question.quiz_set_id ? String(question.quiz_set_id) : "";
+  qFact.value = question.fact || "";
+  btnCancelSoal.hidden = false;
   showFormError(soalError, "");
   switchTab("tabSoal");
   if (soalForm) soalForm.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -211,7 +211,7 @@ function resetSoalForm() {
   });
   setSelectedCorrectRadio(0);
   if (adEmoji) adEmoji.value = "❓";
-  if (btnCancelSoal) btnCancelSoal.hidden = true;
+  btnCancelSoal.hidden = true;
   showFormError(soalError, "");
 }
 
@@ -432,7 +432,7 @@ async function loadQuizQuestions(setId) {
 function handleAddQuestionToSet(setId) {
   resetSoalForm();
   fillSetSelect();
-  if (qSet) qSet.value = setId;
+  if (qSet) qSet.value = setId ? String(setId) : "";
   const set = setList.find((s) => s.id === setId);
   if (set && set.material_id && qMaterial) {
     qMaterial.value = set.material_id;

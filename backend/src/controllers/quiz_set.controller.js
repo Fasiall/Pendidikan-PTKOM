@@ -103,7 +103,7 @@ const manage = asyncHandler(async (req, res) => {
   const teacherId = req.teacher.id;
 
   const values = [teacherId];
-  let where = "WHERE qs.teacher_id = $1";
+  let where = "WHERE (qs.teacher_id = $1 OR qs.teacher_id IS NULL)";
 
   if (req.query.materialId !== undefined && req.query.materialId !== "") {
     values.push(toInt(req.query.materialId, "materialId", { min: 1 }));
@@ -121,7 +121,7 @@ const manage = asyncHandler(async (req, res) => {
             COUNT(q.id)::int AS question_count
        FROM quiz_sets qs
        LEFT JOIN materials m ON m.id = qs.material_id
-       LEFT JOIN questions q ON q.quiz_set_id = qs.id AND q.teacher_id = qs.teacher_id
+       LEFT JOIN questions q ON q.quiz_set_id = qs.id
       ${where}
       GROUP BY qs.id, m.title
       ORDER BY qs.material_id NULLS LAST, qs.position, qs.id`,
@@ -141,13 +141,13 @@ const getQuestions = asyncHandler(async (req, res) => {
     `SELECT qs.*, m.title AS material_title
        FROM quiz_sets qs
        LEFT JOIN materials m ON m.id = qs.material_id
-      WHERE qs.id = $1 AND qs.teacher_id = $2`,
+      WHERE qs.id = $1 AND (qs.teacher_id = $2 OR qs.teacher_id IS NULL)`,
     [id, teacherId]
   );
   if (!setRows.length) throw ApiError.notFound("Set soal tidak ditemukan atau Anda tidak memiliki akses.");
 
   const { rows: questionRows } = await pool.query(
-    `SELECT q.* FROM questions q WHERE q.quiz_set_id = $1 AND q.teacher_id = $2 ORDER BY q.position, q.id`,
+    `SELECT q.* FROM questions q WHERE q.quiz_set_id = $1 AND (q.teacher_id = $2 OR q.teacher_id IS NULL) ORDER BY q.position, q.id`,
     [id, teacherId]
   );
 
@@ -220,7 +220,7 @@ const update = asyncHandler(async (req, res) => {
   const pool = getPool();
 
   const { rows: existing } = await pool.query(
-    "SELECT * FROM quiz_sets WHERE id = $1 AND teacher_id = $2",
+    "SELECT * FROM quiz_sets WHERE id = $1 AND (teacher_id = $2 OR teacher_id IS NULL)",
     [id, teacherId]
   );
   if (!existing.length) throw ApiError.notFound("Set soal tidak ditemukan atau Anda tidak memiliki akses.");
@@ -250,7 +250,7 @@ const update = asyncHandler(async (req, res) => {
         SET title = $1, description = $2, is_published = $3, position = $4,
             time_limit = $6, material_id = $7, shuffle_questions = $9,
             schedule_start = $10, schedule_end = $11
-      WHERE id = $5 AND teacher_id = $8
+      WHERE id = $5 AND (teacher_id = $8 OR teacher_id IS NULL)
       RETURNING *`,
     [
       title,
@@ -287,7 +287,7 @@ const remove = asyncHandler(async (req, res) => {
   const pool = getPool();
 
   const { rows } = await pool.query(
-    "DELETE FROM quiz_sets WHERE id = $1 AND teacher_id = $2 RETURNING id",
+    "DELETE FROM quiz_sets WHERE id = $1 AND (teacher_id = $2 OR teacher_id IS NULL) RETURNING id",
     [id, teacherId]
   );
   if (!rows.length) throw ApiError.notFound("Set soal tidak ditemukan atau Anda tidak memiliki akses.");
@@ -303,7 +303,7 @@ const publish = asyncHandler(async (req, res) => {
 
   const pool = getPool();
   const { rows } = await pool.query(
-    "UPDATE quiz_sets SET is_published = $1 WHERE id = $2 AND teacher_id = $3 RETURNING *",
+    "UPDATE quiz_sets SET is_published = $1 WHERE id = $2 AND (teacher_id = $3 OR teacher_id IS NULL) RETURNING *",
     [isPublished, id, teacherId]
   );
   if (!rows.length) throw ApiError.notFound("Set soal tidak ditemukan atau Anda tidak memiliki akses.");

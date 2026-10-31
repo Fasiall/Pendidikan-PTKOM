@@ -36,6 +36,7 @@ async function showResult(options = {}) {
 
   score = finalScore;
   renderResult(finalScore, total);
+  if (typeof window.loadHomeStats === "function") window.loadHomeStats();
 }
 
 /** Merender tampilan halaman hasil. */

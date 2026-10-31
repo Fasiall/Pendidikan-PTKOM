@@ -11,7 +11,7 @@
 
 .mgr-meta {
   color: var(--muted);
-  font-size: .82rem;
+  font-size: .95rem;
   margin: 0;
 }
 
@@ -73,7 +73,7 @@
   background: #faf9ff;
   border: 2px solid var(--line-soft);
   border-radius: 10px;
-  font-size: .82rem;
+  font-size: .95rem;
   color: var(--ink);
 }
 
@@ -91,7 +91,7 @@
   color: #fff;
   border-radius: 6px;
   font-family: var(--font-display);
-  font-size: .7rem;
+  font-size: .88rem;
   font-weight: 800;
 }
 
@@ -202,7 +202,7 @@
   display: none;
   align-items: center;
   gap: 4px;
-  font-size: .7rem;
+  font-size: .88rem;
   font-weight: 700;
   color: var(--green);
   padding: 4px 8px;

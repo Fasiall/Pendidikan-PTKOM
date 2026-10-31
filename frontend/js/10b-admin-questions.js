@@ -44,7 +44,7 @@ function bindAdminEvents() {
         }
 
         resetMateriForm();
-        await renderDashboard();
+        await renderDashboard(); if (activeManagerSetId && qSet) qSet.value = String(activeManagerSetId); if (typeof loadHomeStats === "function") loadHomeStats();
       } catch (err) {
         showFormError(materiError, err.message);
       }
@@ -267,7 +267,7 @@ function bindAdminEvents() {
             await loadQuizQuestions(activeManagerSetId);
           }
           await loadAdminData();
-          await renderDashboard();
+          await renderDashboard(); if (activeManagerSetId && qSet) qSet.value = String(activeManagerSetId); if (typeof loadHomeStats === "function") loadHomeStats();
         } catch (err) {
           showToast(err.message, "error", "Gagal Menghapus");
         }
@@ -328,7 +328,7 @@ function bindAdminEvents() {
           showToast("Materi pembelajaran berhasil dihapus.", "success", "Materi Dihapus");
           if (editingMateriId === id) resetMateriForm();
           await loadAdminData();
-          await renderDashboard();
+          await renderDashboard(); if (activeManagerSetId && qSet) qSet.value = String(activeManagerSetId); if (typeof loadHomeStats === "function") loadHomeStats();
         }
       } catch (err) {
         showToast(err.message, "error", "Gagal Memproses");
@@ -409,7 +409,7 @@ function bindAdminEvents() {
           await loadQuizQuestions(activeManagerSetId);
         }
         await loadAdminData();
-        await renderDashboard();
+        await renderDashboard(); if (activeManagerSetId && qSet) qSet.value = String(activeManagerSetId); if (typeof loadHomeStats === "function") loadHomeStats();
       } catch (err) {
         showFormError(soalError, err.message);
       }
@@ -440,7 +440,7 @@ function bindAdminEvents() {
           showToast("Soal berhasil dihapus.", "success", "Soal Dihapus");
           if (editingSoalId === id) resetSoalForm();
           await loadAdminData();
-          await renderDashboard();
+          await renderDashboard(); if (activeManagerSetId && qSet) qSet.value = String(activeManagerSetId); if (typeof loadHomeStats === "function") loadHomeStats();
         }
       } catch (err) {
         showToast(err.message, "error", "Gagal Memproses");

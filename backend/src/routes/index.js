@@ -102,6 +102,7 @@ router.get("/quiz/results", authenticate(), quizController.results);
 router.get("/quiz/leaderboard", quizController.leaderboard);
 
 /* --------------------------- DASHBOARD GURU ----------------------------- */
+router.get("/stats", quizController.publicStats);
 router.get("/teacher/stats", authenticate(), teacherController.stats);
 router.get("/teacher/quiz-history", authenticate(), quizHistoryController.listSets);
 router.get("/teacher/quiz-history/:id", authenticate(), quizHistoryController.detail);

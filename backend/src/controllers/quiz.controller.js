@@ -346,4 +346,32 @@ const leaderboard = asyncHandler(async (req, res) => {
   res.json({ leaderboard: rows });
 });
 
-module.exports = { start, session, answer, submit, results, leaderboard };
+/** Statistik publik untuk halaman beranda (jumlah soal, materi, dan siswa yang telah mengerjakan kuis). */
+const publicStats = asyncHandler(async (req, res) => {
+  const pool = getPool();
+  const [questionsRes, materialsRes, studentsRes] = await Promise.all([
+    pool.query(
+      `SELECT COUNT(q.id)::int AS count
+         FROM questions q
+         LEFT JOIN materials m ON m.id = q.material_id
+        WHERE q.material_id IS NULL OR m.is_published = TRUE`
+    ),
+    pool.query(
+      `SELECT COUNT(*)::int AS count
+         FROM materials
+        WHERE is_published = TRUE`
+    ),
+    pool.query(
+      `SELECT COUNT(*)::int AS count
+         FROM results`
+    )
+  ]);
+
+  res.json({
+    totalQuestions: questionsRes.rows[0]?.count ?? 0,
+    totalMaterials: materialsRes.rows[0]?.count ?? 0,
+    totalStudents: studentsRes.rows[0]?.count ?? 0
+  });
+});
+
+module.exports = { start, session, answer, submit, results, leaderboard, publicStats };

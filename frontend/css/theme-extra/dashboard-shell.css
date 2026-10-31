@@ -316,6 +316,21 @@
 }
 
 /* Admin list */
+.dash-tabs { display: none !important; }
+#tabSetSoal > .admin-grid, #tabSets > .admin-grid { align-items: stretch; }
+#tabSetSoal > .admin-grid > .admin-card, #tabSets > .admin-grid > .admin-card { display: flex; flex-direction: column; }
+#tabSetSoal > .admin-grid > .admin-card > .admin-card-header, #tabSets > .admin-grid > .admin-card > .admin-card-header { padding: 0 0 14px; margin-bottom: 18px; min-height: 84px; box-sizing: border-box; }
+#tabSetSoal #setForm .form-error:empty, #tabSets #setForm .form-error:empty { display: none; margin: 0; min-height: 0; }
+#setAdminList { max-height: 520px; overflow-y: auto; overflow-x: hidden; padding-right: 6px; scrollbar-width: thin; scrollbar-color: #CBD5E1 transparent; }
+#setAdminList::-webkit-scrollbar { width: 6px; }
+#setAdminList::-webkit-scrollbar-track { background: #F1F5F9; border-radius: 999px; }
+#setAdminList::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 999px; }
+#setAdminList::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+#soalAdminList { max-height: 560px; overflow-y: auto; overflow-x: hidden; padding-right: 6px; scrollbar-width: thin; scrollbar-color: #CBD5E1 transparent; }
+#soalAdminList::-webkit-scrollbar { width: 6px; }
+#soalAdminList::-webkit-scrollbar-track { background: #F1F5F9; border-radius: 999px; }
+#soalAdminList::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 999px; }
+#soalAdminList::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
 .admin-list {
   list-style: none;
   padding: 0;

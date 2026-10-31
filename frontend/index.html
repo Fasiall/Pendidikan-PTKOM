@@ -43,13 +43,13 @@
     <link rel="stylesheet" href="css/style/materi-content.css?v=4">
     <link rel="stylesheet" href="css/style/responsive.css?v=4">
     <link rel="stylesheet" href="css/style/quiz-editor.css?v=4">
-    <link rel="stylesheet" href="css/style/question-studio.css?v=4">
+    <link rel="stylesheet" href="css/style/question-studio.css?v=5">
     <link rel="stylesheet" href="css/style/creator-login-modal.css?v=4">
     <link rel="stylesheet" href="css/style/creator-login-form.css?v=4">
-    <link rel="stylesheet" href="css/style/dashboard-creator.css?v=4">
+    <link rel="stylesheet" href="css/style/dashboard-creator.css?v=5">
     <link rel="stylesheet" href="css/style/dashboard-forms.css?v=4">
-    <link rel="stylesheet" href="css/style/quiz-cards.css?v=4">
-    <link rel="stylesheet" href="css/style/quiz-controls.css?v=4">
+    <link rel="stylesheet" href="css/style/quiz-cards.css?v=5">
+    <link rel="stylesheet" href="css/style/quiz-controls.css?v=5">
     <link rel="stylesheet" href="css/style/quiz-results-admin.css?v=4">
     <link rel="stylesheet" href="css/style/fullwidth-sizing.css?v=4">
     <link rel="stylesheet" href="css/style/footer-toast-radius.css?v=4">
@@ -74,15 +74,15 @@
     <link rel="stylesheet" href="css/theme-extra/quiz-copied.css?v=4">
     <link rel="stylesheet" href="css/theme-extra/results-leaderboard.css?v=4">
     <link rel="stylesheet" href="css/theme-extra/marquee.css?v=4">
-    <link rel="stylesheet" href="css/theme-extra/dashboard-shell.css?v=4">
-    <link rel="stylesheet" href="css/theme-extra/dashboard-panels.css?v=4">
+    <link rel="stylesheet" href="css/theme-extra/dashboard-shell.css?v=7">
+    <link rel="stylesheet" href="css/theme-extra/dashboard-panels.css?v=5">
     <link rel="stylesheet" href="css/theme-extra/toast-multi.css?v=4">
     <link rel="stylesheet" href="css/theme-extra/materi-register.css?v=4">
     <link rel="stylesheet" href="css/theme-extra/materi-register-continued.css?v=4">
     <link rel="stylesheet" href="css/pages/home-hero.css?v=4">
     <link rel="stylesheet" href="css/pages/home-features.css?v=4">
     <link rel="stylesheet" href="css/pages/quiz-history.css?v=1">
-    <link rel="stylesheet" href="css/navbar.css?v=4">
+    <link rel="stylesheet" href="css/navbar.css?v=5">
 
 </head>
 <body>
@@ -162,7 +162,10 @@
     <nav class="nav-menu" aria-label="Navigasi utama">
       <a href="index.html" class="nav-link active" data-page="page-home"><span>Beranda</span></a>
       <a href="materi.html" class="nav-link"><span>Materi</span></a>
-      <a href="#homeFeatures" class="nav-link" data-scroll="homeFeatures"><span>Fitur</span></a>
+      <a href="#homeFeatures" class="nav-link nav-student-only" data-scroll="homeFeatures"><span>Fitur</span></a>
+      <a href="#tabSetSoal" class="nav-link nav-teacher-only" data-dash-tab="tabSetSoal"><span>Set Soal</span></a>
+      <a href="#tabSoal" class="nav-link nav-teacher-only" data-dash-tab="tabSoal"><span>Bank Soal</span></a>
+      <a href="#tabRiwayat" class="nav-link nav-teacher-only" data-dash-tab="tabRiwayat"><span>Riwayat Siswa</span></a>
     </nav>
     <a href="login.html" class="nav-cta" data-page="page-login" title="Buat &amp; kelola kuis"><span>Area guru</span></a>
   </header>
@@ -569,11 +572,11 @@
       </div>
 
       <!-- Tab navigasi dashboard modern -->
-      <nav class="dash-tabs" role="tablist">
-        <button class="dash-tab active" type="button" data-tab="tabSetSoal"><i data-lucide="list-checks"></i> <span>Set Soal</span></button>
-        <button class="dash-tab" type="button" data-tab="tabSoal"><i data-lucide="help-circle"></i> <span>Bank Soal</span></button>
-        <button class="dash-tab" type="button" data-tab="tabRiwayat"><i data-lucide="bar-chart-3"></i> <span>Riwayat Siswa</span></button>
-      </nav>
+
+
+
+
+
 
       <!-- ================= TAB 1: KELOLA SET SOAL ================= -->
       <section class="tab-panel active" id="tabSetSoal">
@@ -862,7 +865,7 @@
   <script src="js/01-dom-refs.js?v=12"></script>
   <script src="js/02-state.js?v=12"></script>
   <script src="js/03-api-helpers.js?v=12"></script>
-  <script src="js/04-navigation.js?v=11"></script>
+  <script src="js/04-navigation.js?v=12"></script>
   <script src="js/05-decorations.js?v=11"></script>
   <script src="js/06a-quiz-render.js?v=12"></script>
   <script src="js/06b-quiz-answer.js?v=12"></script>
@@ -870,10 +873,10 @@
   <script src="js/08-results.js?v=12"></script>
   <script src="js/09a-auth.js?v=11"></script>
   <script src="js/09b-dashboard.js?v=12"></script>
-  <script src="js/10a-admin-materials.js?v=13"></script>
+  <script src="js/10a-admin-materials.js?v=15"></script>
   <script src="js/10b-admin-questions.js?v=13"></script>
   <script src="js/12-quiz-history.js?v=1"></script>
   <script src="js/11-init.js?v=12"></script>
-  <script src="home.js?v=1"></script>
+  <script src="home.js?v=2"></script>
 </body>
 </html>

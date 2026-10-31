@@ -78,7 +78,7 @@ const manage = asyncHandler(async (req, res) => {
   const pool = getPool();
   const teacherId = req.teacher.id;
   const values = [teacherId];
-  let where = "WHERE q.teacher_id = $1";
+  let where = "WHERE (q.teacher_id = $1 OR q.teacher_id IS NULL)";
 
   if (req.query.setId !== undefined && req.query.setId !== "") {
     values.push(toInt(req.query.setId, "setId", { min: 1 }));
@@ -155,7 +155,7 @@ const update = asyncHandler(async (req, res) => {
 
   const pool = getPool();
   const { rows: existing } = await pool.query(
-    "SELECT * FROM questions WHERE id = $1 AND teacher_id = $2",
+    "SELECT * FROM questions WHERE id = $1 AND (teacher_id = $2 OR teacher_id IS NULL)",
     [id, teacherId]
   );
   if (!existing.length) throw ApiError.notFound("Soal tidak ditemukan atau Anda tidak memiliki akses.");
@@ -209,7 +209,7 @@ const update = asyncHandler(async (req, res) => {
         SET material_id = $1, subject = $2, image = $3, question = $4,
             options = $5::jsonb, answer = $6, fact = $7, position = $8,
             quiz_set_id = $9
-      WHERE id = $10 AND teacher_id = $11
+      WHERE id = $10 AND (teacher_id = $11 OR teacher_id IS NULL)
       RETURNING *`,
     values
   );
@@ -225,7 +225,7 @@ const setAnswer = asyncHandler(async (req, res) => {
   const pool = getPool();
 
   const { rows: existing } = await pool.query(
-    "SELECT id, options, answer FROM questions WHERE id = $1 AND teacher_id = $2",
+    "SELECT id, options, answer FROM questions WHERE id = $1 AND (teacher_id = $2 OR teacher_id IS NULL)",
     [id, teacherId]
   );
   if (!existing.length) throw ApiError.notFound("Soal tidak ditemukan atau Anda tidak memiliki akses.");
@@ -237,7 +237,7 @@ const setAnswer = asyncHandler(async (req, res) => {
   }
 
   const { rows } = await pool.query(
-    "UPDATE questions SET answer = $1 WHERE id = $2 AND teacher_id = $3 RETURNING *",
+    "UPDATE questions SET answer = $1 WHERE id = $2 AND (teacher_id = $3 OR teacher_id IS NULL) RETURNING *",
     [answerIndex, id, teacherId]
   );
 
@@ -251,7 +251,7 @@ const remove = asyncHandler(async (req, res) => {
   const pool = getPool();
 
   const { rows } = await pool.query(
-    "DELETE FROM questions WHERE id = $1 AND teacher_id = $2 RETURNING id",
+    "DELETE FROM questions WHERE id = $1 AND (teacher_id = $2 OR teacher_id IS NULL) RETURNING id",
     [id, teacherId]
   );
   if (!rows.length) throw ApiError.notFound("Soal tidak ditemukan atau Anda tidak memiliki akses.");

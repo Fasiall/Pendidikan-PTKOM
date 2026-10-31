@@ -1,7 +1,7 @@
 /* ==========================================================================
    home.js — Angka ringkasan di beranda (Soal tersedia / Mata pelajaran / Siswa aktif)
    + tautan "Fitur" yang menggulir halus ke kartu fitur.
-   Memakai endpoint publik yang sudah ada; bila gagal, angka tetap "–".
+   Memakai endpoint publik /api/stats (dengan fallback /api/materials).
    ========================================================================== */
 (function () {
   "use strict";
@@ -24,37 +24,28 @@
   }
 
   function loadHomeStats() {
-    getJson("/api/questions")
+    getJson("/api/stats")
       .then(function (d) {
-        var list = Array.isArray(d) ? d : d.questions || [];
-        setText("homeStatSoal", typeof d.total === "number" ? d.total : list.length);
+        setText("homeStatSoal", Number(d.totalQuestions) || 0);
+        setText("homeStatMapel", Number(d.totalMaterials) || 0);
+        setText("homeStatSiswa", Number(d.totalStudents) || 0);
       })
-      .catch(function () {});
-
-    getJson("/api/materials")
-      .then(function (d) {
-        var list = Array.isArray(d) ? d : d.materials || [];
-        var subjects = {};
-        list.forEach(function (m) {
-          var s = (m.subject || m.mapel || "").toString().trim().toLowerCase();
-          if (s) subjects[s] = true;
-        });
-        setText("homeStatMapel", Object.keys(subjects).length);
-      })
-      .catch(function () {});
-
-    getJson("/api/quiz/leaderboard?limit=50")
-      .then(function (d) {
-        var list = Array.isArray(d) ? d : d.leaderboard || [];
-        var names = {};
-        list.forEach(function (r) {
-          var n = (r.student_name || "").toString().trim().toLowerCase();
-          if (n) names[n] = true;
-        });
-        setText("homeStatSiswa", Object.keys(names).length);
-      })
-      .catch(function () {});
+      .catch(function () {
+        /* Fallback bila endpoint /api/stats belum tersedia */
+        getJson("/api/materials")
+          .then(function (d) {
+            var list = Array.isArray(d) ? d : d.materials || [];
+            var totalQuestions = list.reduce(function (sum, m) {
+              return sum + (Number(m.question_count) || 0);
+            }, 0);
+            setText("homeStatSoal", totalQuestions);
+            setText("homeStatMapel", list.length);
+          })
+          .catch(function () {});
+      });
   }
+
+  window.loadHomeStats = loadHomeStats;
 
   document.addEventListener("click", function (e) {
     var a = e.target.closest("[data-scroll]");

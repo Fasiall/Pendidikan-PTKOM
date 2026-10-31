@@ -1,5 +1,3 @@
-
-
 /* =============== (4) NAVIGASI ANTAR HALAMAN ============================= */
 
 /**
@@ -33,13 +31,28 @@ function showPage(pageId) {
     if (window.lucide && typeof window.lucide.createIcons === "function") {
       window.lucide.createIcons();
     }
+    if (pageId === "page-home" && typeof window.loadHomeStats === "function") {
+      window.loadHomeStats();
+    }
+  }
+
+  const homeNav = document.querySelector(".home-nav");
+  const isTeacherPage = pageId === "page-dashboard" || pageId === "page-quiz-history";
+  if (homeNav) {
+    homeNav.classList.toggle("is-teacher-nav", isTeacherPage);
   }
 
   // Update status link aktif di header navigasi
+  const activeTabPanel = document.querySelector(".tab-panel.active");
+  const currentDashTab = pageId === "page-quiz-history"
+    ? "tabRiwayat"
+    : (activeTabPanel ? activeTabPanel.id : "tabSetSoal");
+
   document.querySelectorAll(".home-nav .nav-link").forEach((link) => {
     const linkPage = link.dataset.page;
-    if (pageId === "page-dashboard") {
-      link.classList.toggle("active", linkPage === "page-dashboard" || linkPage === "page-login");
+    const linkDashTab = link.dataset.dashTab;
+    if (isTeacherPage) {
+      link.classList.toggle("active", Boolean(linkDashTab && linkDashTab === currentDashTab));
     } else if (pageId === "page-home" || pageId === "page-quiz" || pageId === "page-result") {
       link.classList.toggle("active", linkPage === "page-home");
     }
@@ -48,6 +61,24 @@ function showPage(pageId) {
 
 /* Navigasi universal: elemen dengan data-page="id-halaman" berpindah halaman. */
 document.addEventListener("click", async (event) => {
+  const dashTabTrigger = event.target.closest("[data-dash-tab]");
+  if (dashTabTrigger) {
+    event.preventDefault();
+    const tabId = dashTabTrigger.dataset.dashTab;
+    const dashPage = document.getElementById("page-dashboard");
+    if (dashPage && !dashPage.classList.contains("active")) {
+      showPage("page-dashboard");
+    }
+    if (typeof switchTab === "function") {
+      switchTab(tabId);
+    }
+    const targetPanel = document.getElementById(tabId);
+    if (targetPanel) {
+      targetPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    return;
+  }
+
   const trigger = event.target.closest("[data-page]");
   if (trigger) {
     const pageId = trigger.dataset.page;
