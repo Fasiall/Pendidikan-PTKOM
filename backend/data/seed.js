@@ -13,8 +13,8 @@
    ========================================================================== */
 
 const TEACHER = {
-  username: "guru",
-  password: "guru123",
+  username: process.env.SEED_TEACHER_USERNAME || "guru",
+  password: process.env.SEED_TEACHER_PASSWORD || "guru123",
   fullName: "Guru Kelas Ceria"
 };
 

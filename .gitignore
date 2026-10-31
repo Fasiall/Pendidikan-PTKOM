@@ -6,8 +6,28 @@ node_modules/
 
 # Database PostgreSQL embedded (dibuat otomatis saat pertama kali server dijalankan)
 backend/.pgdata/
+.pgdata/
+
+# Environment variables & rahasia / API keys (jangan pernah di-commit ke Git)
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+
+# Kunci privat, sertifikat & file kredensial sensitif
+*.pem
+*.key
+*.crt
+*.cert
+*.p12
+*.pfx
+*credentials*.json
+*service-account*.json
+secrets/
 
 # File sistem / editor
 .DS_Store
+Thumbs.db
 *.log
-.env
