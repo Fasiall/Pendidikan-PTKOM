@@ -74,6 +74,9 @@
     <link rel="stylesheet" href="css/pages/auth.css?v=4">
     <link rel="stylesheet" href="css/navbar.css?v=4">
 
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@0.294.0"></script>
+
   <!-- Bila sudah login, langsung ke dashboard -->
   <script>
     try {
@@ -107,10 +110,10 @@
 
   <main class="auth-stage">
     <div class="login-card auth-card">
-      <div class="login-avatar" aria-hidden="true"></div>
+      <div class="login-avatar" id="authAvatar" aria-hidden="true"></div>
 
       <!-- Tab Masuk / Daftar akun -->
-      <div class="auth-tabs" role="tablist" aria-label="Pilih Masuk atau Daftar">
+      <div class="auth-tabs" id="authTabs" role="tablist" aria-label="Pilih Masuk atau Daftar">
         <button type="button" class="auth-tab-btn active" id="tabBtnLogin" role="tab" aria-selected="true">Masuk</button>
         <button type="button" class="auth-tab-btn" id="tabBtnRegister" role="tab" aria-selected="false">Daftar akun</button>
       </div>
@@ -203,6 +206,40 @@
         <div class="login-options">
           Sudah punya akun?
           <button type="button" class="link-btn" id="linkToLogin">Masuk di sini</button>
+        </div>
+      </form>
+
+      <!-- ============ FORM VERIFIKASI OTP ============ -->
+      <form id="otpForm" novalidate style="display: none;">
+        <div class="otp-badge-icon" aria-hidden="true">
+          <i data-lucide="mail-check"></i>
+        </div>
+        <h2>Verifikasi Email</h2>
+        <p class="login-sub">
+          Masukkan 6 digit kode yang dikirimkan ke:<br>
+          <span class="otp-email-text" id="otpEmailTarget">email@anda.com</span>
+        </p>
+
+        <div class="field">
+          <label for="otpInput">Kode OTP (6 digit)</label>
+          <div class="input-wrap otp-input-wrap">
+            <input type="text" id="otpInput" name="otp" inputmode="numeric" maxlength="6"
+                   placeholder="123456" autocomplete="one-time-code">
+          </div>
+          <small class="field-hint">Kode berlaku selama 10 menit.</small>
+        </div>
+
+        <p class="form-error" id="otpError" role="alert"></p>
+
+        <button class="btn btn-login" id="btnSubmitOtp" type="submit">Verifikasi & Masuk</button>
+
+        <div class="otp-resend-wrapper">
+          <span id="resendCountdown">Kirim ulang dalam 60s</span>
+          <button type="button" class="link-btn hidden" id="btnResendOtp">Kirim Ulang Kode</button>
+        </div>
+
+        <div class="login-options" style="margin-top: 14px;">
+          <button type="button" class="link-btn" id="btnCancelOtp">Ganti Akun / Batalkan</button>
         </div>
       </form>
     </div>

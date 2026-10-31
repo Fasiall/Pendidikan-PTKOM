@@ -32,77 +32,6 @@
   stroke-width: 2.2px;
 }
 
-/* Google Auth UI Styles */
-.google-avatar-icon {
-  width: 32px;
-  height: 32px;
-  display: block;
-}
-
-.google-auth-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  margin: 12px 0 16px 0;
-  width: 100%;
-}
-
-.google-btn-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 48px;
-  width: 100%;
-}
-
-.google-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 12px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--primary);
-  background: rgba(79, 70, 229, 0.08);
-  border-radius: 12px;
-  width: 100%;
-  margin-top: 10px;
-}
-
-.auth-spinner {
-  width: 18px;
-  height: 18px;
-  border: 2.5px solid rgba(79, 70, 229, 0.2);
-  border-top-color: var(--primary);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  display: inline-block;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.google-security-badge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-size: 0.8rem;
-  color: #64748b;
-  text-align: center;
-  margin: 12px 0 18px 0;
-}
-
-.google-security-badge i,
-.google-security-badge svg {
-  width: 15px;
-  height: 15px;
-  color: #10b981;
-}
-
 .alt-login-divider {
   display: flex;
   align-items: center;
@@ -159,7 +88,7 @@
   animation: fadeIn 0.25s ease;
 }
 
-/* Dashboard User Profile with Google Avatar */
+/* Dashboard User Profile */
 .dash-user-profile {
   display: flex;
   align-items: center;

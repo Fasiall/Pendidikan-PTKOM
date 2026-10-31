@@ -87,12 +87,19 @@ diseret langsung tanpa Git dan tanpa CLI.
 5. Buka **Settings → Environment Variables**, tambahkan untuk environment
    **Production** (boleh juga Preview + Development):
 
-   | Nama | Nilai |
-   | --- | --- |
-   | `DATABASE_URL` | connection string Neon |
-   | `JWT_SECRET` | string acak 64 karakter |
-   | `SESSION_SECRET` | string acak 64 karakter lain |
-   | `NODE_ENV` | `production` |
+   | Nama | Nilai | Wajib? |
+   | --- | --- | --- |
+   | `DATABASE_URL` | connection string Neon | Ya |
+   | `JWT_SECRET` | string acak 64 karakter | Ya |
+   | `SESSION_SECRET` | string acak 64 karakter lain | Ya |
+   | `NODE_ENV` | `production` | Ya |
+   | `SMTP_HOST` | Host SMTP (cth: `smtp.gmail.com` atau `smtp.resend.com`) | Opsional (untuk kirim OTP asli) |
+   | `SMTP_PORT` | Port SMTP (cth: `587` atau `465`) | Opsional |
+   | `SMTP_USER` | Email / username SMTP | Opsional |
+   | `SMTP_PASS` | App Password / token SMTP | Opsional |
+   | `EMAIL_FROM` | Alamat pengirim (cth: `"Kuis Ceria" <noreply@domain.com>`) | Opsional |
+
+   > Catatan: Jika SMTP tidak diisi, kode OTP verifikasi email akan dicatat di log server/terminal tanpa menggagalkan alur registrasi guru.
 
 6. Buka **Deployments → (deployment teratas) → ⋯ → Redeploy** agar env var dipakai.
 7. Cek **Settings → Build and Deployment**: *Output Directory* harus `frontend`

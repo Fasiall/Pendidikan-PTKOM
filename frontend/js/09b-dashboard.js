@@ -107,24 +107,35 @@ async function handleRegister(event) {
         email
       })
     });
-    
-    // Simpan token agar langsung login
-    saveToken(data.token);
-    
-    const namaGuru = data.teacher?.fullName || data.teacher?.username || username;
-    showToast("Selamat datang, " + escapeHtml(namaGuru) + "! Akun Anda berhasil dibuat.", "success", "Registrasi Berhasil");
-    registerForm.reset();
-    registerError.classList.remove("show");
-    registerError.innerHTML = "";
 
-    const pageDashboard = document.getElementById("page-dashboard");
-    if (pageDashboard) {
-      await renderDashboard();
-      showPage("page-dashboard");
-    } else {
-      setTimeout(() => {
-        window.location.href = "index.html#dashboard";
-      }, 1200);
+    if (data.needsVerification) {
+      showToast(data.message || "Kode verifikasi telah dikirim ke email Anda.", "info", "Verifikasi Email");
+      registerForm.reset();
+      if (registerError) {
+        registerError.classList.remove("show");
+        registerError.innerHTML = "";
+      }
+      showOtpVerification(data.email || email, data.resendAvailableIn || 60);
+      return;
+    }
+
+    if (data.token) {
+      saveToken(data.token);
+      const namaGuru = data.teacher?.fullName || data.teacher?.username || username;
+      showToast("Selamat datang, " + escapeHtml(namaGuru) + "! Akun Anda berhasil dibuat.", "success", "Registrasi Berhasil");
+      registerForm.reset();
+      registerError.classList.remove("show");
+      registerError.innerHTML = "";
+
+      const pageDashboard = document.getElementById("page-dashboard");
+      if (pageDashboard) {
+        await renderDashboard();
+        showPage("page-dashboard");
+      } else {
+        setTimeout(() => {
+          window.location.href = "index.html#dashboard";
+        }, 1200);
+      }
     }
   } catch (err) {
     showRegisterError(err.message || "Registrasi gagal, coba lagi.");
@@ -139,6 +150,11 @@ function switchAuthTab(mode) {
   const formLogin = $("#loginForm");
   const formRegister = $("#registerForm");
   const avatar = $("#authAvatar");
+  const otpFormEl = document.getElementById("otpForm");
+  const authTabsEl = document.getElementById("authTabs") || document.querySelector(".auth-tabs");
+
+  if (otpFormEl) otpFormEl.style.display = "none";
+  if (authTabsEl) authTabsEl.style.display = "flex";
 
   if (!tabLogin || !tabRegister || !formLogin || !formRegister) return;
 

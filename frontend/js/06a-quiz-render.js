@@ -94,10 +94,6 @@ function openLoginModal() {
     loginError.innerHTML = "";
   }
 
-  if (typeof initGoogleSignIn === "function") {
-    initGoogleSignIn();
-  }
-
   if (window.lucide && typeof window.lucide.createIcons === "function") {
     window.lucide.createIcons();
   }

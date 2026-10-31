@@ -135,9 +135,6 @@ async function init() {
     updatePasswordStrengthUI("");
   }
 
-  /* Inisialisasi awal Google Sign-In */
-  initGoogleSignIn();
-
   /* Tab switcher auth guru (Login / Daftar) */
   const tabBtnLogin = $("#tabBtnLogin");
   const tabBtnRegister = $("#tabBtnRegister");
@@ -148,6 +145,20 @@ async function init() {
   if (tabBtnRegister) tabBtnRegister.addEventListener("click", () => switchAuthTab("register"));
   if (linkToRegister) linkToRegister.addEventListener("click", () => switchAuthTab("register"));
   if (linkToLogin) linkToLogin.addEventListener("click", () => switchAuthTab("login"));
+
+  /* Event form verifikasi OTP */
+  const otpFormEl = $("#otpForm");
+  if (otpFormEl) {
+    otpFormEl.addEventListener("submit", handleVerifyOtp);
+  }
+  const btnResendOtpEl = $("#btnResendOtp");
+  if (btnResendOtpEl) {
+    btnResendOtpEl.addEventListener("click", handleResendOtp);
+  }
+  const btnCancelOtpEl = $("#btnCancelOtp");
+  if (btnCancelOtpEl) {
+    btnCancelOtpEl.addEventListener("click", cancelOtpVerification);
+  }
 
   /* Event listener modal login pop-up Kreator Soal */
   const btnCloseModalLogin = $("#btnCloseModalLogin");

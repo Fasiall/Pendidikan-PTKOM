@@ -52,9 +52,11 @@ async function api(path, options = {}) {
   let data = null;
   try { data = await res.json(); } catch (_) { /* respons bukan JSON */ }
   if (!res.ok) {
-    const error = new Error((data && data.error) || "Permintaan gagal.");
+    const errorMsg = (data && (data.error || data.message)) || "Permintaan gagal.";
+    const error = new Error(errorMsg);
     error.status = res.status;
     error.code = data && data.code;
+    error.data = data;
     throw error;
   }
   return data;

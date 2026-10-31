@@ -66,6 +66,15 @@ const regConfirmPasswordInput = $("#regConfirmPassword");
 const regTogglePass   = $("#toggleRegPass");
 const registerError   = $("#registerError");
 
+/* Elemen form verifikasi OTP email */
+const otpForm          = $("#otpForm");
+const otpInput         = $("#otpInput");
+const otpEmailTarget   = $("#otpEmailTarget");
+const otpError         = $("#otpError");
+const btnResendOtp     = $("#btnResendOtp");
+const resendCountdown  = $("#resendCountdown");
+const btnCancelOtp     = $("#btnCancelOtp");
+
 const questionList  = $("#questionList");
 const resultsList   = $("#resultsList");
 const statMaterials = $("#statMaterials");

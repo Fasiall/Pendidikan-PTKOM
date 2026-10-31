@@ -342,6 +342,59 @@ body.auth-page .auth-card .btn-login:disabled:hover {
   box-shadow: 0 3px 0 var(--a-ink);
 }
 
+/* ---------- Form Verifikasi OTP ---------- */
+body.auth-page .otp-badge-icon {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 14px;
+  display: grid;
+  place-items: center;
+  background: #eef2ff;
+  border: 3px solid var(--a-accent);
+  border-radius: 50%;
+  color: var(--a-accent);
+  box-shadow: 0 4px 0 rgba(43,42,74,.12);
+}
+body.auth-page .otp-badge-icon svg {
+  width: 34px;
+  height: 34px;
+}
+
+body.auth-page .otp-email-text {
+  color: var(--a-accent);
+  font-weight: 800;
+  word-break: break-all;
+}
+
+body.auth-page .otp-input-wrap input {
+  font-size: 1.85rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 14px !important;
+  text-align: center !important;
+  font-family: monospace, monospace !important;
+  padding: 12px 14px !important;
+}
+
+body.auth-page .field-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: var(--a-muted);
+  font-weight: 600;
+  text-align: center;
+}
+
+body.auth-page .otp-resend-wrapper {
+  margin: 16px 0 0;
+  text-align: center;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--a-muted);
+}
+body.auth-page .otp-resend-wrapper .link-btn {
+  font-size: 0.9rem;
+}
+
 /* ---------- Layar kecil ---------- */
 @media (max-width: 480px) {
   body.auth-page .auth-stage { padding-top: 64px; }

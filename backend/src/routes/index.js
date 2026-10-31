@@ -56,15 +56,14 @@ router.get(
 /* ------------------------------- AUTH ----------------------------------- */
 router.post("/auth/login", authController.login);
 router.post("/auth/register", authController.register);
-router.get("/auth/google/client-id", authController.getGoogleClientId);
-router.post("/auth/google", authController.googleLogin);
+router.post("/auth/verify-otp", authController.verifyOtp);
+router.post("/auth/resend-otp", authController.resendOtp);
 router.get("/auth/me", authenticate(), authController.me);
 router.post("/auth/logout", authController.logout);
 
 /* Kompatibilitas dengan frontend lama (halaman Login Pengajar). */
 router.post("/login", authController.login);
 router.post("/logout", authController.logout);
-router.post("/google-login", authController.googleLogin);
 
 /* ----------------------------- MATERI ----------------------------------- */
 router.get("/materials", materiController.list);

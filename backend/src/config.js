@@ -60,9 +60,12 @@ module.exports = {
     secret: env("SESSION_SECRET", "rahasia-sesi-kuis-sd")
   },
 
-  google: {
-    clientId: env("GOOGLE_CLIENT_ID", ""),
-    clientSecret: env("GOOGLE_CLIENT_SECRET", ""),
-    projectId: env("GOOGLE_PROJECT_ID", "")
+  email: {
+    host: env("SMTP_HOST", ""),
+    port: Number(env("SMTP_PORT", 587)),
+    secure: env("SMTP_SECURE", "false") === "true",
+    user: env("SMTP_USER", ""),
+    pass: env("SMTP_PASS", ""),
+    from: env("EMAIL_FROM", "Kuis Petualangan Ceria <no-reply@kuisceria.id>")
   }
 };
