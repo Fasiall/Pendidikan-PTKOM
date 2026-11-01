@@ -2,7 +2,7 @@
    src/utils/mailer.js — Pengiriman email OTP verifikasi (Nodemailer + Fallback)
    ========================================================================== */
 
-const nodemailer = require("nodemailer");
+let nodemailer = null; try { nodemailer = require("nodemailer"); } catch (_) {}
 const config = require("../config");
 
 let transporter = null;
@@ -11,7 +11,7 @@ function getTransporter() {
   if (transporter) return transporter;
 
   const { host, port, secure, user, pass } = config.email;
-  if (!host || !user || !pass) {
+  if (!nodemailer || !host || !user || !pass) {
     return null; // SMTP belum dikonfigurasi
   }
 

@@ -35,7 +35,7 @@ async function handleLogin(event) {
     // Reset failed attempts on successful login
     resetLoginAttempts(usernameOrEmail);
 
-    if (typeof closeLoginModal === "function") closeLoginModal();
+    if (document.getElementById("page-dashboard")) showPage("page-dashboard"); if (typeof closeLoginModal === "function") closeLoginModal();
     loginError.classList.remove("show");
     loginError.innerHTML = "";
     loginForm.reset();
@@ -44,8 +44,8 @@ async function handleLogin(event) {
     showToast("Selamat datang di Kreator Soal, " + escapeHtml(teacherName) + "!", "success", "Berhasil Masuk");
 
     if (document.getElementById("page-dashboard")) {
-      await renderDashboard();
-      showPage("page-dashboard");
+      showPage("page-dashboard"); await renderDashboard();
+      /* sudah ditampilkan di atas */
     } else {
       setTimeout(() => { window.location.href = "index.html#dashboard"; }, 900);
     }
@@ -259,8 +259,8 @@ async function handleVerifyOtp(event) {
 
     const pageDashboard = document.getElementById("page-dashboard");
     if (pageDashboard) {
-      await renderDashboard();
-      showPage("page-dashboard");
+      showPage("page-dashboard"); await renderDashboard();
+      /* sudah ditampilkan di atas */
     } else {
       setTimeout(() => {
         window.location.href = "index.html#dashboard";

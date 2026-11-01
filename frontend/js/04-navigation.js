@@ -10,7 +10,7 @@ function showPage(pageId) {
   }
   if (pageId === "page-login") {
     if (getToken()) {
-      renderDashboard().then(() => {
+      showPage("page-dashboard"); renderDashboard().then(() => {
         showPage("page-dashboard");
       }).catch(() => {
         clearToken();
@@ -21,6 +21,7 @@ function showPage(pageId) {
     }
     return;
   }
+  document.documentElement.classList.remove("early-dashboard");
   document.querySelectorAll(".page").forEach((page) => {
     page.classList.remove("active");
   });
@@ -90,7 +91,7 @@ document.addEventListener("click", async (event) => {
       event.preventDefault();
       if (getToken()) {
         try {
-          await renderDashboard();
+          showPage("page-dashboard"); await renderDashboard();
           showPage("page-dashboard");
         } catch (err) {
           clearToken();

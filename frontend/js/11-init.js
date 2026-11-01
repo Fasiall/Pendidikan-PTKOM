@@ -180,7 +180,7 @@ async function init() {
     const hash = window.location.hash;
     if (hash === "#dashboard" || hash === "#page-login" || hash === "#creator" || hash === "#page-dashboard") {
       if (getToken() && document.getElementById("page-dashboard")) {
-        renderDashboard().then(() => {
+        showPage("page-dashboard"); renderDashboard().then(() => {
           showPage("page-dashboard");
         }).catch(() => {
           clearToken();
@@ -195,7 +195,7 @@ async function init() {
   /* Routing URL khusus (/guru/riwayat...) lalu pemulihan sesi kuis. */
   const routeHandled = typeof handleAppRoute === "function" ? await handleAppRoute() : false;
   if (!routeHandled) {
-    const restored = typeof restoreQuizSession === "function"
+    handleHashRoute(); const restored = typeof restoreQuizSession === "function"
       ? await restoreQuizSession()
       : false;
     if (!restored) handleHashRoute();

@@ -227,7 +227,8 @@ function renderQuestion() {
     const buttons = answersBox.querySelectorAll(".answer-btn");
     buttons.forEach((btn) => (btn.disabled = true));
 
-    const correctBtn = answerButtonForOption(saved.correctIndex);
+    const correctOptionId = saved.correctIndex !== undefined ? saved.correctIndex : (saved.correct ? saved.chosen : null);
+    const correctBtn = correctOptionId !== null ? answerButtonForOption(correctOptionId) : null;
     if (correctBtn) correctBtn.classList.add("correct");
     if (!saved.correct) {
       const chosenBtn = answerButtonForOption(saved.chosen);
@@ -238,10 +239,11 @@ function renderQuestion() {
       feedbackBox.className = "feedback ok";
       feedbackBox.innerHTML = "<b>Hebat! Jawabanmu benar!</b>" + (saved.fact ? "<br>" + escapeHtml(saved.fact) : "");
     } else {
+      const correctText = saved.correctIndex !== undefined ? optionTextById(saved.correctIndex) : "";
       feedbackBox.className = "feedback no";
       feedbackBox.innerHTML =
-        "<b>Belum tepat.</b>Jawaban yang benar: <b>" +
-        escapeHtml(optionTextById(saved.correctIndex)) + "</b>." +
+        "<b>Belum tepat.</b>" +
+        (correctText ? " Jawaban yang benar: <b>" + escapeHtml(correctText) + "</b>." : "") +
         (saved.fact ? "<br>" + escapeHtml(saved.fact) : "");
     }
 
@@ -301,12 +303,13 @@ async function chooseAnswer(selectedOptionId) {
     scoreChip.classList.add("score-bump");
   } else {
     if (selectedBtn) selectedBtn.classList.add("wrong");
-    const correctBtn = answerButtonForOption(result.correctIndex);
-    if (correctBtn) correctBtn.classList.add("correct"); // tampilkan jawaban benar
+    const correctBtn = result.correctIndex !== undefined ? answerButtonForOption(result.correctIndex) : null;
+    if (correctBtn) correctBtn.classList.add("correct"); // tampilkan jawaban benar jika tersedia
+    const correctText = result.correctIndex !== undefined ? optionTextById(result.correctIndex) : "";
     feedbackBox.className = "feedback no";
     feedbackBox.innerHTML =
-      "<b>Belum tepat, ayo coba lagi!</b>Jawaban yang benar: <b>" +
-      escapeHtml(optionTextById(result.correctIndex)) + "</b>. " +
+      "<b>Belum tepat, ayo coba lagi!</b>" +
+      (correctText ? " Jawaban yang benar: <b>" + escapeHtml(correctText) + "</b>. " : "") +
       (result.fact ? "<br>" + escapeHtml(result.fact) : "");
     if (questionCard) {
       questionCard.classList.remove("card-shake");

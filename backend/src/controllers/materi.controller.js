@@ -30,9 +30,14 @@ const ALLOWED_FIELDS = [
 ];
 
 /** Bangun klausa WHERE dinamis dari query string. */
-function buildFilters(query, { includeUnpublished = false } = {}) {
+function buildFilters(query, { includeUnpublished = false, authorId = null } = {}) {
   const values = [];
   const where = [];
+
+  if (authorId !== null && authorId !== undefined) {
+    values.push(authorId);
+    where.push(`m.author_id = $${values.length}`);
+  }
 
   const search = String(query.search || "").trim();
   if (search) {
@@ -95,7 +100,10 @@ const detail = asyncHandler(async (req, res) => {
 /** Semua materi (termasuk draf) untuk dashboard pengajar. */
 const manage = asyncHandler(async (req, res) => {
   const pool = getPool();
-  const { where, values } = buildFilters(req.query, { includeUnpublished: true });
+  const { where, values } = buildFilters(req.query, {
+    includeUnpublished: true,
+    authorId: req.teacher.id
+  });
 
   const { rows } = await pool.query(
     `SELECT m.*, COUNT(q.id)::int AS question_count
@@ -176,16 +184,16 @@ const update = asyncHandler(async (req, res) => {
 
   if (!sets.length) throw ApiError.badRequest("Tidak ada field yang dikirim untuk diubah.");
 
-  values.push(id);
+  values.push(id, req.teacher.id);
   const pool = getPool();
   const { rows } = await pool.query(
     `UPDATE materials SET ${sets.join(", ")}, updated_at = now()
-      WHERE id = $${values.length}
+      WHERE id = $${values.length - 1} AND author_id = $${values.length}
       RETURNING *`,
     values
   );
 
-  if (!rows.length) throw ApiError.notFound("Materi tidak ditemukan.");
+  if (!rows.length) throw ApiError.notFound("Materi tidak ditemukan atau Anda tidak memiliki akses.");
   res.json({ ok: true, material: rows[0] });
 });
 
@@ -195,10 +203,10 @@ const remove = asyncHandler(async (req, res) => {
   const pool = getPool();
 
   const { rows } = await pool.query(
-    "DELETE FROM materials WHERE id = $1 RETURNING id",
-    [id]
+    "DELETE FROM materials WHERE id = $1 AND author_id = $2 RETURNING id",
+    [id, req.teacher.id]
   );
-  if (!rows.length) throw ApiError.notFound("Materi tidak ditemukan.");
+  if (!rows.length) throw ApiError.notFound("Materi tidak ditemukan atau Anda tidak memiliki akses.");
 
   res.json({ ok: true, deletedId: id });
 });
@@ -210,10 +218,10 @@ const publish = asyncHandler(async (req, res) => {
 
   const pool = getPool();
   const { rows } = await pool.query(
-    "UPDATE materials SET is_published = $1, updated_at = now() WHERE id = $2 RETURNING *",
-    [isPublished, id]
+    "UPDATE materials SET is_published = $1, updated_at = now() WHERE id = $2 AND author_id = $3 RETURNING *",
+    [isPublished, id, req.teacher.id]
   );
-  if (!rows.length) throw ApiError.notFound("Materi tidak ditemukan.");
+  if (!rows.length) throw ApiError.notFound("Materi tidak ditemukan atau Anda tidak memiliki akses.");
 
   res.json({ ok: true, material: rows[0] });
 });

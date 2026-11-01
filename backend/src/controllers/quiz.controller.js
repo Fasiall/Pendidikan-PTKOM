@@ -243,7 +243,6 @@ const answer = asyncHandler(async (req, res) => {
   quiz.results[key] = {
     questionId: question.id,
     correct,
-    correctIndex: Number(question.answer),
     chosen,
     fact: question.fact
   };
@@ -286,15 +285,20 @@ const submit = asyncHandler(async (req, res) => {
   });
 });
 
-/** Riwayat skor terbaru (dipakai dashboard guru). Mendukung ?format=csv. */
+/** Riwayat skor terbaru milik pengajar yang login. Mendukung ?format=csv. */
 const results = asyncHandler(async (req, res) => {
   const pool = getPool();
+  const teacherId = req.teacher.id;
   const { rows } = await pool.query(
     `SELECT r.id, r.student_name, r.score, r.total, r.created_at, m.title AS material_title
        FROM results r
        LEFT JOIN materials m ON m.id = r.material_id
+       LEFT JOIN quiz_sets qs ON qs.id = r.quiz_set_id
+      WHERE qs.teacher_id = $1
+         OR (qs.id IS NULL AND m.author_id = $1)
       ORDER BY r.id DESC
-      LIMIT 100`
+      LIMIT 100`,
+    [teacherId]
   );
 
   if (req.query.format === "csv") {
